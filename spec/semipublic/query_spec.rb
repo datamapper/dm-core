@@ -1307,7 +1307,9 @@ describe DataMapper::Query do
     }
   end
 
-  it { @query.should respond_to(:==) }
+  subject { @query }
+
+  it { should respond_to(:==) }
 
   describe '#==' do
     describe 'when other is equal' do
@@ -1389,7 +1391,7 @@ describe DataMapper::Query do
     end
   end
 
-  it { @query.should respond_to(:conditions) }
+  it { should respond_to(:conditions) }
 
   describe '#conditions' do
     before :all do
@@ -1413,7 +1415,7 @@ describe DataMapper::Query do
     end
   end
 
-  it { @query.should respond_to(:dup) }
+  it { should respond_to(:dup) }
 
   describe '#dup' do
     before :all do
@@ -1437,7 +1439,7 @@ describe DataMapper::Query do
     end
   end
 
-  it { @query.should respond_to(:eql?) }
+  it { should respond_to(:eql?) }
 
   describe '#eql?' do
     describe 'when other is equal' do
@@ -1489,7 +1491,7 @@ describe DataMapper::Query do
     end
   end
 
-  it { @query.should respond_to(:fields) }
+  it { should respond_to(:fields) }
 
   describe '#fields' do
     before :all do
@@ -1503,10 +1505,10 @@ describe DataMapper::Query do
     end
   end
 
-  it { @query.should respond_to(:filter_records) }
+  it { should respond_to(:filter_records) }
 
-  supported_by :all do
-    describe '#filter_records' do
+  describe '#filter_records' do
+    supported_by :all do
       before :all do
         @john = { 'name' => 'John Doe',  'referrer_name' => nil         }
         @sam  = { 'name' => 'Sam Smoot', 'referrer_name' => nil         }
@@ -1533,7 +1535,7 @@ describe DataMapper::Query do
     end
   end
 
-  it { @query.should respond_to(:inspect) }
+  it { should respond_to(:inspect) }
 
   describe '#inspect' do
     before :all do
@@ -1557,7 +1559,7 @@ describe DataMapper::Query do
     end
   end
 
-  it { @query.should respond_to(:limit) }
+  it { should respond_to(:limit) }
 
   describe '#limit' do
     before :all do
@@ -1571,10 +1573,10 @@ describe DataMapper::Query do
     end
   end
 
-  it { @query.should respond_to(:limit_records) }
+  it { should respond_to(:limit_records) }
 
-  supported_by :all do
-    describe '#limit_records' do
+  describe '#limit_records' do
+    supported_by :all do
       before :all do
         @john = { 'name' => 'John Doe',  'referrer_name' => nil         }
         @sam  = { 'name' => 'Sam Smoot', 'referrer_name' => nil         }
@@ -1601,7 +1603,7 @@ describe DataMapper::Query do
     end
   end
 
-  it { @query.should respond_to(:links) }
+  it { should respond_to(:links) }
 
   describe '#links' do
     before :all do
@@ -1613,10 +1615,10 @@ describe DataMapper::Query do
     it { @return.should be_empty }
   end
 
-  it { @query.should respond_to(:match_records) }
+  it { should respond_to(:match_records) }
 
-  supported_by :all do
-    describe '#match_records' do
+  describe '#match_records' do
+    supported_by :all do
       before :all do
         @john = { 'name' => 'John Doe',  'referrer_name' => nil         }
         @sam  = { 'name' => 'Sam Smoot', 'referrer_name' => nil         }
@@ -1643,7 +1645,7 @@ describe DataMapper::Query do
     end
   end
 
-  it { @query.should respond_to(:merge) }
+  it { should respond_to(:merge) }
 
   describe '#merge' do
     describe 'with a Hash' do
@@ -1668,7 +1670,7 @@ describe DataMapper::Query do
     end
   end
 
-  it { @query.should respond_to(:model) }
+  it { should respond_to(:model) }
 
   describe '#model' do
     before :all do
@@ -1682,7 +1684,7 @@ describe DataMapper::Query do
     end
   end
 
-  it { @query.should respond_to(:offset) }
+  it { should respond_to(:offset) }
 
   describe '#offset' do
     before :all do
@@ -1696,7 +1698,7 @@ describe DataMapper::Query do
     end
   end
 
-  it { @query.should respond_to(:order) }
+  it { should respond_to(:order) }
 
   describe '#order' do
     before :all do
@@ -1710,7 +1712,7 @@ describe DataMapper::Query do
     end
   end
 
-  it { @query.should respond_to(:raw?) }
+  it { should respond_to(:raw?) }
 
   describe '#raw?' do
     describe 'when the query contains raw conditions' do
@@ -1718,15 +1720,15 @@ describe DataMapper::Query do
         @query.update(:conditions => [ 'name = ?', 'Dan Kubb' ])
       end
 
-      it { @query.should be_raw }
+      it { should be_raw }
     end
 
     describe 'when the query does not contain raw conditions' do
-      it { @query.should_not be_raw }
+      it { should_not be_raw }
     end
   end
 
-  it { @query.should respond_to(:relative) }
+  it { should respond_to(:relative) }
 
   describe '#relative' do
     describe 'with a Hash' do
@@ -1858,7 +1860,7 @@ describe DataMapper::Query do
     end
   end
 
-  it { @query.should respond_to(:reload?) }
+  it { should respond_to(:reload?) }
 
   describe '#reload?' do
     describe 'when the query should reload' do
@@ -1866,15 +1868,15 @@ describe DataMapper::Query do
         @query.update(:reload => true)
       end
 
-      it { @query.should be_reload }
+      it { should be_reload }
     end
 
     describe 'when the query should not reload' do
-      it { @query.should_not be_reload }
+      it { should_not be_reload }
     end
   end
 
-  it { @query.should respond_to(:repository) }
+  it { should respond_to(:repository) }
 
   describe '#repository' do
     before :all do
@@ -1888,7 +1890,7 @@ describe DataMapper::Query do
     end
   end
 
-  it { @query.should respond_to(:reverse) }
+  it { should respond_to(:reverse) }
 
   describe '#reverse' do
     before :all do
@@ -1917,7 +1919,7 @@ describe DataMapper::Query do
     end
   end
 
-  it { @query.should respond_to(:reverse!) }
+  it { should respond_to(:reverse!) }
 
   describe '#reverse!' do
     before :all do
@@ -1934,7 +1936,7 @@ describe DataMapper::Query do
   end
 
   [ :slice, :[] ].each do |method|
-    it { @query.should respond_to(method) }
+    it { should respond_to(method) }
 
     describe "##{method}" do
       describe 'with a positive offset' do
@@ -2125,7 +2127,7 @@ describe DataMapper::Query do
     end
   end
 
-  it { @query.should respond_to(:slice!) }
+  it { should respond_to(:slice!) }
 
   describe '#slice!' do
     describe 'with a positive offset' do
@@ -2315,10 +2317,10 @@ describe DataMapper::Query do
     end
   end
 
-  it { @query.should respond_to(:sort_records) }
+  it { should respond_to(:sort_records) }
 
-  supported_by :all do
-    describe '#sort_records' do
+  describe '#sort_records' do
+    supported_by :all do
       before :all do
         @john = { 'name' => 'John Doe',  'referrer_name' => nil         }
         @sam  = { 'name' => 'Sam Smoot', 'referrer_name' => nil         }
@@ -2345,7 +2347,7 @@ describe DataMapper::Query do
     end
   end
 
-  it { @query.should respond_to(:unique?) }
+  it { should respond_to(:unique?) }
 
   describe '#unique?' do
     describe 'when the query is unique' do
@@ -2353,11 +2355,11 @@ describe DataMapper::Query do
         @query.update(:unique => true)
       end
 
-      it { @query.should be_unique }
+      it { should be_unique }
     end
 
     describe 'when the query is not unique' do
-      it { @query.should_not be_unique }
+      it { should_not be_unique }
     end
 
     describe 'when links are provided, but unique is not specified' do
@@ -2366,7 +2368,7 @@ describe DataMapper::Query do
         @query.update(:links => [ :referrer ])
       end
 
-      it { @query.should be_unique }
+      it { should be_unique }
     end
 
     describe 'when links are provided, but unique is false' do
@@ -2375,11 +2377,11 @@ describe DataMapper::Query do
         @query.update(:links => [ :referrer ], :unique => false)
       end
 
-      it { @query.should_not be_unique }
+      it { should_not be_unique }
     end
   end
 
-  it { @query.should respond_to(:update) }
+  it { should respond_to(:update) }
 
   describe '#update' do
     describe 'with a Query' do
