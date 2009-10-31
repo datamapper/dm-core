@@ -134,6 +134,9 @@ module DataMapper
           descendant.relationships(repository_name)[name] ||= relationship
         end
 
+        create_relationship_reader(relationship)
+        create_relationship_writer(relationship)
+
         relationship
       end
 
@@ -189,6 +192,9 @@ module DataMapper
         descendants.each do |descendant|
           descendant.relationships(repository_name)[name] ||= relationship
         end
+
+        create_relationship_reader(relationship)
+        create_relationship_writer(relationship)
 
         relationship
       end
@@ -315,6 +321,44 @@ module DataMapper
         if options.key?(:limit)
           raise ArgumentError, '+options[:limit]+ should not be specified on a relationship'
         end
+      end
+
+      # Dynamically defines reader method
+      #
+      # @api private
+      def create_relationship_reader(relationship)
+        name        = relationship.name
+        reader_name = name.to_s
+
+        return if resource_method_defined?(reader_name)
+
+        reader_visibility = relationship.reader_visibility
+
+        class_eval <<-RUBY, __FILE__, __LINE__ + 1
+          #{reader_visibility}                               # public
+          def #{reader_name}(query = nil)                    # def author(query = nil)
+            relationships[#{name.inspect}].get(self, query)  #   relationships[:author].get(self, query)
+          end                                                # end
+        RUBY
+      end
+
+      # Dynamically defines writer method
+      #
+      # @api private
+      def create_relationship_writer(relationship)
+        name        = relationship.name
+        writer_name = "#{name}="
+
+        return if resource_method_defined?(writer_name)
+
+        writer_visibility = relationship.writer_visibility
+
+        class_eval <<-RUBY, __FILE__, __LINE__ + 1
+          #{writer_visibility}                                # public
+          def #{writer_name}(target)                          # def author=(target)
+            relationships[#{name.inspect}].set(self, target)  #   relationships[:author].set(self, target)
+          end                                                 # end
+        RUBY
       end
 
       chainable do

@@ -438,9 +438,6 @@ module DataMapper
         #  - this should provide the best performance
 
         @query = @options.except(*self.class::OPTIONS).freeze
-
-        create_reader
-        create_writer
       end
 
       # Set the correct ivars for the named object
@@ -474,40 +471,6 @@ module DataMapper
         end
 
         object
-      end
-
-      # Dynamically defines reader method for source side of association
-      # (for instance, method article for model Paragraph)
-      #
-      # @api semipublic
-      def create_reader
-        reader_name = name.to_s
-
-        return if source_model.resource_method_defined?(reader_name)
-
-        source_model.class_eval <<-RUBY, __FILE__, __LINE__ + 1
-          #{reader_visibility}                               # public
-          def #{reader_name}(query = nil)                    # def author(query = nil)
-            relationships[#{name.inspect}].get(self, query)  #   relationships[:author].get(self, query)
-          end                                                # end
-        RUBY
-      end
-
-      # Dynamically defines writer method for source side of association
-      # (for instance, method article= for model Paragraph)
-      #
-      # @api semipublic
-      def create_writer
-        writer_name = "#{name}="
-
-        return if source_model.resource_method_defined?(writer_name)
-
-        source_model.class_eval <<-RUBY, __FILE__, __LINE__ + 1
-          #{writer_visibility}                                # public
-          def #{writer_name}(target)                          # def author=(target)
-            relationships[#{name.inspect}].set(self, target)  #   relationships[:author].set(self, target)
-          end                                                 # end
-        RUBY
       end
 
       # Sets the association targets in the resource
