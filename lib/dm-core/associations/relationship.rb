@@ -1,3 +1,5 @@
+# TODO: move argument and option validation into the class
+
 module DataMapper
   module Associations
     # Base class for relationships. Each type of relationship
