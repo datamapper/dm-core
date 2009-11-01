@@ -164,12 +164,13 @@ module DataMapper
     #
     # @api public
     def all(query = nil)
+      # TODO: update this not to accept a nil value, and instead either
+      # accept a Hash/Query and nothing else
       if query.nil? || (query.kind_of?(Hash) && query.empty?)
         dup
       else
         # TODO: if there is no order parameter, and the Collection is not loaded
         # check to see if the query can be satisfied by the head/tail
-
         new_collection(scoped_query(query))
       end
     end
