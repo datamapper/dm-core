@@ -216,7 +216,7 @@ module DataMapper
         collection
       elsif with_query || loaded?
         collection.to_a.first
-      else
+      elsif collection.any?
         head[0] = collection.to_a.first
       end
     end

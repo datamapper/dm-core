@@ -732,6 +732,21 @@ share_examples_for 'Finder Interface' do
       end
     end
 
+    describe 'on an empty collection' do
+      before :all do
+        @articles = @articles.all(:id => nil)
+        @return = @articles.first
+      end
+
+      it 'should still be an empty collection' do
+        @articles.should be_empty
+      end
+
+      it 'should return nil' do
+        @return.should be_nil
+      end
+    end
+
     describe 'with offset specified' do
       before :all do
         @return = @resource = @articles.first(:offset => 1)
