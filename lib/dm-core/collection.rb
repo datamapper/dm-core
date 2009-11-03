@@ -634,7 +634,7 @@ module DataMapper
     # @api public
     def replace(other)
       other = resources_added(other)
-      resources_removed(self - other)
+      resources_removed(entries - other)
       super(other)
     end
 
