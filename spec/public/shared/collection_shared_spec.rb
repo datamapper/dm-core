@@ -22,7 +22,9 @@ share_examples_for 'A public Collection' do
     pending if @skip
   end
 
-  it { @articles.should respond_to(:<<) }
+  subject { @articles }
+
+  it { should respond_to(:<<) }
 
   describe '#<<' do
     before :all do
@@ -44,7 +46,7 @@ share_examples_for 'A public Collection' do
     end
   end
 
-  it { @articles.should respond_to(:blank?) }
+  it { should respond_to(:blank?) }
 
   describe '#blank?' do
     describe 'when the collection is empty' do
@@ -60,7 +62,7 @@ share_examples_for 'A public Collection' do
     end
   end
 
-  it { @articles.should respond_to(:clean?) }
+  it { should respond_to(:clean?) }
 
   describe '#clean?' do
     describe 'with all clean resources in the collection' do
@@ -80,7 +82,7 @@ share_examples_for 'A public Collection' do
     end
   end
 
-  it { @articles.should respond_to(:clear) }
+  it { should respond_to(:clear) }
 
   describe '#clear' do
     before :all do
@@ -103,7 +105,7 @@ share_examples_for 'A public Collection' do
   end
 
   [ :collect!, :map! ].each do |method|
-    it { @articles.should respond_to(method) }
+    it { should respond_to(method) }
 
     describe "##{method}" do
       before :all do
@@ -126,7 +128,7 @@ share_examples_for 'A public Collection' do
     end
   end
 
-  it { @articles.should respond_to(:concat) }
+  it { should respond_to(:concat) }
 
   describe '#concat' do
     before :all do
@@ -147,7 +149,7 @@ share_examples_for 'A public Collection' do
   end
 
   [ :create, :create! ].each do |method|
-    it { @articles.should respond_to(method) }
+    it { should respond_to(method) }
 
     describe "##{method}" do
       describe 'when scoped to a property' do
@@ -262,7 +264,7 @@ share_examples_for 'A public Collection' do
     end
   end
 
-  it { @articles.should respond_to(:delete) }
+  it { should respond_to(:delete) }
 
   describe '#delete' do
     describe 'with a Resource within the Collection' do
@@ -296,7 +298,7 @@ share_examples_for 'A public Collection' do
     end
   end
 
-  it { @articles.should respond_to(:delete_at) }
+  it { should respond_to(:delete_at) }
 
   describe '#delete_at' do
     describe 'with an offset within the Collection' do
@@ -328,7 +330,7 @@ share_examples_for 'A public Collection' do
     end
   end
 
-  it { @articles.should respond_to(:delete_if) }
+  it { should respond_to(:delete_if) }
 
   describe '#delete_if' do
     describe 'with a block that matches a Resource in the Collection' do
@@ -373,7 +375,7 @@ share_examples_for 'A public Collection' do
   end
 
   [ :destroy, :destroy! ].each do |method|
-    it { @articles.should respond_to(method) }
+    it { should respond_to(method) }
 
     describe "##{method}" do
       describe 'on a normal collection' do
@@ -421,7 +423,7 @@ share_examples_for 'A public Collection' do
     end
   end
 
-  it { @articles.should respond_to(:dirty?) }
+  it { should respond_to(:dirty?) }
 
   describe '#dirty?' do
     describe 'with all clean resources in the collection' do
@@ -442,7 +444,7 @@ share_examples_for 'A public Collection' do
   end
 
   # TODO: move this to enumerable_shared_spec.rb
-  it { @articles.should respond_to(:each) }
+  it { should respond_to(:each) }
 
   describe '#each' do
     before :all do
@@ -486,7 +488,7 @@ share_examples_for 'A public Collection' do
     end
   end
 
-  it { @articles.should respond_to(:insert) }
+  it { should respond_to(:insert) }
 
   describe '#insert' do
     before :all do
@@ -504,11 +506,11 @@ share_examples_for 'A public Collection' do
     end
 
     it 'should insert one or more Resources at a given offset' do
-      @articles.should == @resources + [ @article ]
+      @articles.should == @resources << @article
     end
   end
 
-  it { @articles.should respond_to(:inspect) }
+  it { should respond_to(:inspect) }
 
   describe '#inspect' do
     before :all do
@@ -528,7 +530,7 @@ share_examples_for 'A public Collection' do
     it { @return.should match(/\bcontent=\"Other Article\"\s/) }
   end
 
-  it { @articles.should respond_to(:new) }
+  it { should respond_to(:new) }
 
   describe '#new' do
     describe 'when scoped to a property' do
@@ -626,7 +628,7 @@ share_examples_for 'A public Collection' do
     end
   end
 
-  it { @articles.should respond_to(:pop) }
+  it { should respond_to(:pop) }
 
   describe '#pop' do
     before :all do
@@ -672,7 +674,7 @@ share_examples_for 'A public Collection' do
     end
   end
 
-  it { @articles.should respond_to(:push) }
+  it { should respond_to(:push) }
 
   describe '#push' do
     before :all do
@@ -694,7 +696,7 @@ share_examples_for 'A public Collection' do
     end
   end
 
-  it { @articles.should respond_to(:reject!) }
+  it { should respond_to(:reject!) }
 
   describe '#reject!' do
     describe 'with a block that matches a Resource in the Collection' do
@@ -734,7 +736,7 @@ share_examples_for 'A public Collection' do
     end
   end
 
-  it { @articles.should respond_to(:reload) }
+  it { should respond_to(:reload) }
 
   describe '#reload' do
     describe 'with no arguments' do
@@ -834,7 +836,7 @@ share_examples_for 'A public Collection' do
     end
   end
 
-  it { @articles.should respond_to(:replace) }
+  it { should respond_to(:replace) }
 
   describe '#replace' do
     describe 'when provided an Array of Resources' do
@@ -886,7 +888,7 @@ share_examples_for 'A public Collection' do
     end
   end
 
-  it { @articles.should respond_to(:reverse!) }
+  it { should respond_to(:reverse!) }
 
   describe '#reverse!' do
     before :all do
@@ -915,7 +917,7 @@ share_examples_for 'A public Collection' do
   end
 
   [ :save, :save! ].each do |method|
-    it { @articles.should respond_to(method) }
+    it { should respond_to(method) }
 
     describe "##{method}" do
       describe 'when Resources are not saved' do
@@ -949,7 +951,7 @@ share_examples_for 'A public Collection' do
     end
   end
 
-  it { @articles.should respond_to(:shift) }
+  it { should respond_to(:shift) }
 
   describe '#shift' do
     describe 'with no arguments' do
@@ -992,7 +994,7 @@ share_examples_for 'A public Collection' do
     end
   end
 
-  it { @articles.should respond_to(:slice!) }
+  it { should respond_to(:slice!) }
 
   describe '#slice!' do
     before :all do
@@ -1178,7 +1180,7 @@ share_examples_for 'A public Collection' do
     end
   end
 
-  it { @articles.should respond_to(:sort!) }
+  it { should respond_to(:sort!) }
 
   describe '#sort!' do
     describe 'without a block' do
@@ -1219,7 +1221,7 @@ share_examples_for 'A public Collection' do
   end
 
   [ :splice, :[]= ].each do |method|
-    it { @articles.should respond_to(method) }
+    it { should respond_to(method) }
 
     describe "##{method}" do
       before :all do
@@ -1430,7 +1432,7 @@ share_examples_for 'A public Collection' do
     end
   end
 
-  it { @articles.should respond_to(:unshift) }
+  it { should respond_to(:unshift) }
 
   describe '#unshift' do
     before :all do
@@ -1453,7 +1455,7 @@ share_examples_for 'A public Collection' do
   end
 
   [ :update, :update! ].each do |method|
-    it { @articles.should respond_to(method) }
+    it { should respond_to(method) }
 
     describe "##{method}" do
       describe 'with no arguments' do
