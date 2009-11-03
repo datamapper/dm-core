@@ -630,9 +630,9 @@ module DataMapper
             end
           elsif comparison.slug == :in && value.empty?
             if @negated
-              return [ '1 = 1' ]  # match everything
+              return [ '1 = 1', [] ]  # match everything
             else
-              return [ '1 = 0' ]  # match nothing
+              return [ '1 = 0', [] ]  # match nothing
             end
           end
 
