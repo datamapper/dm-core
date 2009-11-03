@@ -327,7 +327,7 @@ module DataMapper
     def update(other)
       assert_kind_of 'other', other, self.class, Hash
 
-      other_options = if other.kind_of?(self.class)
+      other_options = if kind_of?(other.class)
         return self if self.eql?(other)
         assert_valid_other(other)
         other.options
