@@ -549,7 +549,7 @@ module DataMapper
           # subselects that contain a GROUP BY with different columns
           # than the outer-most query
           query = query.merge(:fields => source_key, :unique => false)
-          query.update(:order => nil) unless query.limit || query.links.any?
+          query.update(:order => nil) unless query.limit
           query
         end
 
