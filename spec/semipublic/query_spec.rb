@@ -1275,16 +1275,23 @@ describe DataMapper::Query do
     class ::User
       include DataMapper::Resource
 
-      property :name, String, :key => true
+      property :name,        String, :key => true
       property :citizenship, String
 
       belongs_to :referrer, self, :nullable => true
-      has n, :referrals, self, :inverse => :referrer
+      has n, :referrals,    self, :inverse => :referrer
       has n, :grandparents, self, :through => :referrals, :via => :referrer
-
-      # TODO: figure out a way to remove this
-      assert_valid
     end
+
+    class ::Other
+      include DataMapper::Resource
+
+      property :id, Serial
+    end
+
+    # TODO: figure out how to remove these
+    User.send(:assert_valid)
+    Other.send(:assert_valid)
 
     @repository = DataMapper::Repository.new(:default)
     @model      = User
@@ -1412,6 +1419,363 @@ describe DataMapper::Query do
             'Dan Kubb'
           )
         )
+    end
+  end
+
+  [ :difference, :- ].each do |method|
+    it { should respond_to(method) }
+
+    describe "##{method}" do
+      supported_by :all do
+        before :all do
+          @key = @model.key(@repository.name)
+
+          @self_relationship = DataMapper::Associations::OneToMany::Relationship.new(
+            :self,
+            @model,
+            @model,
+            {
+              :child_key              => @key.map { |p| p.name },
+              :parent_key             => @key.map { |p| p.name },
+              :child_repository_name  => @repository,
+              :parent_repository_name => @repository,
+            }
+          )
+
+          10.times do |n|
+            @model.create(:name => "#{@model} #{n}")
+          end
+        end
+
+        subject { @query.send(method, @other) }
+
+        describe 'with other matching everything' do
+          before do
+            @query = DataMapper::Query.new(@repository, @model, :name => 'Dan Kubb')
+            @other = DataMapper::Query.new(@repository, @model)
+
+            @expected = DataMapper::Query::Conditions::Comparison.new(:eql, @model.properties[:name], 'Dan Kubb')
+          end
+
+          it { should be_kind_of(DataMapper::Query) }
+
+          it { should_not equal(@query) }
+
+          it { should_not equal(@other) }
+
+          it 'should factor out the operation matching everything' do
+            subject.conditions.should == @expected
+          end
+        end
+
+        describe 'with self matching everything' do
+          before do
+            @query = DataMapper::Query.new(@repository, @model)
+            @other = DataMapper::Query.new(@repository, @model, :name => 'Dan Kubb')
+
+            @expected = DataMapper::Query::Conditions::Operation.new(:not,
+              DataMapper::Query::Conditions::Comparison.new(:eql, @model.properties[:name], 'Dan Kubb')
+            )
+          end
+
+          it { should be_kind_of(DataMapper::Query) }
+
+          it { should_not equal(@query) }
+
+          it { should_not equal(@other) }
+
+          it 'should factor out the operation matching everything, and negate the other' do
+            subject.conditions.should == @expected
+          end
+        end
+
+        describe 'with self having a limit' do
+          before do
+            @query = DataMapper::Query.new(@repository, @model, :limit => 5)
+            @other = DataMapper::Query.new(@repository, @model, :name => 'Dan Kubb')
+
+            @expected = DataMapper::Query::Conditions::Operation.new(:and,
+              DataMapper::Query::Conditions::Comparison.new(:in, @self_relationship, @model.all(@query.merge(:fields => @key))),
+              DataMapper::Query::Conditions::Operation.new(:not,
+                DataMapper::Query::Conditions::Comparison.new(:eql, @model.properties[:name], 'Dan Kubb')
+              )
+            )
+          end
+
+          it { should_not equal(@query) }
+
+          it { should_not equal(@other) }
+
+          it 'should put each query into a subquery and AND them together, and negate the other' do
+            subject.conditions.should == @expected
+          end
+        end
+
+        describe 'with other having a limit' do
+          before do
+            @query = DataMapper::Query.new(@repository, @model, :name => 'Dan Kubb')
+            @other = DataMapper::Query.new(@repository, @model, :limit => 5)
+
+            @expected = DataMapper::Query::Conditions::Operation.new(:and,
+              DataMapper::Query::Conditions::Comparison.new(:eql, @model.properties[:name], 'Dan Kubb'),
+              DataMapper::Query::Conditions::Operation.new(:not,
+                DataMapper::Query::Conditions::Comparison.new(:in, @self_relationship, @model.all(@other.merge(:fields => @key)))
+              )
+            )
+          end
+
+          it { should_not equal(@query) }
+
+          it { should_not equal(@other) }
+
+          it 'should put each query into a subquery and AND them together, and negate the other' do
+            subject.conditions.should == @expected
+          end
+        end
+
+        describe 'with self having an offset > 0' do
+          before do
+            @query = DataMapper::Query.new(@repository, @model, :offset => 5, :limit => 5)
+            @other = DataMapper::Query.new(@repository, @model, :name => 'Dan Kubb')
+
+            @expected = DataMapper::Query::Conditions::Operation.new(:and,
+              DataMapper::Query::Conditions::Comparison.new(:in, @self_relationship, @model.all(@query.merge(:fields => @key))),
+              DataMapper::Query::Conditions::Operation.new(:not,
+                DataMapper::Query::Conditions::Comparison.new(:eql, @model.properties[:name], 'Dan Kubb')
+              )
+            )
+          end
+
+          it { should_not equal(@query) }
+
+          it { should_not equal(@other) }
+
+          it 'should put each query into a subquery and AND them together, and negate the other' do
+            subject.conditions.should == @expected
+          end
+        end
+
+        describe 'with other having an offset > 0' do
+          before do
+            @query = DataMapper::Query.new(@repository, @model, :name => 'Dan Kubb')
+            @other = DataMapper::Query.new(@repository, @model, :offset => 5, :limit => 5)
+
+            @expected = DataMapper::Query::Conditions::Operation.new(:and,
+              DataMapper::Query::Conditions::Comparison.new(:eql, @model.properties[:name], 'Dan Kubb'),
+              DataMapper::Query::Conditions::Operation.new(:not,
+                DataMapper::Query::Conditions::Comparison.new(:in, @self_relationship, @model.all(@other.merge(:fields => @key)))
+              )
+            )
+          end
+
+          it { should_not equal(@query) }
+
+          it { should_not equal(@other) }
+
+          it 'should put each query into a subquery and AND them together, and negate the other' do
+            subject.conditions.should == @expected
+          end
+        end
+
+        describe 'with self having links' do
+          before :all do
+            @do_adapter = defined?(DataMapper::Adapters::DataObjectsAdapter) && @adapter.kind_of?(DataMapper::Adapters::DataObjectsAdapter)
+          end
+
+          before do
+            @query = DataMapper::Query.new(@repository, @model, :links => [ :referrer ])
+            @other = DataMapper::Query.new(@repository, @model, :name => 'Dan Kubb')
+
+            @expected = DataMapper::Query::Conditions::Operation.new(:and,
+              DataMapper::Query::Conditions::Comparison.new(:in, @self_relationship, @model.all(@query.merge(:fields => @key))),
+              DataMapper::Query::Conditions::Operation.new(:not,
+                DataMapper::Query::Conditions::Comparison.new(:eql, @model.properties[:name], 'Dan Kubb')
+              )
+            )
+          end
+
+          it { should_not equal(@query) }
+
+          it { should_not equal(@other) }
+
+          it 'should put each query into a subquery and AND them together, and negate the other query' do
+            pending_if 'TODO: Fix once table aliasing works', @do_adapter do
+              subject.conditions.should == @expected
+            end
+          end
+        end
+
+        describe 'with other having links' do
+          before :all do
+            @do_adapter = defined?(DataMapper::Adapters::DataObjectsAdapter) && @adapter.kind_of?(DataMapper::Adapters::DataObjectsAdapter)
+          end
+
+          before do
+            @query = DataMapper::Query.new(@repository, @model, :name => 'Dan Kubb')
+            @other = DataMapper::Query.new(@repository, @model, :links => [ :referrer ])
+
+            @expected = DataMapper::Query::Conditions::Operation.new(:and,
+              DataMapper::Query::Conditions::Comparison.new(:eql, @model.properties[:name], 'Dan Kubb'),
+              DataMapper::Query::Conditions::Operation.new(:not,
+                DataMapper::Query::Conditions::Comparison.new(:in, @self_relationship, @model.all(@other.merge(:fields => @key)))
+              )
+            )
+          end
+
+          it { should_not equal(@query) }
+
+          it { should_not equal(@other) }
+
+          it 'should put each query into a subquery and AND them together, and negate the other query' do
+            pending_if 'TODO: Fix once table aliasing works', @do_adapter do
+              subject.conditions.should == @expected
+            end
+          end
+        end
+
+        describe 'with different conditions, no links/offset/limit' do
+          before do
+            property = @model.properties[:name]
+
+            @query = DataMapper::Query.new(@repository, @model, property.name => 'Dan Kubb')
+            @other = DataMapper::Query.new(@repository, @model, property.name => 'John Doe')
+
+            @query.conditions.should_not == @other.conditions
+
+            @expected = DataMapper::Query::Conditions::Operation.new(:and,
+              DataMapper::Query::Conditions::Comparison.new(:eql, property, 'Dan Kubb'),
+              DataMapper::Query::Conditions::Operation.new(:not,
+                DataMapper::Query::Conditions::Comparison.new(:eql, property, 'John Doe')
+              )
+            )
+          end
+
+          it { should be_kind_of(DataMapper::Query) }
+
+          it { should_not equal(@query) }
+
+          it { should_not equal(@other) }
+
+          it 'should AND the conditions together, and negate the other query' do
+            subject.conditions.should == @expected
+          end
+        end
+
+        describe 'with different fields' do
+          before do
+            @property = @model.properties[:name]
+
+            @query = DataMapper::Query.new(@repository, @model)
+            @other = DataMapper::Query.new(@repository, @model, :fields => [ @property ])
+
+            @query.fields.should_not == @other.fields
+          end
+
+          it { should be_kind_of(DataMapper::Query) }
+
+          it { should_not equal(@query) }
+
+          it { should_not equal(@other) }
+
+          it { subject.conditions.should == DataMapper::Query::Conditions::Operation.new(:and) }
+
+          it 'should use the other fields' do
+            subject.fields.should == [ @property ]
+          end
+        end
+
+        describe 'with different order' do
+          before do
+            @property = @model.properties[:name]
+
+            @query = DataMapper::Query.new(@repository, @model)
+            @other = DataMapper::Query.new(@repository, @model, :order => [ DataMapper::Query::Direction.new(@property, :desc) ])
+
+            @query.order.should_not == @other.order
+          end
+
+          it { should be_kind_of(DataMapper::Query) }
+
+          it { should_not equal(@query) }
+
+          it { should_not equal(@other) }
+
+          it { subject.conditions.should == DataMapper::Query::Conditions::Operation.new(:and) }
+
+          it 'should use the other order' do
+            subject.order.should == [ DataMapper::Query::Direction.new(@property, :desc) ]
+          end
+        end
+
+        describe 'with different unique' do
+          before do
+            @query = DataMapper::Query.new(@repository, @model)
+            @other = DataMapper::Query.new(@repository, @model, :unique => true)
+
+            @query.unique?.should_not == @other.unique?
+          end
+
+          it { should be_kind_of(DataMapper::Query) }
+
+          it { should_not equal(@query) }
+
+          it { should_not equal(@other) }
+
+          it { subject.conditions.should == DataMapper::Query::Conditions::Operation.new(:and) }
+
+          it 'should use the other unique' do
+            subject.unique?.should == true
+          end
+        end
+
+        describe 'with different add_reversed' do
+          before do
+            @query = DataMapper::Query.new(@repository, @model)
+            @other = DataMapper::Query.new(@repository, @model, :add_reversed => true)
+
+            @query.add_reversed?.should_not == @other.add_reversed?
+          end
+
+          it { should be_kind_of(DataMapper::Query) }
+
+          it { should_not equal(@query) }
+
+          it { should_not equal(@other) }
+
+          it { subject.conditions.should == DataMapper::Query::Conditions::Operation.new(:and) }
+
+          it 'should use the other add_reversed' do
+            subject.add_reversed?.should == true
+          end
+        end
+
+        describe 'with different reload' do
+          before do
+            @query = DataMapper::Query.new(@repository, @model)
+            @other = DataMapper::Query.new(@repository, @model, :reload => true)
+
+            @query.reload?.should_not == @other.reload?
+          end
+
+          it { should be_kind_of(DataMapper::Query) }
+
+          it { should_not equal(@query) }
+
+          it { should_not equal(@other) }
+
+          it { subject.conditions.should == DataMapper::Query::Conditions::Operation.new(:and) }
+
+          it 'should use the other reload' do
+            subject.reload?.should == true
+          end
+        end
+
+        describe 'with different models' do
+          before { @other = DataMapper::Query.new(@repository, Other) }
+
+          it { method(:subject).should raise_error(ArgumentError) }
+        end
+      end
     end
   end
 
@@ -1556,6 +1920,357 @@ describe DataMapper::Query do
           @reload=false
           @unique=false>
       INSPECT
+    end
+  end
+
+  [ :intersection, :& ].each do |method|
+    it { should respond_to(method) }
+
+    describe "##{method}" do
+      supported_by :all do
+        before :all do
+          @key = @model.key(@repository.name)
+
+          @self_relationship = DataMapper::Associations::OneToMany::Relationship.new(
+            :self,
+            @model,
+            @model,
+            {
+              :child_key              => @key.map { |p| p.name },
+              :parent_key             => @key.map { |p| p.name },
+              :child_repository_name  => @repository,
+              :parent_repository_name => @repository,
+            }
+          )
+
+          10.times do |n|
+            @model.create(:name => "#{@model} #{n}")
+          end
+        end
+
+        subject { @query.send(method, @other) }
+
+        describe 'with equivalent query' do
+          before { @other = @query.dup }
+
+          it { should be_kind_of(DataMapper::Query) }
+
+          it { should_not equal(@query) }
+
+          it { should_not equal(@other) }
+
+          it { should == @query }
+        end
+
+        describe 'with other matching everything' do
+          before do
+            @query = DataMapper::Query.new(@repository, @model, :name => 'Dan Kubb')
+            @other = DataMapper::Query.new(@repository, @model)
+          end
+
+          it { should be_kind_of(DataMapper::Query) }
+
+          it { should_not equal(@query) }
+
+          it { should_not equal(@other) }
+
+          it 'should factor out the operation matching everything' do
+            pending 'TODO: compress Query#conditions for proper comparison' do
+              should == DataMapper::Query.new(@repository, @model, :name => 'Dan Kubb')
+            end
+          end
+        end
+
+        describe 'with self matching everything' do
+          before do
+            @query = DataMapper::Query.new(@repository, @model)
+            @other = DataMapper::Query.new(@repository, @model, :name => 'Dan Kubb')
+          end
+
+          it { should be_kind_of(DataMapper::Query) }
+
+          it { should_not equal(@query) }
+
+          it { should_not equal(@other) }
+
+          it 'should factor out the operation matching everything' do
+            pending 'TODO: compress Query#conditions for proper comparison' do
+              should == DataMapper::Query.new(@repository, @model, :name => 'Dan Kubb')
+            end
+          end
+        end
+
+        describe 'with self having a limit' do
+          before do
+            @query = DataMapper::Query.new(@repository, @model, :limit => 5)
+            @other = DataMapper::Query.new(@repository, @model, :name => 'Dan Kubb')
+
+            @expected = DataMapper::Query::Conditions::Operation.new(:and,
+              DataMapper::Query::Conditions::Comparison.new(:in,  @self_relationship,       @model.all(@query.merge(:fields => @key))),
+              DataMapper::Query::Conditions::Comparison.new(:eql, @model.properties[:name], 'Dan Kubb')
+            )
+          end
+
+          it { should_not equal(@query) }
+
+          it { should_not equal(@other) }
+
+          it 'should put each query into a subquery and AND them together' do
+            subject.conditions.should == @expected
+          end
+        end
+
+        describe 'with other having a limit' do
+          before do
+            @query = DataMapper::Query.new(@repository, @model, :name => 'Dan Kubb')
+            @other = DataMapper::Query.new(@repository, @model, :limit => 5)
+
+            @expected = DataMapper::Query::Conditions::Operation.new(:and,
+              DataMapper::Query::Conditions::Comparison.new(:eql, @model.properties[:name], 'Dan Kubb'),
+              DataMapper::Query::Conditions::Comparison.new(:in,  @self_relationship,       @model.all(@other.merge(:fields => @key)))
+            )
+          end
+
+          it { should_not equal(@query) }
+
+          it { should_not equal(@other) }
+
+          it 'should put each query into a subquery and AND them together' do
+            subject.conditions.should == @expected
+          end
+        end
+
+        describe 'with self having an offset > 0' do
+          before do
+            @query = DataMapper::Query.new(@repository, @model, :offset => 5, :limit => 5)
+            @other = DataMapper::Query.new(@repository, @model, :name => 'Dan Kubb')
+
+            @expected = DataMapper::Query::Conditions::Operation.new(:and,
+              DataMapper::Query::Conditions::Comparison.new(:in,  @self_relationship,       @model.all(@query.merge(:fields => @key))),
+              DataMapper::Query::Conditions::Comparison.new(:eql, @model.properties[:name], 'Dan Kubb')
+            )
+          end
+
+          it { should_not equal(@query) }
+
+          it { should_not equal(@other) }
+
+          it 'should put each query into a subquery and AND them together' do
+            subject.conditions.should == @expected
+          end
+        end
+
+        describe 'with other having an offset > 0' do
+          before do
+            @query = DataMapper::Query.new(@repository, @model, :name => 'Dan Kubb')
+            @other = DataMapper::Query.new(@repository, @model, :offset => 5, :limit => 5)
+
+            @expected = DataMapper::Query::Conditions::Operation.new(:and,
+              DataMapper::Query::Conditions::Comparison.new(:eql, @model.properties[:name], 'Dan Kubb'),
+              DataMapper::Query::Conditions::Comparison.new(:in,  @self_relationship,        @model.all(@other.merge(:fields => @key)))
+            )
+          end
+
+          it { should_not equal(@query) }
+
+          it { should_not equal(@other) }
+
+          it 'should put each query into a subquery and AND them together' do
+            subject.conditions.should == @expected
+          end
+        end
+
+        describe 'with self having links' do
+          before :all do
+            @do_adapter = defined?(DataMapper::Adapters::DataObjectsAdapter) && @adapter.kind_of?(DataMapper::Adapters::DataObjectsAdapter)
+          end
+
+          before do
+            @query = DataMapper::Query.new(@repository, @model, :links => [ :referrer ])
+            @other = DataMapper::Query.new(@repository, @model, :name => 'Dan Kubb')
+
+            @expected = DataMapper::Query::Conditions::Operation.new(:and,
+              DataMapper::Query::Conditions::Comparison.new(:in,  @self_relationship,       @model.all(@query.merge(:fields => @key))),
+              DataMapper::Query::Conditions::Comparison.new(:eql, @model.properties[:name], 'Dan Kubb')
+            )
+          end
+
+          it { should_not equal(@query) }
+
+          it { should_not equal(@other) }
+
+          it 'should put each query into a subquery and AND them together' do
+            pending_if 'TODO: Fix once table aliasing works', @do_adapter do
+              subject.conditions.should == @expected
+            end
+          end
+        end
+
+        describe 'with other having links' do
+          before :all do
+            @do_adapter = defined?(DataMapper::Adapters::DataObjectsAdapter) && @adapter.kind_of?(DataMapper::Adapters::DataObjectsAdapter)
+          end
+
+          before do
+            @query = DataMapper::Query.new(@repository, @model, :name => 'Dan Kubb')
+            @other = DataMapper::Query.new(@repository, @model, :links => [ :referrer ])
+
+            @expected = DataMapper::Query::Conditions::Operation.new(:and,
+              DataMapper::Query::Conditions::Comparison.new(:eql, @model.properties[:name], 'Dan Kubb'),
+              DataMapper::Query::Conditions::Comparison.new(:in,  @self_relationship,       @model.all(@other.merge(:fields => @key)))
+            )
+          end
+
+          it { should_not equal(@query) }
+
+          it { should_not equal(@other) }
+
+          it 'should put each query into a subquery and AND them together' do
+            pending_if 'TODO: Fix once table aliasing works', @do_adapter do
+              subject.conditions.should == @expected
+            end
+          end
+        end
+
+        describe 'with different conditions, no links/offset/limit' do
+          before do
+            property = @model.properties[:name]
+
+            @query = DataMapper::Query.new(@repository, @model, property.name => 'Dan Kubb')
+            @other = DataMapper::Query.new(@repository, @model, property.name => 'John Doe')
+
+            @query.conditions.should_not == @other.conditions
+
+            @expected = DataMapper::Query::Conditions::Operation.new(:and,
+              DataMapper::Query::Conditions::Comparison.new(:eql, property, 'Dan Kubb'),
+              DataMapper::Query::Conditions::Comparison.new(:eql, property, 'John Doe')
+            )
+          end
+
+          it { should be_kind_of(DataMapper::Query) }
+
+          it { should_not equal(@query) }
+
+          it { should_not equal(@other) }
+
+          it 'should AND the conditions together' do
+            subject.conditions.should == @expected
+          end
+        end
+
+        describe 'with different fields' do
+          before do
+            @property = @model.properties[:name]
+
+            @query = DataMapper::Query.new(@repository, @model)
+            @other = DataMapper::Query.new(@repository, @model, :fields => [ @property ])
+
+            @query.fields.should_not == @other.fields
+          end
+
+          it { should be_kind_of(DataMapper::Query) }
+
+          it { should_not equal(@query) }
+
+          it { should_not equal(@other) }
+
+          it { subject.conditions.should be_nil }
+
+          it 'should use the other fields' do
+            subject.fields.should == [ @property ]
+          end
+        end
+
+        describe 'with different order' do
+          before do
+            @property = @model.properties[:name]
+
+            @query = DataMapper::Query.new(@repository, @model)
+            @other = DataMapper::Query.new(@repository, @model, :order => [ DataMapper::Query::Direction.new(@property, :desc) ])
+
+            @query.order.should_not == @other.order
+          end
+
+          it { should be_kind_of(DataMapper::Query) }
+
+          it { should_not equal(@query) }
+
+          it { should_not equal(@other) }
+
+          it { subject.conditions.should be_nil }
+
+          it 'should use the other order' do
+            subject.order.should == [ DataMapper::Query::Direction.new(@property, :desc) ]
+          end
+        end
+
+        describe 'with different unique' do
+          before do
+            @query = DataMapper::Query.new(@repository, @model)
+            @other = DataMapper::Query.new(@repository, @model, :unique => true)
+
+            @query.unique?.should_not == @other.unique?
+          end
+
+          it { should be_kind_of(DataMapper::Query) }
+
+          it { should_not equal(@query) }
+
+          it { should_not equal(@other) }
+
+          it { subject.conditions.should be_nil }
+
+          it 'should use the other unique' do
+            subject.unique?.should == true
+          end
+        end
+
+        describe 'with different add_reversed' do
+          before do
+            @query = DataMapper::Query.new(@repository, @model)
+            @other = DataMapper::Query.new(@repository, @model, :add_reversed => true)
+
+            @query.add_reversed?.should_not == @other.add_reversed?
+          end
+
+          it { should be_kind_of(DataMapper::Query) }
+
+          it { should_not equal(@query) }
+
+          it { should_not equal(@other) }
+
+          it { subject.conditions.should be_nil }
+
+          it 'should use the other add_reversed' do
+            subject.add_reversed?.should == true
+          end
+        end
+
+        describe 'with different reload' do
+          before do
+            @query = DataMapper::Query.new(@repository, @model)
+            @other = DataMapper::Query.new(@repository, @model, :reload => true)
+
+            @query.reload?.should_not == @other.reload?
+          end
+
+          it { should be_kind_of(DataMapper::Query) }
+
+          it { should_not equal(@query) }
+
+          it { should_not equal(@other) }
+
+          it 'should use the other reload' do
+            subject.reload?.should == true
+          end
+        end
+
+        describe 'with different models' do
+          before { @other = DataMapper::Query.new(@repository, Other) }
+
+          it { method(:subject).should raise_error(ArgumentError) }
+        end
+      end
     end
   end
 
@@ -2347,6 +3062,355 @@ describe DataMapper::Query do
     end
   end
 
+  [ :union, :|, :+ ].each do |method|
+    it { should respond_to(method) }
+
+    describe "##{method}" do
+      supported_by :all do
+        before :all do
+          @key = @model.key(@repository.name)
+
+          @self_relationship = DataMapper::Associations::OneToMany::Relationship.new(
+            :self,
+            @model,
+            @model,
+            {
+              :child_key              => @key.map { |p| p.name },
+              :parent_key             => @key.map { |p| p.name },
+              :child_repository_name  => @repository,
+              :parent_repository_name => @repository,
+            }
+          )
+
+          10.times do |n|
+            @model.create(:name => "#{@model} #{n}")
+          end
+        end
+
+        subject { @query.send(method, @other) }
+
+        describe 'with equivalent query' do
+          before { @other = @query.dup }
+
+          it { should be_kind_of(DataMapper::Query) }
+
+          it { should_not equal(@query) }
+
+          it { should_not equal(@other) }
+
+          it { should == @query }
+        end
+
+        describe 'with other matching everything' do
+          before do
+            @query = DataMapper::Query.new(@repository, @model, :name => 'Dan Kubb')
+            @other = DataMapper::Query.new(@repository, @model)
+          end
+
+          it { should be_kind_of(DataMapper::Query) }
+
+          it { should_not equal(@query) }
+
+          it { should_not equal(@other) }
+
+          it 'should match everything' do
+            should == DataMapper::Query.new(@repository, @model)
+          end
+        end
+
+        describe 'with self matching everything' do
+          before do
+            @query = DataMapper::Query.new(@repository, @model)
+            @other = DataMapper::Query.new(@repository, @model, :name => 'Dan Kubb')
+          end
+
+          it { should be_kind_of(DataMapper::Query) }
+
+          it { should_not equal(@query) }
+
+          it { should_not equal(@other) }
+
+          it 'should match everything' do
+            should == DataMapper::Query.new(@repository, @model)
+          end
+        end
+
+        describe 'with self having a limit' do
+          before do
+            @query = DataMapper::Query.new(@repository, @model, :limit => 5)
+            @other = DataMapper::Query.new(@repository, @model, :name => 'Dan Kubb')
+
+            @expected = DataMapper::Query::Conditions::Operation.new(:or,
+              DataMapper::Query::Conditions::Comparison.new(:in,  @self_relationship,       @model.all(@query.merge(:fields => @key))),
+              DataMapper::Query::Conditions::Comparison.new(:eql, @model.properties[:name], 'Dan Kubb')
+            )
+          end
+
+          it { should_not equal(@query) }
+
+          it { should_not equal(@other) }
+
+          it 'should put each query into a subquery and OR them together' do
+            subject.conditions.should == @expected
+          end
+        end
+
+        describe 'with other having a limit' do
+          before do
+            @query = DataMapper::Query.new(@repository, @model, :name => 'Dan Kubb')
+            @other = DataMapper::Query.new(@repository, @model, :limit => 5)
+
+            @expected = DataMapper::Query::Conditions::Operation.new(:or,
+              DataMapper::Query::Conditions::Comparison.new(:eql, @model.properties[:name], 'Dan Kubb'),
+              DataMapper::Query::Conditions::Comparison.new(:in,  @self_relationship,       @model.all(@other.merge(:fields => @key)))
+            )
+          end
+
+          it { should_not equal(@query) }
+
+          it { should_not equal(@other) }
+
+          it 'should put each query into a subquery and OR them together' do
+            subject.conditions.should == @expected
+          end
+        end
+
+        describe 'with self having an offset > 0' do
+          before do
+            @query = DataMapper::Query.new(@repository, @model, :offset => 5, :limit => 5)
+            @other = DataMapper::Query.new(@repository, @model, :name => 'Dan Kubb')
+
+            @expected = DataMapper::Query::Conditions::Operation.new(:or,
+              DataMapper::Query::Conditions::Comparison.new(:in,  @self_relationship,       @model.all(@query.merge(:fields => @key))),
+              DataMapper::Query::Conditions::Comparison.new(:eql, @model.properties[:name], 'Dan Kubb')
+            )
+          end
+
+          it { should_not equal(@query) }
+
+          it { should_not equal(@other) }
+
+          it 'should put each query into a subquery and OR them together' do
+            subject.conditions.should == @expected
+          end
+        end
+
+        describe 'with other having an offset > 0' do
+          before do
+            @query = DataMapper::Query.new(@repository, @model, :name => 'Dan Kubb')
+            @other = DataMapper::Query.new(@repository, @model, :offset => 5, :limit => 5)
+
+            @expected = DataMapper::Query::Conditions::Operation.new(:or,
+              DataMapper::Query::Conditions::Comparison.new(:eql, @model.properties[:name], 'Dan Kubb'),
+              DataMapper::Query::Conditions::Comparison.new(:in,  @self_relationship,        @model.all(@other.merge(:fields => @key)))
+            )
+          end
+
+          it { should_not equal(@query) }
+
+          it { should_not equal(@other) }
+
+          it 'should put each query into a subquery and OR them together' do
+            subject.conditions.should == @expected
+          end
+        end
+
+        describe 'with self having links' do
+          before :all do
+            @do_adapter = defined?(DataMapper::Adapters::DataObjectsAdapter) && @adapter.kind_of?(DataMapper::Adapters::DataObjectsAdapter)
+          end
+
+          before do
+            @query = DataMapper::Query.new(@repository, @model, :links => [ :referrer ])
+            @other = DataMapper::Query.new(@repository, @model, :name => 'Dan Kubb')
+
+            @expected = DataMapper::Query::Conditions::Operation.new(:or,
+              DataMapper::Query::Conditions::Comparison.new(:in,  @self_relationship,       @model.all(@query.merge(:fields => @key))),
+              DataMapper::Query::Conditions::Comparison.new(:eql, @model.properties[:name], 'Dan Kubb')
+            )
+          end
+
+          it { should_not equal(@query) }
+
+          it { should_not equal(@other) }
+
+          it 'should put each query into a subquery and OR them together' do
+            pending_if 'TODO: Fix once table aliasing works', @do_adapter do
+              subject.conditions.should == @expected
+            end
+          end
+        end
+
+        describe 'with other having links' do
+          before :all do
+            @do_adapter = defined?(DataMapper::Adapters::DataObjectsAdapter) && @adapter.kind_of?(DataMapper::Adapters::DataObjectsAdapter)
+          end
+
+          before do
+            @query = DataMapper::Query.new(@repository, @model, :name => 'Dan Kubb')
+            @other = DataMapper::Query.new(@repository, @model, :links => [ :referrer ])
+
+            @expected = DataMapper::Query::Conditions::Operation.new(:or,
+              DataMapper::Query::Conditions::Comparison.new(:eql, @model.properties[:name], 'Dan Kubb'),
+              DataMapper::Query::Conditions::Comparison.new(:in,  @self_relationship,       @model.all(@other.merge(:fields => @key)))
+            )
+          end
+
+          it { should_not equal(@query) }
+
+          it { should_not equal(@other) }
+
+          it 'should put each query into a subquery and OR them together' do
+            pending_if 'TODO: Fix once table aliasing works', @do_adapter do
+              subject.conditions.should == @expected
+            end
+          end
+        end
+
+        describe 'with different conditions, no links/offset/limit' do
+          before do
+            property = @model.properties[:name]
+
+            @query = DataMapper::Query.new(@repository, @model, property.name => 'Dan Kubb')
+            @other = DataMapper::Query.new(@repository, @model, property.name => 'John Doe')
+
+            @query.conditions.should_not == @other.conditions
+
+            @expected = DataMapper::Query::Conditions::Operation.new(:or,
+              DataMapper::Query::Conditions::Comparison.new(:eql, property, 'Dan Kubb'),
+              DataMapper::Query::Conditions::Comparison.new(:eql, property, 'John Doe')
+            )
+          end
+
+          it { should be_kind_of(DataMapper::Query) }
+
+          it { should_not equal(@query) }
+
+          it { should_not equal(@other) }
+
+          it 'should OR the conditions together' do
+            subject.conditions.should == @expected
+          end
+        end
+
+        describe 'with different fields' do
+          before do
+            @property = @model.properties[:name]
+
+            @query = DataMapper::Query.new(@repository, @model)
+            @other = DataMapper::Query.new(@repository, @model, :fields => [ @property ])
+
+            @query.fields.should_not == @other.fields
+          end
+
+          it { should be_kind_of(DataMapper::Query) }
+
+          it { should_not equal(@query) }
+
+          it { should_not equal(@other) }
+
+          it { subject.conditions.should be_nil }
+
+          it 'should use the other fields' do
+            subject.fields.should == [ @property ]
+          end
+        end
+
+        describe 'with different order' do
+          before do
+            @property = @model.properties[:name]
+
+            @query = DataMapper::Query.new(@repository, @model)
+            @other = DataMapper::Query.new(@repository, @model, :order => [ DataMapper::Query::Direction.new(@property, :desc) ])
+
+            @query.order.should_not == @other.order
+          end
+
+          it { should be_kind_of(DataMapper::Query) }
+
+          it { should_not equal(@query) }
+
+          it { should_not equal(@other) }
+
+          it { subject.conditions.should be_nil }
+
+          it 'should use the other order' do
+            subject.order.should == [ DataMapper::Query::Direction.new(@property, :desc) ]
+          end
+        end
+
+        describe 'with different unique' do
+          before do
+            @query = DataMapper::Query.new(@repository, @model)
+            @other = DataMapper::Query.new(@repository, @model, :unique => true)
+
+            @query.unique?.should_not == @other.unique?
+          end
+
+          it { should be_kind_of(DataMapper::Query) }
+
+          it { should_not equal(@query) }
+
+          it { should_not equal(@other) }
+
+          it { subject.conditions.should be_nil }
+
+          it 'should use the other unique' do
+            subject.unique?.should == true
+          end
+        end
+
+        describe 'with different add_reversed' do
+          before do
+            @query = DataMapper::Query.new(@repository, @model)
+            @other = DataMapper::Query.new(@repository, @model, :add_reversed => true)
+
+            @query.add_reversed?.should_not == @other.add_reversed?
+          end
+
+          it { should be_kind_of(DataMapper::Query) }
+
+          it { should_not equal(@query) }
+
+          it { should_not equal(@other) }
+
+          it { subject.conditions.should be_nil }
+
+          it 'should use the other add_reversed' do
+            subject.add_reversed?.should == true
+          end
+        end
+
+        describe 'with different reload' do
+          before do
+            @query = DataMapper::Query.new(@repository, @model)
+            @other = DataMapper::Query.new(@repository, @model, :reload => true)
+
+            @query.reload?.should_not == @other.reload?
+          end
+
+          it { should be_kind_of(DataMapper::Query) }
+
+          it { should_not equal(@query) }
+
+          it { should_not equal(@other) }
+
+          it { subject.conditions.should be_nil }
+
+          it 'should use the other reload' do
+            subject.reload?.should == true
+          end
+        end
+
+        describe 'with different models' do
+          before { @other = DataMapper::Query.new(@repository, Other) }
+
+          it { method(:subject).should raise_error(ArgumentError) }
+        end
+      end
+    end
+  end
+
   it { should respond_to(:unique?) }
 
   describe '#unique?' do
@@ -2402,11 +3466,11 @@ describe DataMapper::Query do
           @and_operation = DataMapper::Query::Conditions::Operation.new(:and)
           @or_operation  = DataMapper::Query::Conditions::Operation.new(:or)
 
-          @and_operation << DataMapper::Query::Conditions::Comparison.new(:eql, User.name,       'Dan Kubb')
-          @and_operation << DataMapper::Query::Conditions::Comparison.new(:eql, User.citizenship,'Canada')
+          @and_operation << DataMapper::Query::Conditions::Comparison.new(:eql, User.properties[:name],       'Dan Kubb')
+          @and_operation << DataMapper::Query::Conditions::Comparison.new(:eql, User.properties[:citizenship],'Canada')
 
-          @or_operation << DataMapper::Query::Conditions::Comparison.new(:eql, User.name,        'Ted Han')
-          @or_operation << DataMapper::Query::Conditions::Comparison.new(:eql, User.citizenship, 'USA')
+          @or_operation << DataMapper::Query::Conditions::Comparison.new(:eql, User.properties[:name],        'Ted Han')
+          @or_operation << DataMapper::Query::Conditions::Comparison.new(:eql, User.properties[:citizenship], 'USA')
 
           @query_one = DataMapper::Query.new(@repository, @model, :conditions => @and_operation)
           @query_two = DataMapper::Query.new(@repository, @model, :conditions => @or_operation)
@@ -2414,7 +3478,7 @@ describe DataMapper::Query do
           @conditions = @query_one.merge(@query_two).conditions
         end
 
-        it { @conditions.should == (@and_operation << @or_operation) }
+        it { @conditions.should == DataMapper::Query::Conditions::Operation.new(:and, @and_operation, @or_operation) }
       end
 
       describe 'that is for an ancestor model' do

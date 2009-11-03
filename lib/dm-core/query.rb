@@ -88,6 +88,30 @@ module DataMapper
       end
     end
 
+    # @param [Repository] repository
+    #   the repository to scope the query within
+    # @param [Model] model
+    #   the model for the query
+    # @param [Enumerable, Resource] source
+    #   the enumerable to generate the query with
+    #
+    # @return [Query]
+    #   the query to match the resources with
+    #
+    # @api private
+    def self.target_query(repository, model, source)
+      case source
+        when Collection
+          source.query
+        when Enumerable, Resource
+          key        = model.key(repository.name)
+          conditions = Query.target_conditions(source, key, key)
+          Query.new(repository, model, :conditions => conditions)
+        else
+          raise ArgumentError, "+source+ must be a Collection or Enumerable, but was #{source.class}"
+      end
+    end
+
     # Returns the repository query should be
     # executed in
     #
@@ -391,6 +415,54 @@ module DataMapper
       end
     end
 
+    # Return the union with another query
+    #
+    # @param [Query] other
+    #   the other query
+    #
+    # @return [Query]
+    #   the union of the query and other
+    #
+    # @api semipublic
+    def union(other)
+      return dup if self == other
+      set_operation(:union, other)
+    end
+
+    alias | union
+    alias + union
+
+    # Return the intersection with another query
+    #
+    # @param [Query] other
+    #   the other query
+    #
+    # @return [Query]
+    #   the intersection of the query and other
+    #
+    # @api semipublic
+    def intersection(other)
+      return dup if self == other
+      set_operation(:intersection, other)
+    end
+
+    alias & intersection
+
+    # Return the difference with another query
+    #
+    # @param [Query] other
+    #   the other query
+    #
+    # @return [Query]
+    #   the difference of the query and other
+    #
+    # @api semipublic
+    def difference(other)
+      set_operation(:difference, other)
+    end
+
+    alias - difference
+
     # Clear conditions
     #
     # @return [self]
@@ -567,6 +639,52 @@ module DataMapper
     # @api private
     def sorted_fields
       fields.sort_by { |property| property.hash }
+    end
+
+    # Transform Query into subquery conditions
+    #
+    # @return [AndOperation]
+    #   a subquery for the Query
+    #
+    # @api private
+    def to_subquery
+      collection = model.all(merge(:fields => model_key))
+      Conditions::Operation.new(:and, Conditions::Comparison.new(:in, self_relationship, collection))
+    end
+
+    # Hash representation of a Query
+    #
+    # @return [Hash]
+    #   Hash representation of a Query
+    #
+    # @api private
+    def to_hash
+      {
+        :repository   => repository.name,
+        :model        => model.name,
+        :fields       => fields,
+        :links        => links,
+        :conditions   => conditions,
+        :offset       => offset,
+        :limit        => limit,
+        :order        => order,
+        :unique       => unique?,
+        :add_reversed => add_reversed?,
+        :reload       => reload?,
+      }
+    end
+
+    # Extract options from a Query
+    #
+    # @param [Query] query
+    #   the query to extract options from
+    #
+    # @return [Hash]
+    #   the options to use to initialize the new query
+    #
+    # @api private
+    def to_relative_hash
+      to_hash.only(:fields, :order, :unique, :add_reversed, :reload)
     end
 
     private
@@ -1174,6 +1292,95 @@ module DataMapper
           yield operand
         end
       end
+    end
+
+    # Apply a set operation on self and another query
+    #
+    # @param [Symbol] operation
+    #   the set operation to apply
+    # @param [Query] other
+    #   the other query to apply the set operation on
+    #
+    # @return [Query]
+    #   the query that was created for the set operation
+    #
+    # @api private
+    def set_operation(operation, other)
+      assert_valid_other(other)
+      query = self.class.new(@repository, @model, other.to_relative_hash)
+      query.instance_variable_set(:@conditions, other_conditions(other, operation))
+      query
+    end
+
+    # Return the union with another query's conditions
+    #
+    # @param [Query] other
+    #   the query conditions to union with
+    #
+    # @return [OrOperation]
+    #   the union of the query conditions and other conditions
+    #
+    # @api private
+    def other_conditions(other, operation)
+      query_conditions(self).send(operation, query_conditions(other))
+    end
+
+    # Extract conditions from a Query
+    #
+    # @param [Query] query
+    #   the query with conditions
+    #
+    # @return [AbstractOperation]
+    #   the operation
+    #
+    # @api private
+    def query_conditions(query)
+      if query.limit || query.links.any?
+        query.to_subquery
+      else
+        query.conditions
+      end
+    end
+
+    # Return a self referrential relationship
+    #
+    # @return [Associations::OneToMany::Relationship]
+    #   the 1:m association to the same model
+    #
+    # @api private
+    def self_relationship
+      @self_relationship ||= Associations::OneToMany::Relationship.new(
+        :self,
+        model,
+        model,
+        self_relationship_options
+      )
+    end
+
+    # Return options for the self referrential relationship
+    #
+    # @return [Hash]
+    #   the options to use with the self referrential relationship
+    #
+    # @api private
+    def self_relationship_options
+      key = model_key
+      {
+        :child_key              => key.map { |property| property.name },
+        :parent_key             => key.map { |property| property.name },
+        :child_repository_name  => repository,
+        :parent_repository_name => repository,
+      }
+    end
+
+    # Return the model key
+    #
+    # @return [PropertySet]
+    #   the model key
+    #
+    # @api private
+    def model_key
+      @properties.key
     end
   end # class Query
 end # module DataMapper
