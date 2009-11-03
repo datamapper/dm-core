@@ -184,10 +184,7 @@ module DataMapper
         # @api semipublic
         def <<(operand)
           assert_valid_operand_type(operand)
-          unless operand.nil?
-            operand.parent = self if operand.respond_to?(:parent=)
-            @operands << operand
-          end
+          @operands << relate_operand(operand)
           self
         end
 
@@ -202,6 +199,62 @@ module DataMapper
         # @api semipublic
         def merge(operands)
           operands.each { |operand| self << operand }
+          self
+        end
+
+        # Return the union with another operand
+        #
+        # @param [AbstractOperation] other
+        #   the operand to union with
+        #
+        # @return [OrOperation]
+        #   the union of the operation and operand
+        #
+        # @api semipublic
+        def union(other)
+          Operation.new(:or, dup, other.dup).minimize
+        end
+
+        alias | union
+        alias + union
+
+        # Return the intersection of the operation and another operand
+        #
+        # @param [AbstractOperation] other
+        #   the operand to intersect with
+        #
+        # @return [AndOperation]
+        #   the intersection of the operation and operand
+        #
+        # @api semipublic
+        def intersection(other)
+          Operation.new(:and, dup, other.dup).minimize
+        end
+
+        alias & intersection
+
+        # Return the difference of the operation and another operand
+        #
+        # @param [AbstractOperation] other
+        #   the operand to not match
+        #
+        # @return [AndOperation]
+        #   the intersection of the operation and operand
+        #
+        # @api semipublic
+        def difference(other)
+          Operation.new(:and, dup, Operation.new(:not, other.dup)).minimize
+        end
+
+        alias - difference
+
+        # Minimize the operation
+        #
+        # @return [self]
+        #   the minimized operation
+        #
+        # @api semipublic
+        def minimize
           self
         end
 
@@ -286,19 +339,27 @@ module DataMapper
           remove_instance_variable(:@negated) if defined?(@negated)
         end
 
-        # Assert that the operand is a valid type
-        #
-        # @param [AbstractOperation, AbstractComparison, Array] operand
-        #   the operand to test
+        # Minimize the operands recursively
         #
         # @return [undefined]
         #
-        # @raise [ArgumentError]
-        #   raised if the operand is not a valid type
+        # @api private
+        def minimize_operands
+          # FIXME: why does Set#map! not work here?
+          @operands = map do |operand|
+            relate_operand(operand.respond_to?(:minimize) ? operand.minimize : operand)
+          end.to_set
+        end
+
+        # Prune empty operands recursively
+        #
+        # @return [undefined]
         #
         # @api private
-        def assert_valid_operand_type(operand)
-          assert_kind_of 'operand', operand, AbstractOperation, AbstractComparison, Array
+        def prune_operands
+          @operands.delete_if do |operand|
+            operand.respond_to?(:empty?) ? operand.empty? : false
+          end
         end
 
         # Test if the operand is valid
@@ -316,6 +377,32 @@ module DataMapper
           else
             true
           end
+        end
+
+        # Set self to be the operand's parent
+        #
+        # @return [AbstractOperation, AbstractComparison, Array]
+        #   the operand that was related to self
+        #
+        # @api privTE
+        def relate_operand(operand)
+          operand.parent = self if operand.respond_to?(:parent=)
+          operand
+        end
+
+        # Assert that the operand is a valid type
+        #
+        # @param [AbstractOperation, AbstractComparison, Array] operand
+        #   the operand to test
+        #
+        # @return [undefined]
+        #
+        # @raise [ArgumentError]
+        #   raised if the operand is not a valid type
+        #
+        # @api private
+        def assert_valid_operand_type(operand)
+          assert_kind_of 'operand', operand, AbstractOperation, AbstractComparison, Array
         end
       end # class AbstractOperation
 
@@ -336,7 +423,7 @@ module DataMapper
         #
         # @api semipublic
         def <<(operand)
-          if operand.kind_of?(self.class)
+          if kind_of?(operand.class)
             merge(operand.operands)
           else
             super
@@ -366,6 +453,24 @@ module DataMapper
         # @api semipublic
         def matches?(record)
           all? { |operand| operand.matches?(record) }
+        end
+
+        # Minimize the operation
+        #
+        # @return [self]
+        #   the minimized AndOperation
+        # @return [AbstractOperation, AbstractComparison, Array]
+        #   the minimized operation
+        #
+        # @api semipublic
+        def minimize
+          minimize_operands
+
+          return Operation.new(:null) if any? && all? { |operand| operand.nil? }
+
+          prune_operands
+
+          one? ? first : self
         end
       end # class AndOperation
 
@@ -398,6 +503,24 @@ module DataMapper
         def valid?
           any? { |operand| valid_operand?(operand) }
         end
+
+        # Minimize the operation
+        #
+        # @return [self]
+        #   the minimized OrOperation
+        # @return [AbstractOperation, AbstractComparison, Array]
+        #   the minimized operation
+        #
+        # @api semipublic
+        def minimize
+          minimize_operands
+
+          return Operation.new(:null) if any? { |operand| operand.nil? }
+
+          prune_operands
+
+          one? ? first : self
+        end
       end # class OrOperation
 
       class NotOperation < AbstractOperation
@@ -429,6 +552,7 @@ module DataMapper
         # @api semipublic
         def <<(operand)
           assert_one_operand(operand)
+          assert_no_self_reference(operand)
           super
         end
 
@@ -439,7 +563,7 @@ module DataMapper
         #
         # @api semipublic
         def operand
-          to_a.first
+          first
         end
 
         # Test if the operation is negated
@@ -453,6 +577,22 @@ module DataMapper
         def negated?
           return @negated if defined?(@negated)
           @negated = parent ? !parent.negated? : true
+        end
+
+        # Minimize the operation
+        #
+        # @return [self]
+        #   the minimized NotOperation
+        # @return [AbstractOperation, AbstractComparison, Array]
+        #   the minimized operation
+        #
+        # @api semipublic
+        def minimize
+          minimize_operands
+          prune_operands
+
+          # factor out double negatives if possible
+          one? && instance_of?(operand.class) ? operand.operand : self
         end
 
         # Return the string representation of the operation
@@ -481,6 +621,23 @@ module DataMapper
         def assert_one_operand(operand)
           if self.operand && self.operand != operand
             raise ArgumentError, "#{self.class} cannot have more than one operand"
+          end
+        end
+
+        # Assert the operand is not equal to self
+        #
+        # @param [AbstractOperation, AbstractComparison, Array] operand
+        #   the operand to test
+        #
+        # @return [undefined]
+        #
+        # @raise [ArgumentError]
+        #  raised if object is appended to itself
+        #
+        # @api private
+        def assert_no_self_reference(operand)
+          if equal?(operand)
+            raise ArgumentError, 'cannot append operand to itself'
           end
         end
       end # class NotOperation

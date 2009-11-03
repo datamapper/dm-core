@@ -1,5 +1,42 @@
 require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'spec_helper'))
 
+module OperationMatchers
+  class HaveValidParent
+    def matches?(target)
+      stack = []
+      stack << [ target, target.operands ] if target.respond_to?(:operands)
+
+      while node = stack.pop
+        @expected, operands = node
+
+        operands.each do |operand|
+          @target = operand
+          @actual = @target.parent
+
+          return false unless @actual.equal?(@expected)
+
+          if @target.respond_to?(:operands)
+            stack << [ @target, @target.operands ]
+          end
+        end
+      end
+
+      true
+    end
+
+    def failure_message
+      <<-OUTPUT
+        expected: #{@expected.inspect}
+             got: #{@actual.inspect}
+      OUTPUT
+    end
+  end
+
+  def have_operands_with_valid_parent
+    HaveValidParent.new
+  end
+end
+
 shared_examples_for 'DataMapper::Query::Conditions::AbstractOperation' do
   before :all do
     module ::Blog
@@ -101,6 +138,42 @@ shared_examples_for 'DataMapper::Query::Conditions::AbstractOperation' do
     end
   end
 
+  it { should respond_to(:<<) }
+
+  describe '#<<' do
+    describe 'with a NullOperation' do
+      subject { @operation << @null_operation }
+
+      it { should equal(@operation) }
+
+      it 'should merge the operand' do
+        subject.to_a.should == [ @null_operation.class.new ]
+      end
+
+      it { should have_operands_with_valid_parent }
+    end
+
+    describe 'with a duplicate operand' do
+      before { @operation << @comparison.dup }
+
+      subject { @operation << @comparison.dup }
+
+      it { should equal(@operation) }
+
+      it 'should have unique operands' do
+        subject.to_a.should == [ @comparison ]
+      end
+
+      it { should have_operands_with_valid_parent }
+    end
+
+    describe 'with an invalid operand' do
+      subject { @operation << '' }
+
+      it { method(:subject).should raise_error(ArgumentError, '+operand+ should be DataMapper::Query::Conditions::AbstractOperation or DataMapper::Query::Conditions::AbstractComparison or Array, but was String')  }
+    end
+  end
+
   it { should respond_to(:children) }
 
   describe '#children' do
@@ -127,6 +200,16 @@ shared_examples_for 'DataMapper::Query::Conditions::AbstractOperation' do
 
     it 'should clear the operands' do
       subject.should be_empty
+    end
+  end
+
+  [ :difference, :- ].each do |method|
+    it { should respond_to(method) }
+
+    describe "##{method}" do
+      subject { @operation.send(method, @comparison) }
+
+      it { should eql(@not_operation.class.new(@comparison)) }
     end
   end
 
@@ -188,6 +271,15 @@ shared_examples_for 'DataMapper::Query::Conditions::AbstractOperation' do
 
       it { should be_false }
     end
+
+    describe 'when operations contain more than one operand' do
+      before do
+        @operation << DataMapper::Query::Conditions::Operation.new(:and, @comparison, @other)
+        @other = @operation.dup
+      end
+
+      it { should be_true }
+    end
   end
 
   it { should respond_to(:hash) }
@@ -215,6 +307,52 @@ shared_examples_for 'DataMapper::Query::Conditions::AbstractOperation' do
       it 'should not match a different AbstractOperation with different operands' do
         should_not == DataMapper::Query::Conditions::Operation.new(:or).hash
       end
+    end
+  end
+
+  [ :intersection, :& ].each do |method|
+    it { should respond_to(method) }
+
+    describe "##{method}" do
+      subject { @operation.send(method, @other) }
+
+      it { should eql(@and_operation) }
+    end
+  end
+
+  it { should respond_to(:merge) }
+
+  describe '#merge' do
+    describe 'with a NullOperation' do
+      subject { @operation.merge([ @null_operation ]) }
+
+      it { should equal(@operation) }
+
+      it 'should merge the operand' do
+        subject.to_a.should == [ @null_operation.class.new ]
+      end
+
+      it { should have_operands_with_valid_parent }
+    end
+
+    describe 'with a duplicate operand' do
+      before { @operation << @comparison.dup }
+
+      subject { @operation.merge([ @comparison.dup ]) }
+
+      it { should equal(@operation) }
+
+      it 'should have unique operands' do
+        subject.to_a.should == [ @comparison ]
+      end
+
+      it { should have_operands_with_valid_parent }
+    end
+
+    describe 'with an invalid operand' do
+      subject { @operation.merge([ '' ]) }
+
+      it { method(:subject).should raise_error(ArgumentError)  }
     end
   end
 
@@ -262,6 +400,16 @@ shared_examples_for 'DataMapper::Query::Conditions::AbstractOperation' do
     end
   end
 
+  [ :union, :|, :+ ].each do |method|
+    it { should respond_to(method) }
+
+    describe "##{method}" do
+      subject { @operation.send(method, @null_operation) }
+
+      it { should eql(@null_operation) }
+    end
+  end
+
   it { should respond_to(:valid?) }
 
   describe '#valid?' do
@@ -282,7 +430,7 @@ shared_examples_for 'DataMapper::Query::Conditions::AbstractOperation' do
 
       describe 'and is not valid' do
         before do
-          @operation << @or_operation
+          @operation << @or_operation.dup
         end
 
         it { should be_false }
@@ -355,6 +503,8 @@ describe DataMapper::Query::Conditions::Operation do
 end
 
 describe DataMapper::Query::Conditions::AndOperation do
+  include OperationMatchers
+
   it_should_behave_like 'DataMapper::Query::Conditions::AbstractOperation'
 
   before do
@@ -365,156 +515,32 @@ describe DataMapper::Query::Conditions::AndOperation do
   it { should respond_to(:<<) }
 
   describe '#<<' do
-    describe 'with an AndOperation' do
-      subject { @operation << @and_operation.class.new(@comparison) }
+    [
+      DataMapper::Query::Conditions::AndOperation,
+      DataMapper::Query::Conditions::OrOperation,
+      DataMapper::Query::Conditions::NotOperation,
+    ].each do |klass|
+      describe "with an #{klass.name.split('::').last}" do
+        before do
+          @other = klass.new(@comparison)
+        end
 
-      it { should equal(@operation) }
+        subject { @operation << @other }
 
-      it 'should flatten and merge the AndOperation operand' do
-        subject.to_a.should == [ @comparison ]
+        it { should equal(@operation) }
+
+        if klass == DataMapper::Query::Conditions::AndOperation
+          it 'should flatten and merge the operand' do
+            subject.to_a.should == @other.operands.to_a
+          end
+        else
+          it 'should merge the operand' do
+            subject.to_a.should == [ @other ]
+          end
+        end
+
+        it { should have_operands_with_valid_parent }
       end
-
-      it 'should set the parent for the operand' do
-        subject.each { |operand| operand.parent.should equal(@operation) }
-      end
-    end
-
-    describe 'with an OrOperation' do
-      subject { @operation << @or_operation.class.new(@comparison) }
-
-      it { should equal(@operation) }
-
-      it 'should merge the operand' do
-        subject.to_a.should == [ @or_operation.class.new(@comparison) ]
-      end
-
-      it 'should set the parent for the operand' do
-        subject.each { |operand| operand.parent.should equal(@operation) }
-      end
-    end
-
-    describe 'with a NotOperation' do
-      subject { @operation << @not_operation.class.new(@comparison) }
-
-      it { should equal(@operation) }
-
-      it 'should merge the operand' do
-        subject.to_a.should == [ @not_operation.class.new(@comparison) ]
-      end
-
-      it 'should set the parent for the operand' do
-        subject.each { |operand| operand.parent.should equal(@operation) }
-      end
-    end
-
-    describe 'with a NullOperation' do
-      subject { @operation << @null_operation }
-
-      it { should equal(@operation) }
-
-      it 'should not merge the operand' do
-        subject.to_a.should == []
-      end
-    end
-
-    describe 'with a duplicate operand' do
-      before { @operation << @comparison.dup }
-
-      subject { @operation << @comparison.dup }
-
-      it { should equal(@operation) }
-
-      it 'should have unique operands' do
-        subject.to_a.should == [ @comparison ]
-      end
-
-      it 'should set the parent for the operand' do
-        subject.each { |operand| operand.parent.should equal(@operation) }
-      end
-    end
-
-    describe 'with an invalid operand' do
-      subject { @operation << '' }
-
-      it { method(:subject).should raise_error(ArgumentError)  }
-    end
-  end
-
-  it { should respond_to(:merge) }
-
-  describe '#merge' do
-    describe 'with an AndOperation' do
-      subject { @operation.merge([ @and_operation.class.new(@comparison) ]) }
-
-      it { should equal(@operation) }
-
-      it 'should flatten and merge the AndOperation operands' do
-        subject.to_a.should == [ @comparison ]
-      end
-
-      it 'should set the parent for each operand' do
-        subject.each { |operand| operand.parent.should equal(@operation) }
-      end
-    end
-
-    describe 'with an OrOperation' do
-      subject { @operation.merge([ @or_operation.class.new(@comparison) ]) }
-
-      it { should equal(@operation) }
-
-      it 'should merge the operand' do
-        subject.to_a.should == [ @or_operation.class.new(@comparison) ]
-      end
-
-      it 'should set the parent for each operand' do
-        subject.each { |operand| operand.parent.should equal(@operation) }
-      end
-    end
-
-    describe 'with a NotOperation' do
-      subject { @operation.merge([ @not_operation.class.new(@comparison) ]) }
-
-      it { should equal(@operation) }
-
-      it 'should merge the operand' do
-        subject.to_a.should == [ @not_operation.class.new(@comparison) ]
-      end
-
-      it 'should set the parent for each operand' do
-        subject.each { |operand| operand.parent.should equal(@operation) }
-      end
-    end
-
-    describe 'with a NullOperation' do
-      subject { @operation.merge([ @null_operation ]) }
-
-      it { should equal(@operation) }
-
-      it 'should not merge the operand' do
-        subject.to_a.should == []
-      end
-    end
-
-    describe 'with a duplicate operand' do
-      before { @operation << @comparison.dup }
-
-      subject { @operation.merge([ @comparison.dup ]) }
-
-      it { should equal(@operation) }
-
-      it 'should have unique operands' do
-        subject.to_a.should == [ @comparison ]
-      end
-
-      it 'should set the parent for each operand' do
-        subject.each { |operand| operand.parent.should equal(@operation) }
-      end
-    end
-
-    describe 'with an invalid operand' do
-      subject { @operation.merge([ '' ]) }
-
-      it { method(:subject).should raise_error(ArgumentError)  }
     end
   end
 
@@ -588,15 +614,95 @@ describe DataMapper::Query::Conditions::AndOperation do
     end
   end
 
+  it { should respond_to(:minimize) }
+
+  describe '#minimize' do
+    subject { @operation.minimize }
+
+    describe 'with one empty operand' do
+      before do
+        @operation << @other
+      end
+
+      it { should equal(@operation) }
+
+      it { subject.should be_empty }
+    end
+
+    describe 'with more than one operation' do
+      before do
+        @operation.merge([ @comparison, @not_operation.class.new(@comparison) ])
+      end
+
+      it { should equal(@operation) }
+
+      it { subject.to_a.should =~ [ @comparison, @not_operation.class.new(@comparison) ] }
+    end
+
+    describe 'with one non-empty operand' do
+      before do
+        @operation << @comparison
+      end
+
+      it { should == @comparison }
+    end
+
+    describe 'with one null operation' do
+      before do
+        @operation << @null_operation
+      end
+
+      it { should eql(@null_operation) }
+    end
+
+    describe 'with one null operation and one non-null operation' do
+      before do
+        @operation.merge([ @null_operation, @comparison ])
+      end
+
+      it { should eql(@comparison) }
+    end
+  end
+
+  it { should respond_to(:merge) }
+
+  describe '#merge' do
+    [
+      DataMapper::Query::Conditions::AndOperation,
+      DataMapper::Query::Conditions::OrOperation,
+      DataMapper::Query::Conditions::NotOperation,
+    ].each do |klass|
+      describe "with an #{klass.name.split('::').last}" do
+        before do
+          @other = klass.new(@comparison)
+        end
+
+        subject { @operation.merge([ @other ]) }
+
+        it { should equal(@operation) }
+
+        if klass == DataMapper::Query::Conditions::AndOperation
+          it 'should flatten and merge the operand' do
+            subject.to_a.should == @other.operands.to_a
+          end
+        else
+          it 'should merge the operand' do
+            subject.to_a.should == [ @other ]
+          end
+        end
+
+        it { should have_operands_with_valid_parent }
+      end
+    end
+  end
+
   it { should respond_to(:to_s) }
 
   describe '#to_s' do
     describe 'with no operands' do
       subject { @operation.to_s }
 
-      it { should be_kind_of(String) }
-
-      it { should == '' }
+      it { should eql('') }
     end
 
     describe 'with operands' do
@@ -607,9 +713,7 @@ describe DataMapper::Query::Conditions::AndOperation do
 
       subject { @operation.to_s }
 
-      it { should be_kind_of(String) }
-
-      it { should == '(NOT(title = A title) AND title = A title)' }
+      it { should eql('(NOT(title = A title) AND title = A title)') }
     end
   end
 
@@ -640,6 +744,8 @@ describe DataMapper::Query::Conditions::AndOperation do
 end
 
 describe DataMapper::Query::Conditions::OrOperation do
+  include OperationMatchers
+
   it_should_behave_like 'DataMapper::Query::Conditions::AbstractOperation'
 
   before do
@@ -650,78 +756,32 @@ describe DataMapper::Query::Conditions::OrOperation do
   it { should respond_to(:<<) }
 
   describe '#<<' do
-    describe 'with an AndOperation' do
-      subject { @operation << @and_operation.class.new(@comparison) }
+    [
+      DataMapper::Query::Conditions::AndOperation,
+      DataMapper::Query::Conditions::OrOperation,
+      DataMapper::Query::Conditions::NotOperation,
+    ].each do |klass|
+      describe "with an #{klass.name.split('::').last}" do
+        before do
+          @other = klass.new(@comparison)
+        end
 
-      it { should equal(@operation) }
+        subject { @operation << @other }
 
-      it 'should merge the operand' do
-        subject.to_a.should == [ @and_operation.class.new(@comparison) ]
+        it { should equal(@operation) }
+
+        if klass == DataMapper::Query::Conditions::OrOperation
+          it 'should flatten and merge the operand' do
+            subject.to_a.should == @other.operands.to_a
+          end
+        else
+          it 'should merge the operand' do
+            subject.to_a.should == [ @other ]
+          end
+        end
+
+        it { should have_operands_with_valid_parent }
       end
-
-      it 'should set the parent for the operand' do
-        subject.each { |operand| operand.parent.should equal(@operation) }
-      end
-    end
-
-    describe 'with an OrOperation' do
-      subject { @operation << @or_operation.class.new(@comparison) }
-
-      it { should equal(@operation) }
-
-      it 'should flatten and merge the OrOperation operand' do
-        subject.to_a.should == [ @comparison ]
-      end
-
-      it 'should set the parent for the operand' do
-        subject.each { |operand| operand.parent.should equal(@operation) }
-      end
-    end
-
-    describe 'with a NotOperation' do
-      subject { @operation << @not_operation.class.new(@comparison) }
-
-      it { should equal(@operation) }
-
-      it 'should merge the operand' do
-        subject.to_a.should == [ @not_operation.class.new(@comparison) ]
-      end
-
-      it 'should set the parent for the operand' do
-        subject.each { |operand| operand.parent.should equal(@operation) }
-      end
-    end
-
-    describe 'with a NullOperation' do
-      subject { @operation << @null_operation }
-
-      it { should equal(@operation) }
-
-      it 'should not merge the operand' do
-        subject.to_a.should == []
-      end
-    end
-
-    describe 'with a duplicate operand' do
-      before { @operation << @comparison.dup }
-
-      subject { @operation << @comparison.dup }
-
-      it { should equal(@operation) }
-
-      it 'should have unique operands' do
-        subject.to_a.should == [ @comparison ]
-      end
-
-      it 'should set the parent for the operand' do
-        subject.each { |operand| operand.parent.should equal(@operation) }
-      end
-    end
-
-    describe 'with an invalid operand' do
-      subject { @operation << '' }
-
-      it { method(:subject).should raise_error(ArgumentError)  }
     end
   end
 
@@ -761,84 +821,6 @@ describe DataMapper::Query::Conditions::OrOperation do
     end
   end
 
-  it { should respond_to(:merge) }
-
-  describe '#merge' do
-    describe 'with an AndOperation' do
-      subject { @operation.merge([ @and_operation.class.new(@comparison) ]) }
-
-      it { should equal(@operation) }
-
-      it 'should merge the operand' do
-        subject.to_a.should == [ @and_operation.class.new(@comparison) ]
-      end
-
-      it 'should set the parent for each operand' do
-        subject.each { |operand| operand.parent.should equal(@operation) }
-      end
-    end
-
-    describe 'with an OrOperation' do
-      subject { @operation.merge([ @or_operation.class.new(@comparison) ]) }
-
-      it { should equal(@operation) }
-
-      it 'should flatten and merge the OrOperation operand' do
-        subject.to_a.should == [ @comparison ]
-      end
-
-      it 'should set the parent for each operand' do
-        subject.each { |operand| operand.parent.should equal(@operation) }
-      end
-    end
-
-    describe 'with a NotOperation' do
-      subject { @operation.merge([ @not_operation.class.new(@comparison) ]) }
-
-      it { should equal(@operation) }
-
-      it 'should merge the operand' do
-        subject.to_a.should == [ @not_operation.class.new(@comparison) ]
-      end
-
-      it 'should set the parent for each operand' do
-        subject.each { |operand| operand.parent.should equal(@operation) }
-      end
-    end
-
-    describe 'with a NullOperation' do
-      subject { @operation.merge([ @null_operation ]) }
-
-      it { should equal(@operation) }
-
-      it 'should not merge the operand' do
-        subject.to_a.should == []
-      end
-    end
-
-    describe 'with a duplicate operand' do
-      before { @operation << @comparison.dup }
-
-      subject { @operation.merge([ @comparison.dup ]) }
-
-      it { should equal(@operation) }
-
-      it 'should have unique operands' do
-        subject.to_a.should == [ @comparison ]
-      end
-
-      it 'should set the parent for each operand' do
-        subject.each { |operand| operand.parent.should equal(@operation) }
-      end
-    end
-
-    describe 'with an invalid operand' do
-      subject { @operation.merge([ '' ]) }
-
-      it { method(:subject).should raise_error(ArgumentError)  }
-    end
-  end
-
   it { should respond_to(:matches?) }
 
   describe '#matches?' do
@@ -873,6 +855,80 @@ describe DataMapper::Query::Conditions::OrOperation do
     end
   end
 
+  it { should respond_to(:minimize) }
+
+  describe '#minimize' do
+    subject { @operation.minimize }
+
+    describe 'with one empty operand' do
+      before do
+        @operation << @other
+      end
+
+      it { should equal(@operation) }
+
+      it { subject.should be_empty }
+    end
+
+    describe 'with more than one operation' do
+      before do
+        @operation.merge([ @comparison, @not_operation.class.new(@comparison) ])
+      end
+
+      it { should equal(@operation) }
+
+      it { subject.to_a.should =~ [ @comparison, @not_operation.class.new(@comparison) ] }
+    end
+
+    describe 'with one non-empty operand' do
+      before do
+        @operation << @comparison
+      end
+
+      it { should == @comparison }
+    end
+
+    describe 'with one null operation' do
+      before do
+        @operation << @null_operation
+      end
+
+      it { should eql(@null_operation) }
+    end
+  end
+
+  it { should respond_to(:merge) }
+
+  describe '#merge' do
+    [
+      DataMapper::Query::Conditions::AndOperation,
+      DataMapper::Query::Conditions::OrOperation,
+      DataMapper::Query::Conditions::NotOperation,
+    ].each do |klass|
+      describe "with an #{klass.name.split('::').last}" do
+        before do
+          @other = klass.new(@comparison)
+        end
+
+        subject { @operation.merge([ @other ]) }
+
+        it { should equal(@operation) }
+
+        if klass == DataMapper::Query::Conditions::OrOperation
+          it 'should flatten and merge the operand' do
+            subject.to_a.should == @other.operands.to_a
+          end
+        else
+          it 'should merge the operand' do
+            subject.to_a.should == [ @other ]
+          end
+        end
+
+        it { should have_operands_with_valid_parent }
+      end
+    end
+  end
+
   it { should respond_to(:valid?) }
 
   describe '#valid?' do
@@ -900,6 +956,8 @@ describe DataMapper::Query::Conditions::OrOperation do
 end
 
 describe DataMapper::Query::Conditions::NotOperation do
+  include OperationMatchers
+
   it_should_behave_like 'DataMapper::Query::Conditions::AbstractOperation'
 
   before do
@@ -910,84 +968,38 @@ describe DataMapper::Query::Conditions::NotOperation do
   it { should respond_to(:<<) }
 
   describe '#<<' do
-    describe 'with an AndOperation' do
-      subject { @operation << @and_operation.class.new(@comparison) }
+    [
+      DataMapper::Query::Conditions::AndOperation,
+      DataMapper::Query::Conditions::OrOperation,
+      DataMapper::Query::Conditions::NotOperation,
+    ].each do |klass|
+      describe "with an #{klass.name.split('::').last}" do
+        before do
+          @other = klass.new(@comparison)
+        end
 
-      it { should equal(@operation) }
+        subject { @operation << @other }
 
-      it 'should merge the operand' do
-        subject.to_a.should == [ @and_operation.class.new(@comparison) ]
+        it { should equal(@operation) }
+
+        it 'should merge the operand' do
+          subject.to_a.should == [ @other ]
+        end
+
+        it { should have_operands_with_valid_parent }
       end
-
-      it 'should set the parent for the operand' do
-        subject.each { |operand| operand.parent.should equal(@operation) }
-      end
-    end
-
-    describe 'with an OrOperation' do
-      subject { @operation << @or_operation.class.new(@comparison) }
-
-      it { should equal(@operation) }
-
-      it 'should merge the operand' do
-        subject.to_a.should == [ @or_operation.class.new(@comparison) ]
-      end
-
-      it 'should set the parent for the operand' do
-        subject.each { |operand| operand.parent.should equal(@operation) }
-      end
-    end
-
-    describe 'with a NotOperation' do
-      subject { @operation << @not_operation.class.new(@comparison) }
-
-      it { should equal(@operation) }
-
-      it 'should merge the operand' do
-        subject.to_a.should == [ @not_operation.class.new(@comparison) ]
-      end
-
-      it 'should set the parent for the operand' do
-        subject.each { |operand| operand.parent.should equal(@operation) }
-      end
-    end
-
-    describe 'with a NullOperation' do
-      subject { @operation << @null_operation }
-
-      it { should equal(@operation) }
-
-      it 'should not merge the operand' do
-        subject.to_a.should == []
-      end
-    end
-
-    describe 'with a duplicate operand' do
-      before { @operation << @comparison.dup }
-
-      subject { @operation << @comparison.dup }
-
-      it { should equal(@operation) }
-
-      it 'should have unique operands' do
-        subject.to_a.should == [ @comparison ]
-      end
-
-      it 'should set the parent for the operand' do
-        subject.each { |operand| operand.parent.should equal(@operation) }
-      end
-    end
-
-    describe 'with an invalid operand' do
-      subject { @operation << '' }
-
-      it { method(:subject).should raise_error(ArgumentError)  }
     end
 
     describe 'with more than one operand' do
       subject { @operation << @comparison << @other }
 
       it { method(:subject).should raise_error(ArgumentError)  }
+    end
+
+    describe 'with self as an operand' do
+      subject { @operation << @operation }
+
+      it { method(:subject).should raise_error(ArgumentError, 'cannot append operand to itself')  }
     end
   end
 
@@ -1027,90 +1039,6 @@ describe DataMapper::Query::Conditions::NotOperation do
     end
   end
 
-  it { should respond_to(:merge) }
-
-  describe '#merge' do
-    describe 'with an AndOperation' do
-      subject { @operation.merge([ @and_operation.class.new(@comparison) ]) }
-
-      it { should equal(@operation) }
-
-      it 'should merge the operand' do
-        subject.to_a.should == [ @and_operation.class.new(@comparison) ]
-      end
-
-      it 'should set the parent for the operand' do
-        subject.each { |operand| operand.parent.should equal(@operation) }
-      end
-    end
-
-    describe 'with an OrOperation' do
-      subject { @operation.merge([ @or_operation.class.new(@comparison) ]) }
-
-      it { should equal(@operation) }
-
-      it 'should merge the operand' do
-        subject.to_a.should == [ @or_operation.class.new(@comparison) ]
-      end
-
-      it 'should set the parent for the operand' do
-        subject.each { |operand| operand.parent.should equal(@operation) }
-      end
-    end
-
-    describe 'with a NotOperation' do
-      subject { @operation.merge([ @not_operation.class.new(@comparison) ]) }
-
-      it { should equal(@operation) }
-
-      it 'should merge the operand' do
-        subject.to_a.should == [ @not_operation.class.new(@comparison) ]
-      end
-
-      it 'should set the parent for the operand' do
-        subject.each { |operand| operand.parent.should equal(@operation) }
-      end
-    end
-
-    describe 'with a NullOperation' do
-      subject { @operation.merge([ @null_operation ]) }
-
-      it { should equal(@operation) }
-
-      it 'should not merge the operand' do
-        subject.to_a.should == []
-      end
-    end
-
-    describe 'with a duplicate operand' do
-      before { @operation << @comparison.dup }
-
-      subject { @operation.merge([ @comparison.dup ]) }
-
-      it { should equal(@operation) }
-
-      it 'should have unique operands' do
-        subject.to_a.should == [ @comparison ]
-      end
-
-      it 'should set the parent for the operand' do
-        subject.each { |operand| operand.parent.should equal(@operation) }
-      end
-    end
-
-    describe 'with an invalid operand' do
-      subject { @operation.merge([ '' ]) }
-
-      it { method(:subject).should raise_error(ArgumentError)  }
-    end
-
-    describe 'with more than one operand' do
-      subject { @operation.merge([ @comparison, @other ]) }
-
-      it { method(:subject).should raise_error(ArgumentError)  }
-    end
-  end
-
   it { should respond_to(:matches?) }
 
   describe '#matches?' do
@@ -1145,15 +1073,95 @@ describe DataMapper::Query::Conditions::NotOperation do
     end
   end
 
+  it { should respond_to(:merge) }
+
+  describe '#merge' do
+    [
+      DataMapper::Query::Conditions::AndOperation,
+      DataMapper::Query::Conditions::OrOperation,
+      DataMapper::Query::Conditions::NotOperation,
+    ].each do |klass|
+      describe "with an #{klass.name.split('::').last}" do
+        before do
+          @other = klass.new(@comparison)
+        end
+
+        subject { @operation.merge([ @other ]) }
+
+        it { should equal(@operation) }
+
+        it 'should merge the operand' do
+          subject.to_a.should == [ @other ]
+        end
+
+        it { should have_operands_with_valid_parent }
+      end
+    end
+
+    describe 'with more than one operand' do
+      subject { @operation.merge([ @comparison, @other ]) }
+
+      it { method(:subject).should raise_error(ArgumentError)  }
+    end
+  end
+
+  it { should respond_to(:minimize) }
+
+  describe '#minimize' do
+    subject { @operation.minimize }
+
+    describe 'when no operand' do
+      it { should equal(@operation) }
+    end
+
+    describe 'when operand is a NotOperation' do
+      before do
+        @operation << @not_operation.class.new(@comparison)
+      end
+
+      it 'should remove the double negative' do
+        should eql(@comparison)
+      end
+    end
+
+    describe 'when operand is not a NotOperation' do
+      before do
+        @operation << @comparison
+      end
+
+      it { should equal(@operation) }
+
+      it { subject.to_a.should == [ @comparison ] }
+    end
+
+    describe 'when operand is an empty operation' do
+      before do
+        @operation << @and_operation
+      end
+
+      it { should equal(@operation) }
+
+      it { subject.should be_empty }
+    end
+
+    describe 'when operand is an operation containing a Comparison' do
+      before do
+        @operation << @and_operation.class.new(@comparison)
+      end
+
+      it { should equal(@operation) }
+
+      it { subject.to_a.should == [ @comparison ] }
+    end
+  end
+
   it { should respond_to(:to_s) }
 
   describe '#to_s' do
     describe 'with no operands' do
       subject { @operation.to_s }
 
-      it { should be_kind_of(String) }
-
-      it { should == '' }
+      it { should eql('') }
     end
 
     describe 'with operands' do
@@ -1163,9 +1171,7 @@ describe DataMapper::Query::Conditions::NotOperation do
 
       subject { @operation.to_s }
 
-      it { should be_kind_of(String) }
-
-      it { should == 'NOT(title = A title)' }
+      it { should eql('NOT(title = A title)') }
     end
   end
 
@@ -1187,6 +1193,8 @@ describe DataMapper::Query::Conditions::NotOperation do
 end
 
 describe DataMapper::Query::Conditions::NullOperation do
+  include OperationMatchers
+
   before :all do
     module ::Blog
       class Article
@@ -1201,8 +1209,9 @@ describe DataMapper::Query::Conditions::NullOperation do
   end
 
   before do
-    @operation = DataMapper::Query::Conditions::Operation.new(:null)
-    @slug      = @operation.slug
+    @null_operation = DataMapper::Query::Conditions::Operation.new(:null)
+    @operation      = @null_operation
+    @slug           = @operation.slug
   end
 
   it { should respond_to(:slug) }
@@ -1233,6 +1242,14 @@ describe DataMapper::Query::Conditions::NullOperation do
 
       it { should be_false }
     end
+  end
+
+  it { should respond_to(:minimize) }
+
+  describe '#minimize' do
+    subject { @operation.minimize }
+
+    it { should equal(@operation) }
   end
 
   it { should respond_to(:valid?) }
