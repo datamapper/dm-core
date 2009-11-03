@@ -512,7 +512,8 @@ module DataMapper
             "(#{target_key.map { |property| property_to_column_name(property, qualify) }.join(', ')})"
           end
 
-          statement << ' NOT' if @negated
+          # negate the statement if it has no conditions which can be negated
+          statement << ' NOT' if @negated && query.conditions.nil?
           statement << " IN (#{select_statement})"
 
           return statement, bind_values
