@@ -840,7 +840,7 @@ module DataMapper
     #   true if the resource was successfully saved
     #
     # @api semipublic
-    def save_self(safe)
+    def save_self(safe = true)
       if safe
         new? ? create_hook : update_hook
       else
