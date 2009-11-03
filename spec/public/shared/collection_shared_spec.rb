@@ -264,6 +264,42 @@ share_examples_for 'A public Collection' do
     end
   end
 
+  [ :difference, :- ].each do |method|
+    it { should respond_to(method) }
+
+    describe "##{method}" do
+      subject { @articles.send(method, @other_articles) }
+
+      if loaded
+        it { method(:subject).should raise_error(ArgumentError, "#{@articles.class}#difference cannot be called on a loaded collection") }
+      else
+        describe 'with a Collection' do
+          it { should be_kind_of(DataMapper::Collection) }
+
+          it { should == [ @article ] }
+
+          it { subject.query.should == @articles.query.difference(@other_articles.query) }
+        end
+
+        describe 'with an Array' do
+          before { @other_articles = @other_articles.to_ary }
+
+          it { should be_kind_of(DataMapper::Collection) }
+
+          it { should == [ @article ] }
+        end
+
+        describe 'with a Set' do
+          before { @other_articles = @other_articles.to_set }
+
+          it { should be_kind_of(DataMapper::Collection) }
+
+          it { should == [ @article ] }
+        end
+      end
+    end
+  end
+
   it { should respond_to(:delete) }
 
   describe '#delete' do
@@ -528,6 +564,42 @@ share_examples_for 'A public Collection' do
     it { @return.should match(/\btitle=\"Sample Article\"\s/) }
     it { @return.should_not match(/\btitle=\"Ignored Title\"\s/) }
     it { @return.should match(/\bcontent=\"Other Article\"\s/) }
+  end
+
+  [ :intersection, :& ].each do |method|
+    it { should respond_to(method) }
+
+    describe "##{method}" do
+      subject { @articles.send(method, @other_articles) }
+
+      if loaded
+        it { method(:subject).should raise_error(ArgumentError, "#{@articles.class}#intersection cannot be called on a loaded collection") }
+      else
+        describe 'with a Collection' do
+          it { should be_kind_of(DataMapper::Collection) }
+
+          it { should == [] }
+
+          it { subject.query.should == @articles.query.intersection(@other_articles.query) }
+        end
+
+        describe 'with an Array' do
+          before { @other_articles = @other_articles.to_ary }
+
+          it { should be_kind_of(DataMapper::Collection) }
+
+          it { should == [] }
+        end
+
+        describe 'with a Set' do
+          before { @other_articles = @other_articles.to_set }
+
+          it { should be_kind_of(DataMapper::Collection) }
+
+          it { should == [] }
+        end
+      end
+    end
   end
 
   it { should respond_to(:new) }
@@ -1428,6 +1500,42 @@ share_examples_for 'A public Collection' do
 
       it 'should include the Resource in the Collection' do
         @articles.should == @entries.reverse
+      end
+    end
+  end
+
+  [ :union, :|, :+ ].each do |method|
+    it { should respond_to(method) }
+
+    describe "##{method}" do
+      subject { @articles.send(method, @other_articles) }
+
+      if loaded
+        it { method(:subject).should raise_error(ArgumentError, "#{@articles.class}#union cannot be called on a loaded collection") }
+      else
+        describe 'with a Collection' do
+          it { should be_kind_of(DataMapper::Collection) }
+
+          it { should == [ @article, @other ] }
+
+          it { subject.query.should == @articles.query.union(@other_articles.query) }
+        end
+
+        describe 'with an Array' do
+          before { @other_articles = @other_articles.to_ary }
+
+          it { should be_kind_of(DataMapper::Collection) }
+
+          it { should == [ @article, @other ] }
+        end
+
+        describe 'with a Set' do
+          before { @other_articles = @other_articles.to_set }
+
+          it { should be_kind_of(DataMapper::Collection) }
+
+          it { should == [ @article, @other ] }
+        end
       end
     end
   end

@@ -82,6 +82,52 @@ module DataMapper
       replace(all(query.update(:fields => fields, :reload => true)))
     end
 
+    # Return the union with another collection
+    #
+    # @param [Collection] other
+    #   the other collection
+    #
+    # @return [Collection]
+    #   the union of the collection and other
+    #
+    # @api public
+    def union(other)
+      set_operation(:union, other)
+    end
+
+    alias | union
+    alias + union
+
+    # Return the intersection with another collection
+    #
+    # @param [Collection] other
+    #   the other collection
+    #
+    # @return [Collection]
+    #   the intersection of the collection and other
+    #
+    # @api public
+    def intersection(other)
+      set_operation(:intersection, other)
+    end
+
+    alias & intersection
+
+    # Return the difference with another collection
+    #
+    # @param [Collection] other
+    #   the other collection
+    #
+    # @return [Collection]
+    #   the difference of the collection and other
+    #
+    # @api public
+    def difference(other)
+      set_operation(:difference, other)
+    end
+
+    alias - difference
+
     # Lookup a Resource in the Collection by key
     #
     # This looksup a Resource by key, typecasting the key to the
@@ -1078,6 +1124,23 @@ module DataMapper
       self.class.new(query, resources, &block)
     end
 
+    # Apply a set operation on self and another collection
+    #
+    # @param [Symbol] operation
+    #   the set operation to apply
+    # @param [Collection] other
+    #   the other collection to apply the set operation on
+    #
+    # @return [Collection]
+    #   the collection that was created for the set operation
+    #
+    # @api private
+    def set_operation(operation, other)
+      assert_no_loaded_entries(operation)
+      other_query = Query.target_query(repository, model, other)
+      new_collection(query.send(operation, other_query))
+    end
+
     # Creates a resource in the collection
     #
     # @param [Boolean] safe
@@ -1363,6 +1426,23 @@ module DataMapper
     def assert_update_clean_only(method)
       if dirty?
         raise UpdateConflictError, "#{self.class}##{method} cannot be called on a dirty collection"
+      end
+    end
+
+    # Assert that the collection is not loaded
+    #
+    # @param [Symbol] method
+    #   the method for the error message
+    #
+    # @return [undefined]
+    #
+    # @raises [ArgumentError]
+    #   raised if the collection is loaded
+    #
+    # @api private
+    def assert_no_loaded_entries(method)
+      unless loaded_entries.empty?
+        raise ArgumentError, "#{self.class}##{method} cannot be called on a loaded collection"
       end
     end
   end # class Collection
