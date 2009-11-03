@@ -236,11 +236,9 @@ share_examples_for 'A public Resource' do
     describe "##{method}" do
       describe 'on a single resource' do
         before :all do
-          rescue_if @skip do
-            @resource = @user_model.create(:name => 'hacker', :age => 20, :comment => @comment)
+          @resource = @user_model.create(:name => 'hacker', :age => 20, :comment => @comment)
 
-            @return = @resource.__send__(method)
-          end
+          @return = @resource.__send__(method)
         end
 
         it 'should successfully remove a resource' do
@@ -427,10 +425,8 @@ share_examples_for 'A public Resource' do
 
     describe 'when comparing to a resource with a different key' do
       before :all do
-        rescue_if @skip do
-          @other  = @user_model.create(:name => 'dkubb', :age => 33, :comment => @comment)
-          @return = @user.eql?(@other)
-        end
+        @other  = @user_model.create(:name => 'dkubb', :age => 33, :comment => @comment)
+        @return = @user.eql?(@other)
       end
 
       it 'should return false' do
@@ -902,13 +898,11 @@ share_examples_for 'A public Resource' do
 
       describe 'on a new resource with unsaved parent and grandparent' do
         before :all do
-          rescue_if @skip do
-            @grandparent = @user_model.new(:name => 'dkubb',       :comment => @comment)
-            @parent      = @user_model.new(:name => 'ashleymoran', :comment => @comment, :referrer => @grandparent)
-            @child       = @user_model.new(:name => 'mrship',      :comment => @comment, :referrer => @parent)
+          @grandparent = @user_model.new(:name => 'dkubb',       :comment => @comment)
+          @parent      = @user_model.new(:name => 'ashleymoran', :comment => @comment, :referrer => @grandparent)
+          @child       = @user_model.new(:name => 'mrship',      :comment => @comment, :referrer => @parent)
 
-            @response = @child.__send__(method)
-          end
+          @response = @child.__send__(method)
         end
 
         it 'should return true' do
