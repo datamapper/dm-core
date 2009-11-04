@@ -625,7 +625,9 @@ module DataMapper
       properties = Set.new
 
       each_comparison do |comparison|
-        properties << comparison.subject if comparison.subject.kind_of?(Property)
+        next unless comparison.respond_to?(:subject)
+        subject = comparison.subject
+        properties << subject if subject.kind_of?(Property)
       end
 
       properties
