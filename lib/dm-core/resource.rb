@@ -379,7 +379,6 @@ module DataMapper
         repository.delete(collection_for_self)
         @destroyed = true
         @readonly  = true
-        @collection.delete(self) if @collection
         reset
       end
 
