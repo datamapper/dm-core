@@ -186,17 +186,6 @@ module DataMapper
           end
         end
 
-        # CLOB value should be compared using DBMS_LOB.SUBSTR function
-        # NOTE: just first 32767 bytes will be compared!
-        # @api private
-        def inequality_operator(property, operand)
-          if property.type == Types::Text
-            operand.nil? ? 'IS NOT' : 'DBMS_LOB.SUBSTR(%s) <> ?'
-          else
-            operand.nil? ? 'IS NOT' : '<>'
-          end
-        end
-
         # @api private
         def include_operator(property, operand)
           operator = case operand
@@ -211,26 +200,8 @@ module DataMapper
         end
 
         # @api private
-        def exclude_operator(property, operand)
-          operator = case operand
-            when Array then 'NOT IN'
-            when Range then 'NOT BETWEEN'
-          end
-          if property.type == Types::Text
-            "DBMS_LOB.SUBSTR(%s) #{operator} ?"
-          else
-            operator
-          end
-        end
-
-        # @api private
         def regexp_operator(operand)
           'REGEXP_LIKE(%s, ?)'
-        end
-
-        # @api private
-        def not_regexp_operator(operand)
-          'NOT REGEXP_LIKE(%s, ?)'
         end
 
       end #module SQL

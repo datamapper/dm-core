@@ -338,9 +338,9 @@ share_examples_for 'A DataObjects Adapter' do
           it 'should execute one subquery' do
             pending_if @mysql do
               statement = if @mysql
-                [ 'SELECT `name`, `parent_name` FROM `articles` WHERE `parent_name` NOT IN (SELECT `name` FROM `articles`) ORDER BY `name`' ]
+                [ 'SELECT `name`, `parent_name` FROM `articles` WHERE NOT(`parent_name` IN (SELECT `name` FROM `articles`)) ORDER BY `name`' ]
               else
-                [ 'SELECT "name", "parent_name" FROM "articles" WHERE "parent_name" NOT IN (SELECT "name" FROM "articles") ORDER BY "name"' ]
+                [ 'SELECT "name", "parent_name" FROM "articles" WHERE NOT("parent_name" IN (SELECT "name" FROM "articles")) ORDER BY "name"' ]
               end
 
               log_output.should == statement
@@ -369,9 +369,9 @@ share_examples_for 'A DataObjects Adapter' do
 
           it 'should execute one query' do
             statement = if @mysql
-              [ %[SELECT `name`, `parent_name` FROM `articles` WHERE `parent_name` NOT IN ('Test 0', 'Test 1', 'Test 2', 'Test 3', 'Test 4') ORDER BY `name`] ]
+              [ %[SELECT `name`, `parent_name` FROM `articles` WHERE NOT(`parent_name` IN ('Test 0', 'Test 1', 'Test 2', 'Test 3', 'Test 4')) ORDER BY `name`] ]
             else
-              [ %[SELECT "name", "parent_name" FROM "articles" WHERE "parent_name" NOT IN ('Test 0', 'Test 1', 'Test 2', 'Test 3', 'Test 4') ORDER BY "name"] ]
+              [ %[SELECT "name", "parent_name" FROM "articles" WHERE NOT("parent_name" IN ('Test 0', 'Test 1', 'Test 2', 'Test 3', 'Test 4')) ORDER BY "name"] ]
             end
 
             log_output.should == statement

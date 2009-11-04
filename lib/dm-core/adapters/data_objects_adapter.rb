@@ -512,8 +512,6 @@ module DataMapper
             "(#{target_key.map { |property| property_to_column_name(property, qualify) }.join(', ')})"
           end
 
-          # negate the statement if it has no conditions which can be negated
-          statement << ' NOT' if @negated && query.conditions.nil?
           statement << " IN (#{select_statement})"
 
           return statement, bind_values
@@ -571,12 +569,9 @@ module DataMapper
 
         # @api private
         def negate_operation(operand, qualify)
-          @negated = !@negated
-          begin
-            conditions_statement(operand, qualify)
-          ensure
-            @negated = !@negated
-          end
+          statement, bind_values = conditions_statement(operand, qualify)
+          statement = "NOT(#{statement})" unless statement.nil?
+          [ statement, bind_values ]
         end
 
         # @api private
@@ -586,12 +581,12 @@ module DataMapper
 
           operation.each do |operand|
             statement, values = conditions_statement(operand, qualify)
+            next unless statement && values
             statements << statement
-            bind_values.concat(values) unless values.nil?
+            bind_values.concat(values)
           end
 
-          join_with = operation.kind_of?(@negated ? Query::Conditions::OrOperation : Query::Conditions::AndOperation) ? 'AND' : 'OR'
-          statement = statements.join(" #{join_with} ")
+          statement = statements.join(" #{operation.slug.to_s.upcase} ")
 
           if statements.size > 1
             statement = "(#{statement})"
@@ -630,11 +625,7 @@ module DataMapper
               return conditions_statement(comparison.foreign_key_mapping, qualify)
             end
           elsif comparison.slug == :in && value.empty?
-            if @negated
-              return [ '1 = 1', [] ]  # match everything
-            else
-              return [ '1 = 0', [] ]  # match nothing
-            end
+            return []  # match everything
           end
 
           operator = comparison_operator(comparison)
@@ -652,25 +643,20 @@ module DataMapper
           value = comparison.value
 
           case comparison
-            when Query::Conditions::EqualToComparison              then @negated ? inequality_operator(comparison.subject, value) : equality_operator(comparison.subject, value)
-            when Query::Conditions::InclusionComparison            then @negated ? exclude_operator(comparison.subject, value)    : include_operator(comparison.subject, value)
-            when Query::Conditions::RegexpComparison               then @negated ? not_regexp_operator(value) : regexp_operator(value)
-            when Query::Conditions::LikeComparison                 then @negated ? unlike_operator(value)     : like_operator(value)
-            when Query::Conditions::GreaterThanComparison          then @negated ? '<='                       : '>'
-            when Query::Conditions::LessThanComparison             then @negated ? '>='                       : '<'
-            when Query::Conditions::GreaterThanOrEqualToComparison then @negated ? '<'                        : '>='
-            when Query::Conditions::LessThanOrEqualToComparison    then @negated ? '>'                        : '<='
+            when Query::Conditions::EqualToComparison              then equality_operator(comparison.subject, value)
+            when Query::Conditions::InclusionComparison            then include_operator(comparison.subject, value)
+            when Query::Conditions::RegexpComparison               then regexp_operator(value)
+            when Query::Conditions::LikeComparison                 then like_operator(value)
+            when Query::Conditions::GreaterThanComparison          then '>'
+            when Query::Conditions::LessThanComparison             then '<'
+            when Query::Conditions::GreaterThanOrEqualToComparison then '>='
+            when Query::Conditions::LessThanOrEqualToComparison    then '<='
           end
         end
 
         # @api private
         def equality_operator(property, operand)
           operand.nil? ? 'IS' : '='
-        end
-
-        # @api private
-        def inequality_operator(property, operand)
-          operand.nil? ? 'IS NOT' : '<>'
         end
 
         # @api private
@@ -682,28 +668,13 @@ module DataMapper
         end
 
         # @api private
-        def exclude_operator(property, operand)
-          "NOT #{include_operator(property, operand)}"
-        end
-
-        # @api private
         def regexp_operator(operand)
           '~'
         end
 
         # @api private
-        def not_regexp_operator(operand)
-          '!~'
-        end
-
-        # @api private
         def like_operator(operand)
           'LIKE'
-        end
-
-        # @api private
-        def unlike_operator(operand)
-          'NOT LIKE'
         end
 
         # @api private

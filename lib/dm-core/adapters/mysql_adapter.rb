@@ -29,11 +29,6 @@ module DataMapper
         end
 
         # @api private
-        def not_regexp_operator(operand)
-          'NOT REGEXP'
-        end
-
-        # @api private
         def quote_name(name)
           "`#{name[0, self.class::IDENTIFIER_MAX_LENGTH].gsub('`', '``')}`"
         end
