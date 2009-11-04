@@ -1062,7 +1062,7 @@ module DataMapper
     #
     # @api private
     def loaded_entries
-      loaded? ? self : head + tail
+      (loaded? ? self : head + tail).reject { |resource| resource.destroyed? }
     end
 
     # Returns the Query Repository name
@@ -1181,7 +1181,7 @@ module DataMapper
     def _save(safe)
       loaded_entries.each { |resource| set_default_attributes(resource) }
       @removed.clear
-      loaded_entries.all? { |resource| resource.destroyed? || resource.__send__(safe ? :save : :save!) }
+      loaded_entries.all? { |resource| resource.__send__(safe ? :save : :save!) }
     end
 
     # Returns default values to initialize new Resources in the Collection
