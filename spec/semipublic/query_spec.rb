@@ -918,6 +918,44 @@ describe DataMapper::Query do
     end
 
     describe 'with an order option' do
+      describe 'that is a single Symbol' do
+        before :all do
+          @options[:order] = :name
+          @return = DataMapper::Query.new(@repository, @model, @options.freeze)
+        end
+
+        it { @return.should be_kind_of(DataMapper::Query) }
+
+        it 'should set the order' do
+          @return.order.should == [ DataMapper::Query::Direction.new(@model.properties[:name]) ]
+        end
+      end
+
+      describe 'that is a single String' do
+        before :all do
+          @options[:order] = 'name'
+          @return = DataMapper::Query.new(@repository, @model, @options.freeze)
+        end
+
+        it { @return.should be_kind_of(DataMapper::Query) }
+
+        it 'should set the order' do
+          @return.order.should == [ DataMapper::Query::Direction.new(@model.properties[:name]) ]
+        end
+      end
+
+      describe 'that is a single Property' do
+        before :all do
+          @options[:order] = @model.properties.values_at(:name)
+          @return = DataMapper::Query.new(@repository, @model, @options.freeze)
+        end
+
+        it { @return.should be_kind_of(DataMapper::Query) }
+
+        it 'should set the order' do
+          @return.order.should == [ DataMapper::Query::Direction.new(@model.properties[:name]) ]
+        end
+      end
       describe 'that is an Array containing a Symbol' do
         before :all do
           @return = DataMapper::Query.new(@repository, @model, @options.freeze)
@@ -1033,8 +1071,8 @@ describe DataMapper::Query do
       describe 'that is invalid' do
         it 'should raise an exception' do
           lambda {
-            DataMapper::Query.new(@repository, @model, @options.update(:order => :name))
-          }.should raise_error(ArgumentError, '+options[:order]+ should be Array, but was Symbol')
+            DataMapper::Query.new(@repository, @model, @options.update(:order => 'unknown'))
+          }.should raise_error(ArgumentError, "+options[:order]+ entry \"unknown\" does not map to a property in #{@model}")
         end
       end
 
