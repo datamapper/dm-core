@@ -918,8 +918,7 @@ module DataMapper
     def assert_valid_order(order, fields)
       return if order.nil?
 
-      assert_kind_of 'options[:order]', order, Array
-
+      order = Array(order)
       if order.empty? && fields && fields.any? { |property| !property.kind_of?(Operator) }
         raise ArgumentError, '+options[:order]+ should not be empty if +options[:fields] contains a non-operator'
       end
@@ -1023,6 +1022,7 @@ module DataMapper
 
       # TODO: should Query::Path objects be permitted?  If so, then it
       # should probably be normalized to a Direction object
+      @order = Array(@order)
       @order = @order.map do |order|
         case order
           when Operator

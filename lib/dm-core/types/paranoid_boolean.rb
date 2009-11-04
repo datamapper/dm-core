@@ -21,10 +21,18 @@ module DataMapper
           end
 
           def destroy
+            paranoid_destroy
+          end
+
+          def paranoid_destroy
             self.class.paranoid_properties.each do |name, blk|
               attribute_set(name, blk.call(self))
             end
-            save
+            save_self
+            @destroyed = true
+            @readonly  = true
+            @collection.delete(self) if @collection
+            reset
           end
         RUBY
 

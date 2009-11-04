@@ -432,6 +432,7 @@ describe DataMapper::Associations do
       include DataMapper::Resource
 
       property :id, Serial
+      property :name, String
     end
 
     class ::Engine
@@ -609,6 +610,66 @@ describe DataMapper::Associations do
             end
           end
         end
+      end
+    end
+
+    describe 'with a model' do
+      before :all do
+        Engine.belongs_to(:vehicle, Car)
+      end
+
+      it 'should set the relationship target model' do
+        Engine.relationships[:vehicle].target_model.should == Car
+      end
+    end
+
+    describe 'with a :model option' do
+      before :all do
+        Engine.belongs_to(:vehicle, :model => Car)
+      end
+
+      it 'should set the relationship target model' do
+        Engine.relationships[:vehicle].target_model.should == Car
+      end
+    end
+
+    describe 'with a single element as :child_key option' do
+      before :all do
+        Engine.belongs_to(:vehicle, :model => Car, :child_key => :bike_id)
+      end
+
+      it 'should set the relationship child key' do
+        Engine.relationships[:vehicle].child_key.map { |property| property.name }.should == [:bike_id]
+      end
+    end
+
+    describe 'with an array as :child_key option' do
+      before :all do
+        Engine.belongs_to(:vehicle, :model => Car, :child_key => [:bike_id])
+      end
+
+      it 'should set the relationship child key' do
+        Engine.relationships[:vehicle].child_key.map { |property| property.name }.should == [:bike_id]
+      end
+    end
+
+    describe 'with a single element as :parent_key option' do
+      before :all do
+        Engine.belongs_to(:vehicle, :model => Car, :parent_key => :name)
+      end
+
+      it 'should set the relationship parent key' do
+        Engine.relationships[:vehicle].parent_key.map { |property| property.name }.should == [:name]
+      end
+    end
+
+    describe 'with an array as :parent_key option' do
+      before :all do
+        Engine.belongs_to(:vehicle, :model => Car, :parent_key => [:name])
+      end
+
+      it 'should set the relationship parent key' do
+        Engine.relationships[:vehicle].parent_key.map { |property| property.name }.should == [:name]
       end
     end
   end

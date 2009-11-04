@@ -313,8 +313,8 @@ module DataMapper
         # :target_key (will mean something different for each relationship)
 
         [ :child_key, :parent_key ].each do |key|
-          if options.key?(key)
-            assert_kind_of "options[#{key.inspect}]", options[key], Enumerable
+          if options.key?(key) && !options[key].is_a?(Enumerable)
+            options[key] = Array(options[key])
           end
         end
 
