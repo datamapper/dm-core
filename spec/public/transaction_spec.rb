@@ -130,6 +130,21 @@ describe DataMapper::Resource, 'Transactions' do
         @user_model.all.should have(0).entries
       end
 
+      it 'should close the transaction if return is called within the closure' do
+        @txn = nil
+
+        def doit
+          @user_model.transaction do
+            @txn = Thread.current[:dm_transactions].last
+            return
+          end
+        end
+        doit
+
+        @txn.instance_variable_get(:@state).should == :commit
+        @txn = nil
+      end
+
       it 'should return the last statement in the transaction block' do
         @user_model.transaction { 1 }.should == 1
       end

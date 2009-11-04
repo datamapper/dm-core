@@ -93,13 +93,6 @@ module DataMapper
           'REGEXP'
         end
 
-        # @api private
-        # TODO: Not actually supported out of the box. Is theoretically possible
-        # via CLR integration, custom functions.
-        def not_regexp_operator(operand)
-          'NOT REGEXP'
-        end
-
       end #module SQL
 
       include SQL
