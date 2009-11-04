@@ -113,9 +113,9 @@ module DataMapper
 
             # if a unique property is used, and there is no OR operator, then an ORDER
             # and LIMIT are unecessary because it should only return a single row
-            if conditions.kind_of?(Query::Conditions::AndOperation) &&
-               conditions.any? { |operand| operand.kind_of?(Query::Conditions::EqualToComparison) && operand.subject.respond_to?(:unique?) && operand.subject.unique? } &&
-               !conditions.any? { |operand| operand.kind_of?(Query::Conditions::OrOperation) }
+            if conditions.slug == :and &&
+               conditions.any? { |operand| operand.slug == :eql && operand.subject.respond_to?(:unique?) && operand.subject.unique? } &&
+               !conditions.any? { |operand| operand.slug == :or }
               order = nil
               limit = nil
             end

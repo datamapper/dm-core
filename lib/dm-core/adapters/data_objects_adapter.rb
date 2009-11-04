@@ -642,15 +642,15 @@ module DataMapper
         def comparison_operator(comparison)
           value = comparison.value
 
-          case comparison
-            when Query::Conditions::EqualToComparison              then equality_operator(comparison.subject, value)
-            when Query::Conditions::InclusionComparison            then include_operator(comparison.subject, value)
-            when Query::Conditions::RegexpComparison               then regexp_operator(value)
-            when Query::Conditions::LikeComparison                 then like_operator(value)
-            when Query::Conditions::GreaterThanComparison          then '>'
-            when Query::Conditions::LessThanComparison             then '<'
-            when Query::Conditions::GreaterThanOrEqualToComparison then '>='
-            when Query::Conditions::LessThanOrEqualToComparison    then '<='
+          case comparison.slug
+            when :eql    then equality_operator(comparison.subject, value)
+            when :in     then include_operator(comparison.subject, value)
+            when :regexp then regexp_operator(value)
+            when :like   then like_operator(value)
+            when :gt     then '>'
+            when :lt     then '<'
+            when :gte    then '>='
+            when :lte    then '<='
           end
         end
 
