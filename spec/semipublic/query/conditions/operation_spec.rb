@@ -606,10 +606,20 @@ describe DataMapper::Query::Conditions::AndOperation do
         it { should be_true }
       end
 
-      describe 'with a not matching Hash' do
+      describe 'with a not matching Resource' do
         subject { @operation.matches?(@model.new(:title => 'Not matching', :id => 1)) }
 
         it { should be_false }
+      end
+
+      describe 'with a raw condition' do
+        before do
+          @operation = @operation.class.new([ 'title = ?', 'Another title' ])
+        end
+
+        subject { @operation.matches?('title' => 'A title', 'id' => 1) }
+
+        it { should be_true }
       end
     end
   end
@@ -847,10 +857,20 @@ describe DataMapper::Query::Conditions::OrOperation do
         it { should be_true }
       end
 
-      describe 'with a not matching Hash' do
+      describe 'with a not matching Resource' do
         subject { @operation.matches?(@model.new(:title => 'Not matching', :id => 2)) }
 
         it { should be_false }
+      end
+
+      describe 'with a raw condition' do
+        before do
+          @operation = @operation.class.new([ 'title = ?', 'Another title' ])
+        end
+
+        subject { @operation.matches?('title' => 'A title', 'id' => 2) }
+
+        it { should be_true }
       end
     end
   end
@@ -1069,6 +1089,16 @@ describe DataMapper::Query::Conditions::NotOperation do
         subject { @operation.matches?(@model.new(:id => 1)) }
 
         it { should be_false }
+      end
+
+      describe 'with a raw condition' do
+        before do
+          @operation = @operation.class.new([ 'title = ?', 'Another title' ])
+        end
+
+        subject { @operation.matches?('id' => 2) }
+
+        it { should be_true }
       end
     end
   end

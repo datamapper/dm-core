@@ -452,7 +452,7 @@ module DataMapper
         #
         # @api semipublic
         def matches?(record)
-          all? { |operand| operand.matches?(record) }
+          all? { |operand| operand.respond_to?(:matches?) ? operand.matches?(record) : true }
         end
 
         # Minimize the operation
@@ -489,7 +489,7 @@ module DataMapper
         #
         # @api semipublic
         def matches?(record)
-          any? { |operand| operand.matches?(record) }
+          any? { |operand| operand.respond_to?(:matches?) ? operand.matches?(record) : true }
         end
 
         # Test if the operation is valid
@@ -536,7 +536,7 @@ module DataMapper
         #
         # @api semipublic
         def matches?(record)
-          not operand.matches?(record)
+          operand.respond_to?(:matches?) ? !operand.matches?(record) : true
         end
 
         # Add an operand to the operation
