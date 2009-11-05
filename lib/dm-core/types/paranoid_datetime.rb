@@ -30,7 +30,6 @@ module DataMapper
             save_self
             @destroyed = true
             @readonly  = true
-            @collection.delete(self) if @collection
             reset
           end
         RUBY
