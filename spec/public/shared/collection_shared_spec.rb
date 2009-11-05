@@ -270,38 +270,34 @@ share_examples_for 'A public Collection' do
     describe "##{method}" do
       subject { @articles.send(method, @other_articles) }
 
-      if loaded
-        it { method(:subject).should raise_error(ArgumentError, "#{@articles.class}#difference cannot be called on a loaded collection") }
-      else
-        describe 'with a Collection' do
-          it { should be_kind_of(DataMapper::Collection) }
+      describe 'with a Collection' do
+        it { should be_kind_of(DataMapper::Collection) }
 
-          it { should == [ @article ] }
+        it { should == [ @article ] }
 
-          it { subject.query.should == @articles.query.difference(@other_articles.query) }
+        it { subject.query.should == @articles.query.difference(@other_articles.query) }
 
-          it { should == @articles.to_a - @other_articles.to_a }
-        end
+        it { should == @articles.to_a - @other_articles.to_a }
+      end
 
-        describe 'with an Array' do
-          before { @other_articles = @other_articles.to_ary }
+      describe 'with an Array' do
+        before { @other_articles = @other_articles.to_ary }
 
-          it { should be_kind_of(DataMapper::Collection) }
+        it { should be_kind_of(DataMapper::Collection) }
 
-          it { should == [ @article ] }
+        it { should == [ @article ] }
 
-          it { should == @articles.to_a - @other_articles.to_a }
-        end
+        it { should == @articles.to_a - @other_articles.to_a }
+      end
 
-        describe 'with a Set' do
-          before { @other_articles = @other_articles.to_set }
+      describe 'with a Set' do
+        before { @other_articles = @other_articles.to_set }
 
-          it { should be_kind_of(DataMapper::Collection) }
+        it { should be_kind_of(DataMapper::Collection) }
 
-          it { should == [ @article ] }
+        it { should == [ @article ] }
 
-          it { should == @articles.to_a - @other_articles.to_a }
-        end
+        it { should == @articles.to_a - @other_articles.to_a }
       end
     end
   end
@@ -578,38 +574,34 @@ share_examples_for 'A public Collection' do
     describe "##{method}" do
       subject { @articles.send(method, @other_articles) }
 
-      if loaded
-        it { method(:subject).should raise_error(ArgumentError, "#{@articles.class}#intersection cannot be called on a loaded collection") }
-      else
-        describe 'with a Collection' do
-          it { should be_kind_of(DataMapper::Collection) }
+      describe 'with a Collection' do
+        it { should be_kind_of(DataMapper::Collection) }
 
-          it { should == [] }
+        it { should == [] }
 
-          it { subject.query.should == @articles.query.intersection(@other_articles.query) }
+        it { subject.query.should == @articles.query.intersection(@other_articles.query) }
 
-          it { should == @articles.to_a & @other_articles.to_a }
-        end
+        it { should == @articles.to_a & @other_articles.to_a }
+      end
 
-        describe 'with an Array' do
-          before { @other_articles = @other_articles.to_ary }
+      describe 'with an Array' do
+        before { @other_articles = @other_articles.to_ary }
 
-          it { should be_kind_of(DataMapper::Collection) }
+        it { should be_kind_of(DataMapper::Collection) }
 
-          it { should == [] }
+        it { should == [] }
 
-          it { should == @articles.to_a & @other_articles.to_a }
-        end
+        it { should == @articles.to_a & @other_articles.to_a }
+      end
 
-        describe 'with a Set' do
-          before { @other_articles = @other_articles.to_set }
+      describe 'with a Set' do
+        before { @other_articles = @other_articles.to_set }
 
-          it { should be_kind_of(DataMapper::Collection) }
+        it { should be_kind_of(DataMapper::Collection) }
 
-          it { should == [] }
+        it { should == [] }
 
-          it { should == @articles.to_a & @other_articles.to_a }
-        end
+        it { should == @articles.to_a & @other_articles.to_a }
       end
     end
   end
@@ -1522,38 +1514,34 @@ share_examples_for 'A public Collection' do
     describe "##{method}" do
       subject { @articles.send(method, @other_articles) }
 
-      if loaded
-        it { method(:subject).should raise_error(ArgumentError, "#{@articles.class}#union cannot be called on a loaded collection") }
-      else
-        describe 'with a Collection' do
-          it { should be_kind_of(DataMapper::Collection) }
+      describe 'with a Collection' do
+        it { should be_kind_of(DataMapper::Collection) }
 
-          it { should == [ @article, @other ] }
+        it { should == [ @article, @other ] }
 
-          it { subject.query.should == @articles.query.union(@other_articles.query) }
+        it { subject.query.should == @articles.query.union(@other_articles.query) }
 
-          it { should == @articles.to_a | @other_articles.to_a }
-        end
+        it { should == @articles.to_a | @other_articles.to_a }
+      end
 
-        describe 'with an Array' do
-          before { @other_articles = @other_articles.to_ary }
+      describe 'with an Array' do
+        before { @other_articles = @other_articles.to_ary }
 
-          it { should be_kind_of(DataMapper::Collection) }
+        it { should be_kind_of(DataMapper::Collection) }
 
-          it { should == [ @article, @other ] }
+        it { should == [ @article, @other ] }
 
-          it { should == @articles.to_a | @other_articles.to_a }
-        end
+        it { should == @articles.to_a | @other_articles.to_a }
+      end
 
-        describe 'with a Set' do
-          before { @other_articles = @other_articles.to_set }
+      describe 'with a Set' do
+        before { @other_articles = @other_articles.to_set }
 
-          it { should be_kind_of(DataMapper::Collection) }
+        it { should be_kind_of(DataMapper::Collection) }
 
-          it { should == [ @article, @other ] }
+        it { should == [ @article, @other ] }
 
-          it { should == @articles.to_a | @other_articles.to_a }
-        end
+        it { should == @articles.to_a | @other_articles.to_a }
       end
     end
   end

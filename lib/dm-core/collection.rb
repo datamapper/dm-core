@@ -92,7 +92,7 @@ module DataMapper
     #
     # @api public
     def union(other)
-      set_operation(:union, other)
+      set_operation(:|, other)
     end
 
     alias | union
@@ -108,7 +108,7 @@ module DataMapper
     #
     # @api public
     def intersection(other)
-      set_operation(:intersection, other)
+      set_operation(:&, other)
     end
 
     alias & intersection
@@ -123,7 +123,7 @@ module DataMapper
     #
     # @api public
     def difference(other)
-      set_operation(:difference, other)
+      set_operation(:-, other)
     end
 
     alias - difference
@@ -1136,9 +1136,26 @@ module DataMapper
     #
     # @api private
     def set_operation(operation, other)
-      assert_no_loaded_entries(operation)
+      resources   = set_operation_resources(operation, other)
       other_query = Query.target_query(repository, model, other)
-      new_collection(query.send(operation, other_query))
+      new_collection(query.send(operation, other_query), resources)
+    end
+
+    # Prepopulate the set operation if the collection is loaded
+    #
+    # @param [Symbol] operation
+    #   the set operation to apply
+    # @param [Collection] other
+    #   the other collection to apply the set operation on
+    #
+    # @return [nil]
+    #   nil if the Collection is not loaded
+    # @return [Array]
+    #   the resources to prepopulate the set operation results with
+    #
+    # @api private
+    def set_operation_resources(operation, other)
+      entries.send(operation, other.entries) if loaded?
     end
 
     # Creates a resource in the collection
@@ -1426,23 +1443,6 @@ module DataMapper
     def assert_update_clean_only(method)
       if dirty?
         raise UpdateConflictError, "#{self.class}##{method} cannot be called on a dirty collection"
-      end
-    end
-
-    # Assert that the collection is not loaded
-    #
-    # @param [Symbol] method
-    #   the method for the error message
-    #
-    # @return [undefined]
-    #
-    # @raises [ArgumentError]
-    #   raised if the collection is loaded
-    #
-    # @api private
-    def assert_no_loaded_entries(method)
-      unless loaded_entries.empty?
-        raise ArgumentError, "#{self.class}##{method} cannot be called on a loaded collection"
       end
     end
   end # class Collection
