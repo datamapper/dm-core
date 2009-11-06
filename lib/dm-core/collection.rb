@@ -1214,17 +1214,17 @@ module DataMapper
       conditions = query.conditions
 
       if conditions.slug == :and
-        properties = self.properties.dup
+        model_properties = properties.dup
 
         if query.condition_properties.to_set.superset?(model_key.to_set)
-          properties -= model_key
+          model_properties -= model_key
         end
 
         conditions.each do |condition|
           next unless condition.slug == :eql
 
           subject = condition.subject
-          next unless properties.include?(subject) || (condition.relationship? && subject.source_model == model)
+          next unless model_properties.include?(subject) || (condition.relationship? && subject.source_model == model)
 
           default_attributes[condition.subject] = condition.value
         end
