@@ -50,12 +50,6 @@ module DataMapper
       model.extend Model
     end
 
-    # Collection this resource associated with.
-    # Used by SEL.
-    #
-    # @api private
-    attr_writer :collection
-
     # @api public
     alias_method :model, :class
 
@@ -68,8 +62,8 @@ module DataMapper
     #
     # @api semipublic
     def repository
-      # only set @repository explicitly when persisted
-      defined?(@repository) ? @repository : model.repository
+      # only set @_repository explicitly when persisted
+      defined?(@_repository) ? @_repository : model.repository
     end
 
     # Retrieve the key(s) for this resource.
@@ -83,7 +77,7 @@ module DataMapper
     #
     # @api public
     def key
-      return @key if defined?(@key)
+      return @_key if defined?(@_key)
 
       model_key = model.key(repository_name)
 
@@ -92,7 +86,7 @@ module DataMapper
       end
 
       # only memoize a valid key
-      @key = key if model_key.valid?(key)
+      @_key = key if model_key.valid?(key)
     end
 
     # Checks if this Resource instance is new
@@ -112,7 +106,7 @@ module DataMapper
     #
     # @api public
     def saved?
-      @saved == true
+      @_saved == true
     end
 
     # Checks if this Resource instance is destroyed
@@ -122,7 +116,7 @@ module DataMapper
     #
     # @api public
     def destroyed?
-      @destroyed == true
+      @_destroyed == true
     end
 
     # Checks if the resource has no changes to save
@@ -154,7 +148,7 @@ module DataMapper
     #
     # @api public
     def readonly?
-      @readonly == true
+      @_readonly == true
     end
 
     # Returns the value of the attribute.
@@ -377,8 +371,8 @@ module DataMapper
     def destroy!
       if saved? && !destroyed?
         repository.delete(collection_for_self)
-        @destroyed = true
-        @readonly  = true
+        @_destroyed = true
+        @_readonly  = true
         reset
       end
 
@@ -490,7 +484,7 @@ module DataMapper
     #
     # @api semipublic
     def original_attributes
-      @original_attributes ||= {}
+      @_original_attributes ||= {}
     end
 
     # Checks if an attribute has been loaded from the repository
@@ -551,22 +545,38 @@ module DataMapper
     #
     # @api private
     def reset
-      @saved = false
+      @_saved = false
       identity_map.delete(key)
       original_attributes.clear
       self
     end
 
-    # Gets a Collection with the current Resource instance as its only member
+    # Returns the Collection the Resource is associated with
     #
-    # @return [Collection, FalseClass]
-    #   nil if this is a new record,
-    #   otherwise a Collection with self as its only member
+    # @return [nil]
+    #    nil if this is a new record
+    # @return [Collection]
+    #   a Collection that self belongs to
     #
     # @api private
     def collection
-      return @collection if (@collection && @collection.query.conditions.matches?(self)) || new? || readonly?
+      return @_collection if (@_collection && @_collection.query.conditions.matches?(self)) || new? || readonly?
       collection_for_self
+    end
+
+    # Associates a Resource to a Collection
+    #
+    # @param [Collection, nil] collection
+    #   the collection to associate the resource with
+    #
+    # @return [nil]
+    #    nil if this is a new record
+    # @return [Collection]
+    #   a Collection that self belongs to
+    #
+    # @api private
+    def collection=(collection)
+      @_collection = collection
     end
 
     protected
@@ -782,8 +792,8 @@ module DataMapper
 
       repository.create([ self ])
 
-      @repository = repository
-      @saved      = true
+      @_repository = repository
+      @_saved      = true
 
       original_attributes.clear
 
@@ -816,7 +826,7 @@ module DataMapper
         repository.update(dirty_attributes, collection_for_self)
 
         # remove the cached key in case it is updated
-        remove_instance_variable(:@key)
+        remove_instance_variable(:@_key)
 
         original_attributes.clear
 
@@ -996,7 +1006,7 @@ module DataMapper
     # @api private
     def run_once(default)
       caller_method = caller(1).first[/`([^'?!]+)[?!]?'/, 1]
-      sentinel      = "@__#{caller_method}_sentinel"
+      sentinel      = "@_#{caller_method}_sentinel"
       return instance_variable_get(sentinel) if instance_variable_defined?(sentinel)
 
       begin

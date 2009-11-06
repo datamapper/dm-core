@@ -29,8 +29,8 @@ module DataMapper
               attribute_set(name, blk.call(self))
             end
             save_self
-            @destroyed = true
-            @readonly  = true
+            @_destroyed = true
+            @_readonly  = true
             reset
           end
         RUBY

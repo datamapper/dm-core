@@ -513,15 +513,15 @@ module DataMapper
             end
         end
 
-        resource.instance_variable_set(:@repository, repository)
-        resource.instance_variable_set(:@saved,      true)
+        resource.instance_variable_set(:@_repository, repository)
+        resource.instance_variable_set(:@_saved,      true)
 
         if identity_map
           # defer setting the IdentityMap so second level caches can
           # record the state of the resource after loaded
           identity_map[key_values] = resource
         else
-          resource.instance_variable_set(:@readonly, true)
+          resource.instance_variable_set(:@_readonly, true)
         end
 
         resource
