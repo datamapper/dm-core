@@ -287,14 +287,21 @@ module DataMapper
 
     # Reloads association and all child association
     #
+    # This is accomplished by resetting the Resource key to it's
+    # original value, and then removing all the ivars for properties
+    # and relationships.  On the next access of those ivars, the
+    # resource will eager load what it needs.  While this is more of
+    # a lazy reload, it should result is more consistent behavior
+    # since no cached results will remain from the initial load.
+    #
     # @return [Resource]
     #   the receiver, the current Resource instance
     #
     # @api public
     def reload
-      if saved?
-        eager_load(fields)
-        child_collections.each { |children| children.reload }
+      if key
+        reset_key
+        clear_subjects
       end
 
       self
@@ -667,6 +674,33 @@ module DataMapper
     def fields
       properties.select do |property|
         property.loaded?(self) || (new? && property.default?)
+      end
+    end
+
+    # Reset the key to the original value
+    #
+    # @return [undefined]
+    #
+    # @api private
+    def reset_key
+      properties.key.zip(key) do |property, value|
+        property.set!(self, value)
+        original_attributes.delete(property)
+      end
+    end
+
+    # Remove all the ivars for properties and relationships
+    #
+    # @return [undefined]
+    #
+    # @api private
+    def clear_subjects
+      model_properties = properties
+
+      (model_properties - model_properties.key | relationships.values).each do |subject|
+        next unless subject.loaded?(self)
+        remove_instance_variable(subject.instance_variable_name)
+        original_attributes.delete(subject)
       end
     end
 

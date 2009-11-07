@@ -555,57 +555,81 @@ share_examples_for 'A public Resource' do
   it { @user.should respond_to(:reload) }
 
   describe '#reload' do
-    describe 'on a resource' do
-      before :all do
-        rescue_if @skip do
-          @user.name = 'dkubb'
-          @user.description = 'test'
-          @user.reload
-        end
+    before do
+      # reset the user for each spec
+      rescue_if(@skip) do
+        @user.update(:name => 'dbussink', :age => 25, :description => 'Test')
+      end
+    end
+
+    subject { rescue_if(@skip) { @user.reload } }
+
+    describe 'on a resource not persisted' do
+      before do
+        @user.attributes = { :description => 'Changed' }
       end
 
-      it { @user.name.should eql('dbussink') }
+      it { should be_kind_of(DataMapper::Resource) }
 
-      it 'should also reload previously loaded attributes' do
-        @user.attribute_loaded?(:description).should be_true
+      it { should equal(@user) }
+
+      it { should be_clean }
+
+      it 'reset the changed attributes' do
+        method(:subject).should change(@user, :description).from('Changed').to('Test')
+      end
+    end
+
+    describe 'on a resource where the key is changed, but not persisted' do
+      before do
+        @user.attributes = { :name => 'dkubb' }
+      end
+
+      it { should be_kind_of(DataMapper::Resource) }
+
+      it { should equal(@user) }
+
+      it { should be_clean }
+
+      it 'reset the changed attributes' do
+        method(:subject).should change(@user, :name).from('dkubb').to('dbussink')
       end
     end
 
     describe 'on a resource that is changed outside another resource' do
-      before :all do
+      before do
         rescue_if @skip do
-          @user2 = @user.dup
-          @user2.description = 'Changed'
-          @user2.save
-          @user.reload
+          @user.dup.update(:description => 'Changed')
         end
       end
 
+      it { should be_kind_of(DataMapper::Resource) }
+
+      it { should equal(@user) }
+
+      it { should be_clean }
+
       it 'should reload the resource from the data store' do
-        @user.description.should eql('Changed')
+        method(:subject).should change(@user, :description).from('Test').to('Changed')
       end
     end
 
     describe 'on an anonymous resource' do
-      before :all do
+      before do
         rescue_if @skip do
-          @user = @user.model.first(:fields => [ :description ])
+          @user = @user.class.first(:fields => [ :description ])
           @user.description.should == 'Test'
-
-          @return = @user.reload
         end
       end
 
-      it 'should return a Resource' do
-        @return.should be_kind_of(DataMapper::Resource)
-      end
+      it { should be_kind_of(DataMapper::Resource) }
 
-      it 'should return the expected value' do
-        @return.should equal(@user)
-      end
+      it { should equal(@user) }
 
-      it 'should not reload any other attributes' do
-        @user.attributes.should == { :description => 'Test' }
+      it { should be_clean }
+
+      it 'should not reload any attributes' do
+        method(:subject).should_not change(@user, :attributes)
       end
     end
   end

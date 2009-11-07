@@ -282,10 +282,12 @@ describe DataMapper::Property do
     # (since original value is set, property is no longer dirty)
     describe '#set_original_value' do
       before :all do
-        @image = Image.create(:md5hash     => '5268f0f3f452844c79843e820f998869',
-                              :title       => 'Rome at the sunset',
-                              :description => 'Just wow')
-        @image.reload
+        @image = Image.create(
+          :md5hash     => '5268f0f3f452844c79843e820f998869',
+          :title       => 'Rome at the sunset',
+          :description => 'Just wow'
+        )
+
         @property = Image.properties[:title]
       end
 
@@ -315,10 +317,12 @@ describe DataMapper::Property do
       before :all do
         # keep in mind we must run these examples with a
         # saved model instance
-        @image = Image.create(:md5hash     => '5268f0f3f452844c79843e820f998869',
-                              :title       => 'Rome at the sunset',
-                              :description => 'Just wow')
-        @image.reload
+        @image = Image.create(
+          :md5hash     => '5268f0f3f452844c79843e820f998869',
+          :title       => 'Rome at the sunset',
+          :description => 'Just wow'
+        )
+
         @property = Image.properties[:title]
       end
 
