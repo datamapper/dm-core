@@ -175,9 +175,6 @@ module DataMapper
       def update(attributes, collection)
         query = collection.query
 
-        # TODO: if the query contains any links, a limit or an offset
-        # use a subselect to get the rows to be updated
-
         properties  = []
         bind_values = []
 
@@ -206,10 +203,6 @@ module DataMapper
       # @api semipublic
       def delete(collection)
         query = collection.query
-
-        # TODO: if the query contains any links, a limit or an offset
-        # use a subselect to get the rows to be deleted
-
         statement, bind_values = delete_statement(query)
         execute(statement, *bind_values).affected_rows
       end
