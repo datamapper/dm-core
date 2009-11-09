@@ -1223,7 +1223,6 @@ module DataMapper
           scale     = Property::DEFAULT_SCALE_BIGDECIMAL
 
           @type_map ||= super.merge(
-            BigDecimal  => { :primitive => 'FLOAT',    :precision => precision, :scale => nil },
             DateTime    => { :primitive => 'DATETIME'                                         },
             Date        => { :primitive => 'SMALLDATETIME'                                    },
             Time        => { :primitive => 'SMALLDATETIME'                                    },
