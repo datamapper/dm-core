@@ -1146,14 +1146,20 @@ module DataMapper
     end
 
     # @api private
-    def append_property_condition(property, bind_value, operator)
+    def append_property_condition(subject, bind_value, operator)
       negated = operator == :not
 
       if operator == :eql || negated
+        # transform :relationship => nil into :relationship.not => association
+        if subject.respond_to?(:collection_for) && bind_value.nil?
+          negated    = !negated
+          bind_value = collection_for_nil(subject)
+        end
+
         operator = equality_operator_for_type(bind_value)
       end
 
-      condition = Conditions::Comparison.new(operator, property, bind_value)
+      condition = Conditions::Comparison.new(operator, subject, bind_value)
 
       if negated
         condition = Conditions::Operation.new(:not, condition)
@@ -1281,6 +1287,17 @@ module DataMapper
         when Resource
           property.get!(record)
       end
+    end
+
+    # @api private
+    def collection_for_nil(relationship)
+      query = relationship.query.dup
+
+      relationship.target_key.each do |target_key|
+        query[target_key.name.not] = nil if target_key.nullable?
+      end
+
+      relationship.target_model.all(query)
     end
 
     # @api private

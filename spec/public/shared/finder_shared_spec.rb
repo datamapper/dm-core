@@ -10,6 +10,8 @@ share_examples_for 'Finder Interface' do
     @no_join = defined?(DataMapper::Adapters::InMemoryAdapter) && @adapter.kind_of?(DataMapper::Adapters::InMemoryAdapter) ||
                defined?(DataMapper::Adapters::YamlAdapter)     && @adapter.kind_of?(DataMapper::Adapters::YamlAdapter)
 
+    @do_adapter = defined?(DataMapper::Adapters::DataObjectsAdapter) && @adapter.kind_of?(DataMapper::Adapters::DataObjectsAdapter)
+
     @many_to_many = @articles.kind_of?(DataMapper::Associations::ManyToMany::Collection)
 
     @skip = @no_join && @many_to_many
@@ -377,6 +379,38 @@ share_examples_for 'Finder Interface' do
         it 'should have a valid query' do
           @return.query.should be_valid
         end
+
+        it 'should be equivalent to negated collection query' do
+          pending_if 'Update RDBMS to match ruby behavior', @do_adapter && @articles.kind_of?(DataMapper::Model) do
+            # NOTE: the second query will not match any articles where original_id
+            # is nil, while the in-memory/yaml adapters will.  RDBMS will explicitly
+            # filter out NULL matches because we are matching on a non-NULL value,
+            # which is not consistent with how DM/Ruby matching behaves.
+            @return.should == @articles.all(:original.not => @article_model.all)
+          end
+        end
+      end
+
+      describe 'with a negated nil value' do
+        before :all do
+          @return = @articles.all(:original.not => nil)
+        end
+
+        it 'should return a Collection' do
+          @return.should be_kind_of(DataMapper::Collection)
+        end
+
+        it 'should be expected Resources' do
+          @return.should == [ @article ]
+        end
+
+        it 'should have a valid query' do
+          @return.query.should be_valid
+        end
+
+        it 'should be equivalent to collection query' do
+          @return.should == @articles.all(:original => @article_model.all)
+        end
       end
     end
 
@@ -450,12 +484,50 @@ share_examples_for 'Finder Interface' do
           @return.should be_kind_of(DataMapper::Collection)
         end
 
-        it 'should be an empty Collection' do
-          @return.should be_empty
+        if respond_to?(:model?) && model?
+          it 'should be expected Resources' do
+            @return.should == [ @other, @new ]
+          end
+        else
+          it 'should be expected Resources' do
+            @return.should == [ @new ]
+          end
         end
 
         it 'should have a valid query' do
           @return.query.should be_valid
+        end
+
+        it 'should be equivalent to negated collection query' do
+          @return.should == @articles.all(:previous.not => @article_model.all(:original.not => nil))
+        end
+      end
+
+      describe 'with a negated nil value' do
+        before :all do
+          @return = @articles.all(:previous.not => nil)
+        end
+
+        it 'should return a Collection' do
+          @return.should be_kind_of(DataMapper::Collection)
+        end
+
+        if respond_to?(:model?) && model?
+          it 'should be expected Resources' do
+            @return.should == [ @original, @article ]
+          end
+        else
+          it 'should be expected Resources' do
+            @return.should == [ @article ]
+          end
+        end
+
+        it 'should have a valid query' do
+          @return.query.should be_valid
+        end
+
+        it 'should be equivalent to collection query' do
+          @return.should == @articles.all(:previous => @article_model.all)
         end
       end
     end
@@ -530,12 +602,50 @@ share_examples_for 'Finder Interface' do
           @return.should be_kind_of(DataMapper::Collection)
         end
 
-        it 'should be an empty Collection' do
-          @return.should be_empty
+        if respond_to?(:model?) && model?
+          it 'should be expected Resources' do
+            @return.should == [ @other, @new ]
+          end
+        else
+          it 'should be expected Resources' do
+            @return.should == [ @new ]
+          end
         end
 
         it 'should have a valid query' do
           @return.query.should be_valid
+        end
+
+        it 'should be equivalent to negated collection query' do
+          @return.should == @articles.all(:revisions.not => @article_model.all(:original.not => nil))
+        end
+      end
+
+      describe 'with a negated nil value' do
+        before :all do
+          @return = @articles.all(:revisions.not => nil)
+        end
+
+        it 'should return a Collection' do
+          @return.should be_kind_of(DataMapper::Collection)
+        end
+
+        if respond_to?(:model?) && model?
+          it 'should be expected Resources' do
+            @return.should == [ @original, @article ]
+          end
+        else
+          it 'should be expected Resources' do
+            @return.should == [ @article ]
+          end
+        end
+
+        it 'should have a valid query' do
+          @return.query.should be_valid
+        end
+
+        it 'should be equivalent to collection query' do
+          @return.should == @articles.all(:revisions => @article_model.all)
         end
       end
     end
@@ -614,12 +724,42 @@ share_examples_for 'Finder Interface' do
           @return.should be_kind_of(DataMapper::Collection)
         end
 
-        it 'should be an empty Collection' do
-          @return.should be_empty
+        it 'should be empty' do
+          pending 'TODO' do
+            @return.should be_empty
+          end
         end
 
         it 'should have a valid query' do
           @return.query.should be_valid
+        end
+
+        it 'should be equivalent to negated collection query' do
+          @return.should == @articles.all(:publications.not => @publication_model.all)
+        end
+      end
+
+      describe 'with a negated nil value' do
+        before :all do
+          @return = @articles.all(:publications.not => nil)
+        end
+
+        it 'should return a Collection' do
+          @return.should be_kind_of(DataMapper::Collection)
+        end
+
+        it 'should be expected Resources' do
+          pending 'TODO' do
+            @return.should == [ @article ]
+          end
+        end
+
+        it 'should have a valid query' do
+          @return.query.should be_valid
+        end
+
+        it 'should be equivalent to collection query' do
+          @return.should == @articles.all(:publications => @publication_model.all)
         end
       end
     end
