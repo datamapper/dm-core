@@ -1039,7 +1039,7 @@ module DataMapper
     #
     # @api private
     def run_once(default)
-      caller_method = caller(1).first[/`([^'?!]+)[?!]?'/, 1]
+      caller_method = Kernel.caller(1).first[/`([^'?!]+)[?!]?'/, 1]
       sentinel      = "@_#{caller_method}_sentinel"
       return instance_variable_get(sentinel) if instance_variable_defined?(sentinel)
 
