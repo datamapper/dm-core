@@ -847,11 +847,9 @@ module DataMapper
     #
     # @api private
     def _update
-      dirty_attributes = self.dirty_attributes
-
-      if dirty_attributes.empty?
+      if original_attributes.empty?
         true
-      elsif dirty_attributes.any? { |property, value| !property.valid?(value) }
+      elsif original_attributes.any? { |property, _| !property.valid?(property.get!(self)) }
         false
       else
         # remove from the identity map
@@ -859,10 +857,10 @@ module DataMapper
 
         repository.update(dirty_attributes, collection_for_self)
 
+        original_attributes.clear
+
         # remove the cached key in case it is updated
         remove_instance_variable(:@_key)
-
-        original_attributes.clear
 
         identity_map[key] = self
 
