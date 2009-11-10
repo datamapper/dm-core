@@ -1636,7 +1636,7 @@ share_examples_for 'A public Collection' do
         end
       end
 
-      describe 'with attributes where a not-nullable property is nil' do
+      describe 'with attributes where a required property is nil' do
         before :all do
           @return = @articles.send(method, :title => nil)
         end

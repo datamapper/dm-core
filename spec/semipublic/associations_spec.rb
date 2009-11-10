@@ -170,8 +170,8 @@ describe DataMapper::Associations do
       @relationship.max.should == 1
     end
 
-    it 'should return a Relationship that is not nullable' do
-      @relationship.nullable?.should be_false
+    it 'should return a Relationship that is required' do
+      @relationship.required?.should be_true
     end
   end
 end

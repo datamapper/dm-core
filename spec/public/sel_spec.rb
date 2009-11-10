@@ -17,7 +17,7 @@ describe 'SEL', 'with STI subclasses' do
 
         property :id,    Serial
         property :type,  Discriminator
-        property :title, String, :nullable => false
+        property :title, String, :required => true
 
         belongs_to :author
       end

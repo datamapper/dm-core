@@ -517,13 +517,13 @@ describe DataMapper::Property do
       end
     end
 
-    describe 'when provide a nil value when not nullable' do
+    describe 'when provide a nil value when required' do
       it 'should return false' do
         @model.properties[:id].valid?(nil).should be_false
       end
     end
 
-    describe 'when provide a nil value when nullable' do
+    describe 'when provide a nil value when not required' do
       it 'should return false' do
         @model.properties[:alias].valid?(nil).should be_true
       end

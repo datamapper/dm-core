@@ -20,7 +20,7 @@ describe DataMapper::Property do
       include DataMapper::Resource
 
       property :md5hash,      String, :key => true, :length => 32
-      property :title,        String, :nullable => false, :unique => true
+      property :title,        String, :required => true, :unique => true
       property :description,  Text,   :length => 1..1024, :lazy => [ :detail ]
       property :format,       String, :default => 'jpeg'
       property :taken_at,     Time,   :default => proc { Time.now }
@@ -255,13 +255,13 @@ describe DataMapper::Property do
       end
     end
 
-    describe '#nullable?' do
+    describe '#allow_nil?' do
       it 'returns true when property can accept nil as its value' do
-        Track.properties[:artist].nullable?.should be_true
+        Track.properties[:artist].allow_nil?.should be_true
       end
 
       it 'returns false when property nil value is prohibited for this property' do
-        Image.properties[:title].nullable?.should be_false
+        Image.properties[:title].allow_nil?.should be_false
       end
     end
 

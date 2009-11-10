@@ -53,7 +53,7 @@ describe DataMapper::Query::Conditions do
       property :color,     String
       property :num_spots, Integer
       property :striped,   Boolean
-      property :mass,      Mass,    :default => 'Large', :nullable => false
+      property :mass,      Mass,    :default => 'Large', :required => true
 
       belongs_to :parent, Heffalump
 

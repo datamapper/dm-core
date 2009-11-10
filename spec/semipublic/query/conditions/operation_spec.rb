@@ -44,7 +44,7 @@ shared_examples_for 'DataMapper::Query::Conditions::AbstractOperation' do
         include DataMapper::Resource
 
         property :id,    Serial
-        property :title, String, :nullable => false
+        property :title, String, :required => true
       end
     end
 
@@ -1231,7 +1231,7 @@ describe DataMapper::Query::Conditions::NullOperation do
         include DataMapper::Resource
 
         property :id,    Serial
-        property :title, String, :nullable => false
+        property :title, String, :required => true
       end
     end
 

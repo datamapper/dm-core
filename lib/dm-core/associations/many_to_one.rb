@@ -4,7 +4,7 @@ module DataMapper
       # Relationship class with implementation specific
       # to n side of 1 to n association
       class Relationship < Associations::Relationship
-        OPTIONS = superclass::OPTIONS.dup << :nullable
+        OPTIONS = superclass::OPTIONS.dup << :required
 
         # @api semipublic
         alias source_repository_name child_repository_name
@@ -22,8 +22,14 @@ module DataMapper
         alias target_key parent_key
 
         # @api semipublic
+        def required?
+          @required
+        end
+
+        # @api private
         def nullable?
-          @nullable
+          warn "#{self.class}#nullable? is deprecated, use #{self.class}#required? instead (#{caller[0]})"
+          !required?
         end
 
         # Returns a set of keys that identify child model
@@ -122,9 +128,14 @@ module DataMapper
         #
         # @api semipublic
         def initialize(name, source_model, target_model, options = {})
-          @nullable      = options.fetch(:nullable, false)
+          if options.key?(:nullable)
+            warn ":nullable option is deprecated, use :required instead (#{caller[2]})"
+            options[:required] = !options.delete(:nullable)
+          end
+
+          @required      = options.fetch(:required, true)
           target_model ||= Extlib::Inflection.camelize(name)
-          options        = { :min => @nullable ? 0 : 1, :max => 1 }.update(options)
+          options        = { :min => @required ? 1 : 0, :max => 1 }.update(options)
           super
         end
 
@@ -182,7 +193,7 @@ module DataMapper
 
         # @api private
         def child_key_options(parent_property)
-          options = parent_property.options.only(:length, :precision, :scale).update(:index => name, :nullable => nullable?)
+          options = parent_property.options.only(:length, :precision, :scale).update(:index => name, :required => required?)
 
           if parent_property.primitive == Integer && parent_property.min && parent_property.max
             options.update(:min => parent_property.min, :max => parent_property.max)

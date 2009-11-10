@@ -84,15 +84,15 @@ module DataMapper
   #   end # module Types
   # end # module DataMapper
   class Type
-
     # Until cooperation of Property and Type does not change, each must
     # have a separate list of options, because plugins (ex.: dm-validations)
     # may want to extend one or the other, and expects no side effects
     PROPERTY_OPTIONS = [
       :accessor, :reader, :writer,
-      :lazy, :default, :nullable, :key, :serial, :field, :size, :length,
+      :lazy, :default, :key, :serial, :field, :size, :length,
       :format, :index, :unique_index, :auto_validation,
-      :validates, :unique, :precision, :scale, :min, :max
+      :validates, :unique, :precision, :scale, :min, :max,
+      :allow_nil, :allow_blank, :required
     ]
 
     class << self
@@ -144,6 +144,12 @@ module DataMapper
             end                                                          #   end
           end                                                            # end
         RUBY
+      end
+
+      def nullable(value)
+        # :required is preferable to :allow_nil, but :nullable maps precisely to :allow_nil
+        warn "#nullable is deprecated, use #required instead (#{caller[0]})"
+        allow_nil(value)
       end
 
       # Gives all the options set on this type

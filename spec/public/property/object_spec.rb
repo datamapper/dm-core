@@ -8,7 +8,7 @@ describe DataMapper::Property, 'Object type' do
 
         property :id,    Serial
         property :title, String
-        property :meta,  Object, :nullable => false
+        property :meta,  Object, :required => true
       end
     end
 
@@ -59,9 +59,9 @@ describe DataMapper::Property, 'Object type' do
       it { should be_true }
     end
 
-    describe 'with nil and property is nullable' do
+    describe 'with nil and property is not required' do
       before do
-        @property = @model.property(:meta, Object, :nullable => true)
+        @property = @model.property(:meta, Object, :required => false)
       end
 
       subject { @property.valid?(nil) }
@@ -69,13 +69,13 @@ describe DataMapper::Property, 'Object type' do
       it { should be_true }
     end
 
-    describe 'with nil and property is not nullable' do
+    describe 'with nil and property is required' do
       subject { @property.valid?(nil) }
 
       it { should be_false }
     end
 
-    describe 'with nil and property is not nullable, but validity is negated' do
+    describe 'with nil and property is required, but validity is negated' do
       subject { @property.valid?(nil, true) }
 
       it { should be_true }

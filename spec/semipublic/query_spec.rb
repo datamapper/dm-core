@@ -21,7 +21,7 @@ describe DataMapper::Query do
       property :password, Password
       property :balance,  BigDecimal
 
-      belongs_to :referrer, self, :nullable => true
+      belongs_to :referrer, self, :required => false
       has n, :referrals, self, :inverse => :referrer
     end
 
@@ -1316,7 +1316,7 @@ describe DataMapper::Query do
       property :name,        String, :key => true
       property :citizenship, String
 
-      belongs_to :referrer, self, :nullable => true
+      belongs_to :referrer, self, :required => false
       has n, :referrals,    self, :inverse => :referrer
       has n, :grandparents, self, :through => :referrals, :via => :referrer
     end

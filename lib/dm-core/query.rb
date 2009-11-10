@@ -1294,7 +1294,7 @@ module DataMapper
       query = relationship.query.dup
 
       relationship.target_key.each do |target_key|
-        query[target_key.name.not] = nil if target_key.nullable?
+        query[target_key.name.not] = nil if target_key.allow_nil?
       end
 
       relationship.target_model.all(query)

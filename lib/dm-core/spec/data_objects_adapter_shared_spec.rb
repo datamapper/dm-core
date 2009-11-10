@@ -103,7 +103,7 @@ share_examples_for 'A DataObjects Adapter' do
         include DataMapper::Resource
 
         property :name,   String, :key => true
-        property :author, String, :nullable => false
+        property :author, String, :required => true
 
         auto_migrate!
       end
@@ -160,7 +160,7 @@ share_examples_for 'A DataObjects Adapter' do
         include DataMapper::Resource
 
         property :name,   String, :key => true
-        property :author, String, :nullable => false
+        property :author, String, :required => true
 
         auto_migrate!
       end
@@ -194,7 +194,7 @@ share_examples_for 'A DataObjects Adapter' do
 
         property :name, String, :key => true
 
-        belongs_to :parent, self, :nullable => true
+        belongs_to :parent, self, :required => false
         has n, :children, self, :inverse => :parent
 
         auto_migrate!

@@ -173,7 +173,7 @@ share_examples_for 'An Adapter' do
             Heffalump.all(:color.not => nil).should_not be_include(@two)
           end
 
-          it 'should be able to search for object with a nil value using not-nullable properties' do
+          it 'should be able to search for object with a nil value using required properties' do
             Heffalump.all(:id.not => nil).should == [ @red, @two, @five ]
           end
 

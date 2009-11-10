@@ -3,7 +3,7 @@ module DataMapper
     class Discriminator < Type
       primitive Class
       default   lambda { |resource, property| resource.model }
-      nullable  false
+      required  true
 
       # @api private
       def self.bind(property)

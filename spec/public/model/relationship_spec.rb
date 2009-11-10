@@ -465,7 +465,7 @@ describe DataMapper::Associations do
       @model = Engine
       @name  = :engine
 
-      Car.belongs_to(@name, :nullable => true)
+      Car.belongs_to(@name, :required => false)
       Engine.has(1, :car)
     end
 
@@ -740,7 +740,7 @@ describe DataMapper::Associations do
         @name  = :doors
 
         Car.has(1..4, @name)
-        Door.belongs_to(:car, :nullable => true)
+        Door.belongs_to(:car, :required => false)
       end
 
       supported_by :all do
@@ -963,7 +963,7 @@ describe DataMapper::Associations do
         property :id,   Serial
         property :name, String
 
-        belongs_to :owner, Employee, :nullable => true
+        belongs_to :owner, Employee, :required => false
         has n, :employees
       end
     end

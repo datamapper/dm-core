@@ -12,10 +12,10 @@ describe 'One to One Associations' do
         property :description, Text
         property :admin,       Boolean, :accessor => :private
 
-        belongs_to :parent, self, :nullable => true
+        belongs_to :parent, self, :required => false
         has n, :children, self, :inverse => :parent
 
-        belongs_to :referrer, self, :nullable => true
+        belongs_to :referrer, self, :required => false
         belongs_to :comment
 
         # TODO: remove this after Relationship#inverse can dynamically
@@ -102,7 +102,7 @@ describe 'One to One Through Associations' do
         property :description, Text
         property :admin,       Boolean, :accessor => :private
 
-        belongs_to :parent, self, :nullable => true
+        belongs_to :parent, self, :required => false
         has n, :children, self, :inverse => :parent
 
         has 1, :referral_from, Referral, :child_key => [ :referree_name ]

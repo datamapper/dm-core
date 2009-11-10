@@ -7,7 +7,7 @@ describe DataMapper::Types::Discriminator do
         include DataMapper::Resource
 
         property :id,    Serial
-        property :title, String, :nullable => false
+        property :title, String, :required => true
         property :type,  Discriminator
       end
 

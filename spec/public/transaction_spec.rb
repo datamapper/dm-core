@@ -12,10 +12,10 @@ describe DataMapper::Resource, 'Transactions' do
         property :description, Text
         property :admin,       Boolean, :accessor => :private
 
-        belongs_to :parent, self, :nullable => true
+        belongs_to :parent, self, :required => false
         has n, :children, self, :inverse => :parent
 
-        belongs_to :referrer, self, :nullable => true
+        belongs_to :referrer, self, :required => false
         has n, :comments
 
         # FIXME: figure out a different approach than stubbing things out

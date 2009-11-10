@@ -234,12 +234,12 @@ module DataMapper
             schema[:scale]     = property.scale
           end
 
-          schema[:nullable] = property.nullable?
-          schema[:serial]   = property.serial?
+          schema[:allow_nil] = property.allow_nil?
+          schema[:serial]    = property.serial?
 
           if property.default.nil? || property.default.respond_to?(:call)
-            # remove the default if the property is not nullable
-            schema.delete(:default) unless property.nullable?
+            # remove the default if the property does not allow nil
+            schema.delete(:default) unless property.allow_nil?
           else
             schema[:default] = if property.type.respond_to?(:dump)
               property.type.dump(property.default, property)
@@ -265,7 +265,7 @@ module DataMapper
           end
 
           statement << " DEFAULT #{connection.quote_value(schema[:default])}" if schema.key?(:default)
-          statement << ' NOT NULL' unless schema[:nullable]
+          statement << ' NOT NULL' unless schema[:allow_nil]
           statement
         end
       end # module SQL

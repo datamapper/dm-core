@@ -32,7 +32,7 @@ module DataMapper
   #   class Post
   #     include DataMapper::Resource
   #
-  #     property :title,   String,  :nullable => false  # Cannot be null
+  #     property :title,   String,  :required => true  # Cannot be null
   #     property :publish, Boolean, :default => false   # Default value for new records is false
   #   end
   #
@@ -195,13 +195,13 @@ module DataMapper
   #      # => infers 'validates_length :title,
   #             :minimum => 0, :maximum => 250'
   #
-  #    property :title, String, :nullable => false
+  #    property :title, String, :required => true
   #      # => infers 'validates_present :title
   #
   #    property :email, String, :format => :email_address
   #      # => infers 'validates_format :email, :with => :email_address
   #
-  #    property :title, String, :length => 255, :nullable => false
+  #    property :title, String, :length => 255, :required => true
   #      # => infers both 'validates_length' as well as
   #      #    'validates_present'
   #      #    better: property :title, String, :length => 1..255
@@ -247,7 +247,7 @@ module DataMapper
   #
   #  :default             default value of this property
   #
-  #  :nullable            if true, property may have a nil value on save
+  #  :allow_nil           if true, property may have a nil value on save
   #
   #  :key                 name of the key associated with this property.
   #
@@ -295,8 +295,9 @@ module DataMapper
     extend Deprecate
     extend Equalizer
 
-    deprecate :unique, :unique?
-    deprecate :size,   :length
+    deprecate :unique,    :unique?
+    deprecate :size,      :length
+    deprecate :nullable?, :allow_nil?
 
     equalize :model, :name
 
@@ -304,9 +305,10 @@ module DataMapper
     # them here
     OPTIONS = [
       :accessor, :reader, :writer,
-      :lazy, :default, :nullable, :key, :serial, :field, :size, :length,
+      :lazy, :default, :key, :serial, :field, :size, :length,
       :format, :index, :unique_index, :auto_validation,
-      :validates, :unique, :precision, :scale, :min, :max
+      :validates, :unique, :precision, :scale, :min, :max,
+      :allow_nil, :allow_blank, :required
     ]
 
     PRIMITIVES = [
@@ -335,7 +337,8 @@ module DataMapper
 
     attr_reader :primitive, :model, :name, :instance_variable_name,
       :type, :reader_visibility, :writer_visibility, :options,
-      :default, :precision, :scale, :min, :max, :repository_name
+      :default, :precision, :scale, :min, :max, :repository_name,
+      :allow_nil, :allow_blank, :required
 
     # Supplies the field in the data-store which the property corresponds to
     #
@@ -453,14 +456,34 @@ module DataMapper
       @serial
     end
 
+    # Returns whether or not the property must be non-nil and non-blank
+    #
+    # @return [Boolean]
+    #   whether or not the property is required
+    #
+    # @api public
+    def required?
+      @required
+    end
+
     # Returns whether or not the property can accept 'nil' as it's value
     #
     # @return [Boolean]
     #   whether or not the property can accept 'nil'
     #
     # @api public
-    def nullable?
-      @nullable
+    def allow_nil?
+      @allow_nil
+    end
+
+    # Returns whether or not the property can be a blank value
+    #
+    # @return [Boolean]
+    #   whether or not the property can be blank
+    #
+    # @api public
+    def allow_blank?
+      @allow_blank
     end
 
     # Returns whether or not the property is custom (not provided by dm-core)
@@ -711,7 +734,7 @@ module DataMapper
     # @api semipulic
     def valid?(loaded_value, negated = false)
       dumped_value = self.value(loaded_value)
-      primitive?(dumped_value) || (dumped_value.nil? && (nullable? || negated))
+      primitive?(dumped_value) || (dumped_value.nil? && (allow_nil? || negated))
     end
 
     # Returns a concise string representation of the property instance.
@@ -768,6 +791,10 @@ module DataMapper
         elsif Numeric > type
           warn ":size option is deprecated, specify :min and :max instead (#{caller[2]})"
         end
+      elsif options.key?(:nullable)
+        # :required is preferable to :allow_nil, but :nullable maps precisely to :allow_nil
+        warn ":nullable option is deprecated, use :required instead (#{caller[2]})"
+        options[:allow_nil] = options.delete(:nullable)
       end
 
       assert_valid_options(options)
@@ -796,7 +823,9 @@ module DataMapper
 
       @serial       = @options.fetch(:serial,       false)
       @key          = @options.fetch(:key,          @serial || false)
-      @nullable     = @options.fetch(:nullable,     @key == false)
+      @required     = @options.fetch(:required,     @key)
+      @allow_nil    = @options.fetch(:allow_nil,    !@required)
+      @allow_blank  = @options.fetch(:allow_blank,  !@required)
       @index        = @options.fetch(:index,        nil)
       @unique_index = @options.fetch(:unique_index, nil)
       @unique       = @options.fetch(:unique,       @serial || @key || false)
@@ -863,9 +892,13 @@ module DataMapper
               raise ArgumentError, "options[#{key.inspect}] must not be nil"
             end
 
-          when :serial, :key, :nullable, :auto_validation
+          when :serial, :key, :allow_nil, :allow_blank, :required, :auto_validation
             unless value == true || value == false
               raise ArgumentError, "options[#{key.inspect}] must be either true or false"
+            end
+
+            if key == :required && (options.keys & [ :allow_nil, :allow_blank ]).size > 0
+              raise ArgumentError, 'options[:required] cannot be mixed with :allow_nil or :allow_blank'
             end
 
           when :index, :unique_index, :unique, :lazy
