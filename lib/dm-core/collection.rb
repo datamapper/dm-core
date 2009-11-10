@@ -147,6 +147,8 @@ module DataMapper
     #
     # @api public
     def get(*key)
+      assert_valid_key_size(key)
+
       key = model_key.typecast(key)
 
       @identity_map[key] || if !loaded? && (query.limit || query.offset > 0)
@@ -1443,6 +1445,26 @@ module DataMapper
     def assert_update_clean_only(method)
       if dirty?
         raise UpdateConflictError, "#{self.class}##{method} cannot be called on a dirty collection"
+      end
+    end
+
+    # Raises an exception if #get receives the wrong number of arguments
+    #
+    # @param [Array] key
+    #   the key value
+    #
+    # @return [undefined]
+    #
+    # @raise [UpdateConflictError]
+    #   raise if the resource is dirty
+    #
+    # @api private
+    def assert_valid_key_size(key)
+      expected_key_size = model_key.size
+      actual_key_size   = key.size
+
+      if actual_key_size != expected_key_size
+        raise ArgumentError, "The number of arguments for the key is invalid, expected #{expected_key_size} but was #{actual_key_size}"
       end
     end
   end # class Collection

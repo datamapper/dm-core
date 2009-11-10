@@ -208,6 +208,8 @@ module DataMapper
     #
     # @api public
     def get(*key)
+      assert_valid_key_size(key)
+
       repository = self.repository
       key        = self.key(repository.name).typecast(key)
 
@@ -730,6 +732,26 @@ module DataMapper
       end
 
       methods
+    end
+
+    # Raises an exception if #get receives the wrong number of arguments
+    #
+    # @param [Array] key
+    #   the key value
+    #
+    # @return [undefined]
+    #
+    # @raise [UpdateConflictError]
+    #   raise if the resource is dirty
+    #
+    # @api private
+    def assert_valid_key_size(key)
+      expected_key_size = self.key(repository_name).size
+      actual_key_size   = key.size
+
+      if actual_key_size != expected_key_size
+        raise ArgumentError, "The number of arguments for the key is invalid, expected #{expected_key_size} but was #{actual_key_size}"
+      end
     end
   end # module Model
 end # module DataMapper

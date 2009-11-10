@@ -1079,6 +1079,14 @@ share_examples_for 'Finder Interface' do
           end
         end
       end
+
+      describe 'with a key that has incorrect number of arguments' do
+        subject { @articles.send(method) }
+
+        it 'should raise an exception' do
+          method(:subject).should raise_error(ArgumentError, 'The number of arguments for the key is invalid, expected 1 but was 0')
+        end
+      end
     end
   end
 
