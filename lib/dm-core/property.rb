@@ -904,7 +904,6 @@ module DataMapper
       @writer_visibility = @options[:writer] || @options[:accessor] || :public
     end
 
-
     # Typecast a value to an Integer
     #
     # @param [#to_str, #to_i] value

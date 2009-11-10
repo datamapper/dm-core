@@ -416,9 +416,9 @@ module DataMapper
 
     # Copy a set of records from one repository to another.
     #
-    # @param [String] source
+    # @param [String] source_repository_name
     #   The name of the Repository the resources should be copied _from_
-    # @param [String] destination
+    # @param [String] target_repository_name
     #   The name of the Repository the resources should be copied _to_
     # @param [Hash] query
     #   The conditions with which to find the records to copy. These
@@ -428,16 +428,23 @@ module DataMapper
     #   A Collection of the Resource instances created in the operation
     #
     # @api public
-    def copy(source, destination, query = {})
+    def copy(source_repository_name, target_repository_name, query = {})
+      target_properties = properties(target_repository_name)
 
-      # get the list of properties that exist in the source and destination
-      destination_properties = properties(destination)
-      fields = query[:fields] ||= properties(source).select { |property| destination_properties.include?(property) }
+      query[:fields] ||= properties(source_repository_name).select do |property|
+        target_properties.include?(property)
+      end
 
-      repository(destination) do
-        all(query.merge(:repository => source)).map do |resource|
-          create(fields.map { |property| [ property.name, property.get(resource) ] }.to_hash)
+      repository(target_repository_name) do |repository|
+        resources = []
+
+        all(query.merge(:repository => source_repository_name)).each do |resource|
+          new_resource = new
+          query[:fields].each { |property| property.set(new_resource, property.get(resource)) }
+          resources << new_resource if new_resource.save
         end
+
+        all(Query.target_query(repository, self, resources))
       end
     end
 

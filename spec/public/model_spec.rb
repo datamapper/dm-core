@@ -7,11 +7,11 @@ describe DataMapper::Model do
       class Article
         include DataMapper::Resource
 
-        property :id,      Serial
-        property :title,   String, :nullable => false
-        property :content, Text
+        property :id,       Serial
+        property :title,    String, :nullable => false
+        property :content,  Text,                       :writer => :private, :default => lambda { |resource, property| resource.title }
         property :subtitle, String
-        property :author,  String, :nullable => false
+        property :author,   String, :nullable => false
 
         belongs_to :original, self, :nullable => true
         has n, :revisions, self, :child_key => [ :original_id ]
@@ -26,9 +26,9 @@ describe DataMapper::Model do
     before :all do
       @author = 'Dan Kubb'
 
-      @original = @article_model.create(:title => 'Original Article',                                               :author => @author)
-      @article  = @article_model.create(:title => 'Sample Article',   :content => 'Sample', :original => @original, :author => @author)
-      @other    = @article_model.create(:title => 'Other Article',    :content => 'Other',                          :author => @author)
+      @original = @article_model.create(:title => 'Original Article',                         :author => @author)
+      @article  = @article_model.create(:title => 'Sample Article',   :original => @original, :author => @author)
+      @other    = @article_model.create(:title => 'Other Article',                            :author => @author)
     end
 
     it { @article_model.should respond_to(:copy) }
@@ -40,8 +40,8 @@ describe DataMapper::Model do
             @return = @resources = @article_model.copy(@repository.name, @alternate_adapter.name)
           end
 
-          it 'should return an Enumerable' do
-            @return.should be_a_kind_of(Enumerable)
+          it 'should return a Collection' do
+            @return.should be_a_kind_of(DataMapper::Collection)
           end
 
           it 'should return Resources' do
@@ -84,8 +84,8 @@ describe DataMapper::Model do
             @return = @resources = @article_model.copy(@alternate_adapter.name, :default)
           end
 
-          it 'should return an Enumerable' do
-            @return.should be_a_kind_of(Enumerable)
+          it 'should return a Collection' do
+            @return.should be_a_kind_of(DataMapper::Collection)
           end
 
           it 'should return Resources' do
