@@ -112,7 +112,7 @@ module DataMapper
 
         deprecate :property, :subject
 
-        equalize :slug, :subject, :value
+        equalize :slug, :subject, :dumped_value
 
         # @api semipublic
         attr_reader :parent
@@ -136,7 +136,9 @@ module DataMapper
         # @return [Object]
         #
         # @api semipublic
-        attr_reader :value
+        attr_reader :dumped_value
+
+        alias value dumped_value
 
         # The loaded/typecast value
         #
@@ -252,7 +254,7 @@ module DataMapper
         # @api semipublic
         def inspect
           "#<#{self.class} @subject=#{@subject.inspect} " \
-            "@value=#{@value.inspect} @loaded_value=#{@loaded_value.inspect}>"
+            "@dumped_value=#{@dumped_value.inspect} @loaded_value=#{@loaded_value.inspect}>"
         end
 
         # Returns a string version of this Comparison object
@@ -265,7 +267,7 @@ module DataMapper
         #
         # @api semipublic
         def to_s
-          "#{@subject.name} #{comparator_string} #{@value}"
+          "#{subject.name} #{comparator_string} #{dumped_value}"
         end
 
         # @api private
@@ -288,7 +290,7 @@ module DataMapper
         def initialize(subject, value)
           @subject      = subject
           @loaded_value = typecast_value(value)
-          @value        = dumped_value(@loaded_value)
+          @dumped_value = dump_value
         end
 
         # Typecasts the given +val+ using subject#typecast
@@ -313,13 +315,10 @@ module DataMapper
           end
         end
 
-        # Dumps the given +val+ using subject#value
+        # Dumps the given loaded_value using subject#value
         #
         # This converts property values to the primitive as stored in the
         # repository.
-        #
-        # @param [Object] val
-        #   The object to attempt to typecast.
         #
         # @return [Object]
         #   The raw (dumped) object.
@@ -327,11 +326,11 @@ module DataMapper
         # @see Property#value
         #
         # @api private
-        def dumped_value(val)
+        def dump_value
           if subject.respond_to?(:value)
-            subject.value(val)
+            subject.value(loaded_value)
           else
-            val
+            loaded_value
           end
         end
 
@@ -423,8 +422,8 @@ module DataMapper
         # @return [Boolean] true if the value is valid
         #
         # @api semipublic
-        def valid_for_subject?(value)
-          subject.valid?(value, negated?)
+        def valid_for_subject?(loaded_value)
+          subject.valid?(loaded_value, negated?)
         end
 
         # @api private
@@ -571,18 +570,18 @@ module DataMapper
         #
         # @return [Array<Object>]
         #
-        # @see AbtractComparison#dumped_value
+        # @see AbtractComparison#dump_value
         #
         # @api private
-        def dumped_value(val)
-          if subject.respond_to?(:value) && val.kind_of?(Range) && !subject.custom?
-            val
-          elsif subject.respond_to?(:value) && val.respond_to?(:map)
-            val = val.map { |el| subject.value(el) }
-            val.uniq!
-            val
+        def dump_value
+          if subject.respond_to?(:value) && loaded_value.kind_of?(Range) && !subject.custom?
+            loaded_value
+          elsif subject.respond_to?(:value) && loaded_value.respond_to?(:map)
+            dumped_value = loaded_value.map { |value| subject.value(value) }
+            dumped_value.uniq!
+            dumped_value
           else
-            val
+            loaded_value
           end
         end
 
@@ -620,7 +619,7 @@ module DataMapper
         #
         # @api semipublic
         def valid?
-          value.kind_of?(Regexp)
+          loaded_value.kind_of?(Regexp)
         end
 
         private
@@ -677,7 +676,7 @@ module DataMapper
         #
         # @api semipublic
         def expected_value
-          Regexp.new(@value.to_s.gsub('%', '.*').gsub('_', '.'))
+          Regexp.new(loaded_value.to_s.gsub('%', '.*').gsub('_', '.'))
         end
 
         # @return [String]

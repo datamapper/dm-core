@@ -86,6 +86,7 @@ spec/public/collection_spec.rb
 spec/public/migrations_spec.rb
 spec/public/model/relationship_spec.rb
 spec/public/model_spec.rb
+spec/public/property/object_spec.rb
 spec/public/property_spec.rb
 spec/public/resource_spec.rb
 spec/public/sel_spec.rb
@@ -111,6 +112,7 @@ spec/semipublic/associations/relationship_spec.rb
 spec/semipublic/associations_spec.rb
 spec/semipublic/collection_spec.rb
 spec/semipublic/property_spec.rb
+spec/semipublic/query/conditions/operation_spec.rb
 spec/semipublic/query/conditions_spec.rb
 spec/semipublic/query/path_spec.rb
 spec/semipublic/query_spec.rb

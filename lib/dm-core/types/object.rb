@@ -10,7 +10,7 @@ module DataMapper
 
       # @api private
       def self.dump(value, property)
-        [ Marshal.dump(value) ].pack('m')
+        [ Marshal.dump(value) ].pack('m') unless value.nil?
       end
 
       # @api private
