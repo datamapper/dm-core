@@ -175,14 +175,6 @@ describe DataMapper::Query do
         end
       end
 
-      describe 'that is an empty Array and the unique option is false' do
-        it 'should raise an exception' do
-          lambda {
-            DataMapper::Query.new(@repository, @model, @options.update(:fields => [], :unique => false))
-          }.should raise_error(ArgumentError, '+options[:fields]+ should not be empty if +options[:unique]+ is false')
-        end
-      end
-
       describe 'that is an Array containing an unknown Symbol' do
         it 'should raise an exception' do
           lambda {
