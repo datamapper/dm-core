@@ -782,10 +782,6 @@ module DataMapper
     def assert_valid_fields(fields, unique)
       assert_kind_of 'options[:fields]', fields, Array
 
-      if fields.empty? && unique == false
-        raise ArgumentError, '+options[:fields]+ should not be empty if +options[:unique]+ is false'
-      end
-
       fields.each do |field|
         case field
           when Symbol, String
