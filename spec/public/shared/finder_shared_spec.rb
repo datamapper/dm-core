@@ -300,6 +300,24 @@ share_examples_for 'Finder Interface' do
     end
 
     describe 'with a query using a m:1 relationship' do
+      describe 'with a Hash' do
+        before :all do
+          @return = @articles.all(:original => @original.attributes)
+        end
+
+        it 'should return a Collection' do
+          @return.should be_kind_of(DataMapper::Collection)
+        end
+
+        it 'should be expected Resources' do
+          @return.should == [ @article ]
+        end
+
+        it 'should have a valid query' do
+          @return.query.should be_valid
+        end
+      end
+
       describe 'with a resource' do
         before :all do
           @return = @articles.all(:original => @original)
@@ -417,6 +435,24 @@ share_examples_for 'Finder Interface' do
     describe 'with a query using a 1:1 relationship' do
       before :all do
         @new = @articles.create(:content => 'New Article', :original => @article)
+      end
+
+      describe 'with a Hash' do
+        before :all do
+          @return = @articles.all(:previous => @new.attributes)
+        end
+
+        it 'should return a Collection' do
+          @return.should be_kind_of(DataMapper::Collection)
+        end
+
+        it 'should be expected Resources' do
+          @return.should == [ @article ]
+        end
+
+        it 'should have a valid query' do
+          @return.query.should be_valid
+        end
       end
 
       describe 'with a resource' do
@@ -537,6 +573,24 @@ share_examples_for 'Finder Interface' do
         @new = @articles.create(:content => 'New Article', :original => @article)
       end
 
+      describe 'with a Hash' do
+        before :all do
+          @return = @articles.all(:revisions => @new.attributes)
+        end
+
+        it 'should return a Collection' do
+          @return.should be_kind_of(DataMapper::Collection)
+        end
+
+        it 'should be expected Resources' do
+          @return.should == [ @article ]
+        end
+
+        it 'should have a valid query' do
+          @return.query.should be_valid
+        end
+      end
+
       describe 'with a resource' do
         before :all do
           @return = @articles.all(:revisions => @new)
@@ -653,6 +707,26 @@ share_examples_for 'Finder Interface' do
     describe 'with a query using a m:m relationship' do
       before :all do
         @publication = @article.publications.create(:name => 'DataMapper Now')
+      end
+
+      describe 'with a Hash' do
+        before :all do
+          @return = @articles.all(:publications => @publication.attributes)
+        end
+
+        it 'should return a Collection' do
+          @return.should be_kind_of(DataMapper::Collection)
+        end
+
+        it 'should be expected Resources' do
+          pending 'TODO' do
+            @return.should == [ @article ]
+          end
+        end
+
+        it 'should have a valid query' do
+          @return.query.should be_valid
+        end
       end
 
       describe 'with a resource' do

@@ -550,20 +550,37 @@ module DataMapper
         # @see AbtractComparison#typecast_value
         #
         # @api private
-        def typecast_value(val)
-          if subject.respond_to?(:typecast) && val.kind_of?(Range)
-            if subject.primitive?(val.first)
-              # If the range type matches, nothing to do
-              val
-            else
-              # Create a new range with the new type
-              Range.new(subject.typecast(val.first), subject.typecast(val.last), val.exclude_end?)
-            end
-          elsif subject.respond_to?(:typecast) && val.respond_to?(:map)
-            val.map { |el| subject.typecast(el) }
+        def typecast_value(value)
+          if subject.respond_to?(:target_model)
+            typecast_relationship(value)
+          elsif subject.respond_to?(:typecast)
+            typecast_property(value)
           else
-            val
+            value
           end
+        end
+
+        # @api private
+        def typecast_relationship(value)
+          if value.kind_of?(Hash)
+            subject.target_model.all(subject.query.merge(value))
+          else
+            value
+          end
+        end
+
+        # @api private
+        def typecast_property(value)
+          if value.kind_of?(Range)
+            unless subject.primitive?(value.first)
+              # Create a new range with the new type
+              return Range.new(subject.typecast(value.first), subject.typecast(value.last), value.exclude_end?)
+            end
+          elsif value.respond_to?(:map)
+            return value.map { |entry| subject.typecast(entry) }
+          end
+
+          value
         end
 
         # Dumps the given +val+ using subject#value
