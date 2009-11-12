@@ -267,7 +267,7 @@ module DataMapper
         #
         # @api semipublic
         def to_s
-          "#{subject.name} #{comparator_string} #{dumped_value}"
+          "#{subject.name} #{comparator_string} #{dumped_value.inspect}"
         end
 
         # @api private

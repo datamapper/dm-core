@@ -723,7 +723,7 @@ describe DataMapper::Query::Conditions::AndOperation do
 
       subject { @operation.to_s }
 
-      it { should eql('(NOT(title = A title) AND title = A title)') }
+      it { should eql('(NOT(title = "A title") AND title = "A title")') }
     end
   end
 
@@ -1201,7 +1201,7 @@ describe DataMapper::Query::Conditions::NotOperation do
 
       subject { @operation.to_s }
 
-      it { should eql('NOT(title = A title)') }
+      it { should eql('NOT(title = "A title")') }
     end
   end
 
