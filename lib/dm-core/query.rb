@@ -89,26 +89,25 @@ module DataMapper
     end
 
     # @param [Repository] repository
-    #   the repository to scope the query within
+    #   the default repository to scope the query within
     # @param [Model] model
-    #   the model for the query
-    # @param [Enumerable, Resource] source
-    #   the enumerable to generate the query with
+    #   the default model for the query
+    # @param [#query, Enumerable] source
+    #   the source to generate the query with
     #
     # @return [Query]
     #   the query to match the resources with
     #
     # @api private
     def self.target_query(repository, model, source)
-      case source
-        when Collection
-          source.query
-        when Enumerable, Resource
-          key        = model.key(repository.name)
-          conditions = Query.target_conditions(source, key, key)
-          Query.new(repository, model, :conditions => conditions)
-        else
-          raise ArgumentError, "+source+ must be a Collection or Enumerable, but was #{source.class}"
+      if source.respond_to?(:query)
+        source.query
+      elsif source.kind_of?(Enumerable)
+        key        = model.key(repository.name)
+        conditions = Query.target_conditions(source, key, key)
+        Query.new(repository, model, :conditions => conditions)
+      else
+        raise ArgumentError, "+source+ must respond to #query or be an Enumerable, but was #{source.class}"
       end
     end
 
