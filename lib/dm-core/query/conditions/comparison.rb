@@ -64,21 +64,6 @@ module DataMapper
           end
         end
 
-        # Returns the comparison class identified by the given slug
-        #
-        # @param [Symbol] slug
-        #   See slug parameter for Comparison.new
-        #
-        # @return [AbstractComparison, nil]
-        #
-        # @api private
-        def self.comparison_class(slug)
-          comparison_classes[slug] ||=
-            AbstractComparison.descendants.detect do |comparison_class|
-              comparison_class.slug == slug
-            end
-        end
-
         # Returns an array of all slugs registered with Comparison
         #
         # @return [Array<Symbol>]
@@ -101,6 +86,21 @@ module DataMapper
           # @api private
           def comparison_classes
             @comparison_classes ||= {}
+          end
+
+          # Returns the comparison class identified by the given slug
+          #
+          # @param [Symbol] slug
+          #   See slug parameter for Comparison.new
+          #
+          # @return [AbstractComparison, nil]
+          #
+          # @api private
+          def comparison_class(slug)
+            comparison_classes[slug] ||=
+              AbstractComparison.descendants.detect do |comparison_class|
+                comparison_class.slug == slug
+              end
           end
         end
       end # class Comparison
