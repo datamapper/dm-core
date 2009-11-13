@@ -24,22 +24,6 @@ module DataMapper
           end
         end
 
-        # Lookup the operation class based on the slug
-        #
-        # @example
-        #   operation_class = Operation.operation_class(:and)
-        #
-        # @param [Symbol] slug
-        #   the identifier for the operation class
-        #
-        # @return [Class]
-        #   the operation class
-        #
-        # @api semipublic
-        def self.operation_class(slug)
-          operation_classes[slug] ||= AbstractOperation.descendants.detect { |operation_class| operation_class.slug == slug }
-        end
-
         # Return an Array of all the slugs for the operation classes
         #
         # @return [Array]
@@ -61,6 +45,22 @@ module DataMapper
           # @api private
           def operation_classes
             @operation_classes ||= {}
+          end
+
+          # Lookup the operation class based on the slug
+          #
+          # @example
+          #   operation_class = Operation.operation_class(:and)
+          #
+          # @param [Symbol] slug
+          #   the identifier for the operation class
+          #
+          # @return [Class]
+          #   the operation class
+          #
+          # @api private
+          def operation_class(slug)
+            operation_classes[slug] ||= AbstractOperation.descendants.detect { |operation_class| operation_class.slug == slug }
           end
         end
       end # class Operation

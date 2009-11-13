@@ -484,22 +484,6 @@ describe DataMapper::Query::Conditions::Operation do
       end
     end
   end
-
-  it { DataMapper::Query::Conditions::Operation.should respond_to(:operation_class) }
-
-  describe '.operation_class' do
-    describe 'with a known slug' do
-      subject { DataMapper::Query::Conditions::Operation.operation_class(:and) }
-
-      it { should equal(DataMapper::Query::Conditions::AndOperation) }
-    end
-
-    describe 'with a unknown slug' do
-      subject { DataMapper::Query::Conditions::Operation.operation_class(:unknown) }
-
-      it { should be_nil }
-    end
-  end
 end
 
 describe DataMapper::Query::Conditions::AndOperation do
