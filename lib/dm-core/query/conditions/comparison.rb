@@ -564,12 +564,9 @@ module DataMapper
         # @api semipublic
         def valid?
           case loaded_value
-            when Collection
-              super
-            when Range
-              loaded_value.any? && valid_for_subject?(loaded_value.first) && valid_for_subject?(loaded_value.last)
-            when Enumerable
-              (!loaded_value.empty? || negated?) && loaded_value.all? { |val| valid_for_subject?(val) }
+            when Collection then valid_collection?(loaded_value)
+            when Range      then valid_range?(loaded_value)
+            when Enumerable then valid_enumerable?(loaded_value)
             else
               false
           end
@@ -594,6 +591,21 @@ module DataMapper
           elsif loaded_value.respond_to?(:map)
             loaded_value.map { |val| super(val) }
           end
+        end
+
+        # @api private
+        def valid_collection?(collection)
+          valid_for_subject?(collection)
+        end
+
+        # @api private
+        def valid_range?(range)
+          (!range.empty? || negated?) && valid_for_subject?(range.first) && valid_for_subject?(range.last)
+        end
+
+        # @api private
+        def valid_enumerable?(enumerable)
+          (!enumerable.empty? || negated?) && enumerable.all? { |entry| valid_for_subject?(entry) }
         end
 
         # @api private
