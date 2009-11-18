@@ -396,13 +396,13 @@ module DataMapper
         # @return [Object]
         #
         # @api semipublic
-        def expected_value(val = @loaded_value)
-          expected_value = record_value(val, @subject, :target_key)
+        def expected(val = @loaded_value)
+          expected = record_value(val, @subject, :target_key)
 
           if @subject.respond_to?(:source_key)
-            @subject.source_key.typecast(expected_value)
+            @subject.source_key.typecast(expected)
           else
-            expected_value
+            expected
           end
         end
 
@@ -439,7 +439,7 @@ module DataMapper
         end
       end # module RelationshipHandler
 
-      # Tests whether the value in the record is equal to the expected_value
+      # Tests whether the value in the record is equal to the expected
       # set for the Comparison.
       class EqualToComparison < AbstractComparison
         include RelationshipHandler
@@ -454,7 +454,7 @@ module DataMapper
         # @return [Boolean]
         # @api semipublic
         def matches?(record)
-          record_value(record) == expected_value
+          record_value(record) == expected
         end
 
         private
@@ -470,7 +470,7 @@ module DataMapper
       end # class EqualToComparison
 
       # Tests whether the value in the record is contained in the
-      # expected_value set for the Comparison, where expected_value is an
+      # expected set for the Comparison, where expected is an
       # Array, Range, or Set.
       class InclusionComparison < AbstractComparison
         include RelationshipHandler
@@ -487,7 +487,7 @@ module DataMapper
         # @api semipublic
         def matches?(record)
           record_value = record_value(record)
-          !record_value.nil? && expected_value.include?(record_value)
+          !record_value.nil? && expected.include?(record_value)
         end
 
         # Checks that the Comparison is valid
@@ -512,13 +512,13 @@ module DataMapper
 
         private
 
-        # Overloads AbtractComparison#expected_value
+        # Overloads AbtractComparison#expected
         #
         # @return [Array<Object>]
-        # @see AbtractComparison#expected_value
+        # @see AbtractComparison#expected
         #
         # @api private
-        def expected_value
+        def expected
           if loaded_value.kind_of?(Range)
             Range.new(super(loaded_value.first), super(loaded_value.last), loaded_value.exclude_end?)
           else
@@ -595,7 +595,7 @@ module DataMapper
         end
       end # class InclusionComparison
 
-      # Tests whether the value in the record matches the expected_value
+      # Tests whether the value in the record matches the expected
       # regexp set for the Comparison.
       class RegexpComparison < AbstractComparison
         slug :regexp
@@ -610,7 +610,7 @@ module DataMapper
         # @api semipublic
         def matches?(record)
           record_value = record_value(record)
-          !record_value.nil? && record_value =~ expected_value
+          !record_value.nil? && record_value =~ expected
         end
 
         # Checks that the Comparison is valid
@@ -643,7 +643,7 @@ module DataMapper
         end
       end # class RegexpComparison
 
-      # Tests whether the value in the record is like the expected_value set
+      # Tests whether the value in the record is like the expected set
       # for the Comparison. Equivalent to a LIKE clause in an SQL database.
       #
       # TODO: move this to dm-more with DataObjectsAdapter plugins
@@ -660,22 +660,22 @@ module DataMapper
         # @api semipublic
         def matches?(record)
           record_value = record_value(record)
-          !record_value.nil? && record_value =~ expected_value
+          !record_value.nil? && record_value =~ expected
         end
 
         private
 
-        # Overloads the +expected_value+ method in AbstractComparison
+        # Overloads the +expected+ method in AbstractComparison
         #
         # Return a regular expression suitable for matching against the
         # records value.
         #
         # @return [Regexp]
         #
-        # @see AbtractComparison#expected_value
+        # @see AbtractComparison#expected
         #
         # @api semipublic
-        def expected_value
+        def expected
           Regexp.new(loaded_value.to_s.gsub('%', '.*').gsub('_', '.'))
         end
 
@@ -690,7 +690,7 @@ module DataMapper
       end # class LikeComparison
 
       # Tests whether the value in the record is greater than the
-      # expected_value set for the Comparison.
+      # expected set for the Comparison.
       class GreaterThanComparison < AbstractComparison
         slug :gt
 
@@ -704,7 +704,7 @@ module DataMapper
         # @api semipublic
         def matches?(record)
           record_value = record_value(record)
-          !record_value.nil? && record_value > expected_value
+          !record_value.nil? && record_value > expected
         end
 
         private
@@ -719,7 +719,7 @@ module DataMapper
         end
       end # class GreaterThanComparison
 
-      # Tests whether the value in the record is less than the expected_value
+      # Tests whether the value in the record is less than the expected
       # set for the Comparison.
       class LessThanComparison < AbstractComparison
         slug :lt
@@ -734,7 +734,7 @@ module DataMapper
         # @api semipublic
         def matches?(record)
           record_value = record_value(record)
-          !record_value.nil? && record_value < expected_value
+          !record_value.nil? && record_value < expected
         end
 
         private
@@ -750,7 +750,7 @@ module DataMapper
       end # class LessThanComparison
 
       # Tests whether the value in the record is greater than, or equal to,
-      # the expected_value set for the Comparison.
+      # the expected set for the Comparison.
       class GreaterThanOrEqualToComparison < AbstractComparison
         slug :gte
 
@@ -764,7 +764,7 @@ module DataMapper
         # @api semipublic
         def matches?(record)
           record_value = record_value(record)
-          !record_value.nil? && record_value >= expected_value
+          !record_value.nil? && record_value >= expected
         end
 
         private
@@ -778,7 +778,7 @@ module DataMapper
       end # class GreaterThanOrEqualToComparison
 
       # Tests whether the value in the record is less than, or equal to, the
-      # expected_value set for the Comparison.
+      # expected set for the Comparison.
       class LessThanOrEqualToComparison < AbstractComparison
         slug :lte
 
@@ -792,7 +792,7 @@ module DataMapper
         # @api semipublic
         def matches?(record)
           record_value = record_value(record)
-          !record_value.nil? && record_value <= expected_value
+          !record_value.nil? && record_value <= expected
         end
 
         private
