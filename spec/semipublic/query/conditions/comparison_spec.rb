@@ -1262,7 +1262,7 @@ describe DataMapper::Query::Conditions::RegexpComparison do
       describe 'with a not matching Hash' do
         subject { @comparison.matches?(@property.field => 'Other') }
 
-        it { pending { should be_false } }
+        it { should be_false }
       end
 
       describe 'with a matching Resource' do
@@ -1274,7 +1274,7 @@ describe DataMapper::Query::Conditions::RegexpComparison do
       describe 'with a not matching Resource' do
         subject { @comparison.matches?(@model.new(@property => 'Other')) }
 
-        it { pending { should be_false } }
+        it { should be_false }
       end
 
       describe 'with a not matching nil field' do
@@ -1344,7 +1344,7 @@ describe DataMapper::Query::Conditions::LikeComparison do
       describe 'with a not matching Hash' do
         subject { @comparison.matches?(@property.field => 'Other Title') }
 
-        it { pending { should be_false } }
+        it { should be_false }
       end
 
       describe 'with a matching Resource' do
@@ -1356,7 +1356,7 @@ describe DataMapper::Query::Conditions::LikeComparison do
       describe 'with a not matching Resource' do
         subject { @comparison.matches?(@model.new(@property => 'Other Title')) }
 
-        it { pending { should be_false } }
+        it { should be_false }
       end
 
       describe 'with a not matching nil field' do

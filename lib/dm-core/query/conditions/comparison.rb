@@ -199,6 +199,18 @@ module DataMapper
           self.class.slug
         end
 
+        # Test that the record value matches the comparison
+        #
+        # @param [Resource, Hash] record
+        #   The record containing the value to be matched
+        #
+        # @return [Boolean]
+        #
+        # @api semipublic
+        def matches?(record)
+          expected === record_value(record)
+        end
+
         # Tests that the Comparison is valid
         #
         # Subclasses can overload this to customise the means by which they
@@ -430,6 +442,22 @@ module DataMapper
           subject.kind_of?(Associations::Relationship)
         end
 
+        # Tests that the record value matches the comparison
+        #
+        # @param [Resource, Hash] record
+        #   The record containing the value to be matched
+        #
+        # @return [Boolean]
+        #
+        # @api semipublic
+        def matches?(record)
+          if relationship? && expected.respond_to?(:query)
+            match_relationship?(record)
+          else
+            match_property?(record)
+          end
+        end
+
         # Returns the conditions required to match the subject relationship
         #
         # @return [Hash]
@@ -441,6 +469,11 @@ module DataMapper
         end
 
         private
+
+        # @api private
+        def match_relationship?(record)
+          expected.query.conditions.matches?(record_value(record))
+        end
 
         # Typecasts each value in the inclusion set
         #
@@ -479,18 +512,12 @@ module DataMapper
 
         slug :eql
 
-        # Asserts that the record value matches the comparison
-        #
-        # @param [Resource, Hash] record
-        #   The record containing the value to be matched
-        #
-        # @return [Boolean]
-        # @api semipublic
-        def matches?(record)
+        private
+
+        # @api private
+        def match_property?(record)
           record_value(record) == expected
         end
-
-        private
 
         # @api private
         def typecast_relationship(value)
@@ -528,19 +555,6 @@ module DataMapper
 
         slug :in
 
-        # Asserts that the record value matches the comparison
-        #
-        # @param [Resource, Hash] record
-        #   The record containing the value to be matched
-        #
-        # @return [Boolean]
-        #
-        # @api semipublic
-        def matches?(record)
-          record_value = record_value(record)
-          !record_value.nil? && expected.respond_to?(:include?) && expected.include?(record_value)
-        end
-
         # Checks that the Comparison is valid
         #
         # @see DataMapper::Query::Conditions::AbstractComparison#valid?
@@ -562,6 +576,11 @@ module DataMapper
         end
 
         private
+
+        # @api private
+        def match_property?(record)
+          expected.respond_to?(:include?) && expected.include?(record_value(record))
+        end
 
         # Overloads AbtractComparison#expected
         #
@@ -663,19 +682,6 @@ module DataMapper
       class RegexpComparison < AbstractComparison
         slug :regexp
 
-        # Asserts that the record value matches the comparison
-        #
-        # @param [Resource, Hash] record
-        #   The record containing the value to be matched
-        #
-        # @return [Boolean]
-        #
-        # @api semipublic
-        def matches?(record)
-          record_value = record_value(record)
-          !record_value.nil? && record_value =~ expected
-        end
-
         # Checks that the Comparison is valid
         #
         # @see AbstractComparison#valid?
@@ -713,19 +719,6 @@ module DataMapper
       class LikeComparison < AbstractComparison
         slug :like
 
-        # Asserts that the record value matches the comparison
-        #
-        # @param [Resource, Hash] record
-        #   The record containing the value to be matched
-        #
-        # @return [Boolean]
-        #
-        # @api semipublic
-        def matches?(record)
-          record_value = record_value(record)
-          !record_value.nil? && record_value =~ expected
-        end
-
         private
 
         # Overloads the +expected+ method in AbstractComparison
@@ -757,7 +750,7 @@ module DataMapper
       class GreaterThanComparison < AbstractComparison
         slug :gt
 
-        # Asserts that the record value matches the comparison
+        # Tests that the record value matches the comparison
         #
         # @param [Resource, Hash] record
         #   The record containing the value to be matched
@@ -787,7 +780,7 @@ module DataMapper
       class LessThanComparison < AbstractComparison
         slug :lt
 
-        # Asserts that the record value matches the comparison
+        # Tests that the record value matches the comparison
         #
         # @param [Resource, Hash] record
         #   The record containing the value to be matched
@@ -817,7 +810,7 @@ module DataMapper
       class GreaterThanOrEqualToComparison < AbstractComparison
         slug :gte
 
-        # Asserts that the record value matches the comparison
+        # Tests that the record value matches the comparison
         #
         # @param [Resource, Hash] record
         #   The record containing the value to be matched
@@ -845,7 +838,7 @@ module DataMapper
       class LessThanOrEqualToComparison < AbstractComparison
         slug :lte
 
-        # Asserts that the record value matches the comparison
+        # Tests that the record value matches the comparison
         #
         # @param [Resource, Hash] record
         #   The record containing the value to be matched
