@@ -278,7 +278,7 @@ module DataMapper
         # @api semipublic
         def initialize(subject, value)
           @subject      = subject
-          @loaded_value = typecast_value(value)
+          @loaded_value = typecast(value)
           @dumped_value = dump_value
         end
 
@@ -296,7 +296,7 @@ module DataMapper
         # @see Property#typecast
         #
         # @api private
-        def typecast_value(value)
+        def typecast(value)
           if subject.respond_to?(:typecast)
             subject.typecast(value)
           else
@@ -530,10 +530,10 @@ module DataMapper
         #
         # @return [Array<Object>]
         #
-        # @see AbtractComparison#typecast_value
+        # @see AbtractComparison#typecast
         #
         # @api private
-        def typecast_value(value)
+        def typecast(value)
           if subject.respond_to?(:target_model)
             typecast_relationship(value)
           elsif subject.respond_to?(:typecast)
@@ -629,7 +629,7 @@ module DataMapper
         # @return [Object]
         #
         # @api private
-        def typecast_value(value)
+        def typecast(value)
           value
         end
 
