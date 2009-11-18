@@ -739,7 +739,7 @@ module DataMapper
         #
         # @api semipublic
         def expected
-          Regexp.new(loaded_value.to_s.gsub('%', '.*').gsub('_', '.'))
+          Regexp.new('\A' << super.gsub('%', '.*').tr('_', '.') << '\z')
         end
 
         # @return [String]
