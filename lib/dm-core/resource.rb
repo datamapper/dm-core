@@ -586,6 +586,26 @@ module DataMapper
       @_collection = collection
     end
 
+    # Return a collection including the current resource only
+    #
+    # @return [Collection]
+    #   a collection containing self
+    #
+    # @api private
+    def collection_for_self
+      Collection.new(query, [ self ])
+    end
+
+    # Returns a Query that will match the resource
+    #
+    # @return [Query]
+    #   Query that will match the resource
+    #
+    # @api semipublic
+    def query
+      Query.new(repository, model, :fields => fields, :conditions => conditions)
+    end
+
     protected
 
     # Method for hooking callbacks on resource creation
@@ -733,24 +753,14 @@ module DataMapper
       self
     end
 
-    # Gets a Query that will return this Resource instance
+    # Return conditions to match the Resource
     #
-    # @return [Query]
-    #   Query that will retrieve this Resource instance
+    # @return [Hash]
+    #   query conditions
     #
     # @api private
-    def query
-      Query.new(repository, model, model.key_conditions(repository, key).update(:fields => fields))
-    end
-
-    # Return a collection including the current resource only
-    #
-    # @return [Collection]
-    #   a collection containing self
-    #
-    # @api semipublic
-    def collection_for_self
-      Collection.new(query, [ self ])
+    def conditions
+      model.key_conditions(repository, key)
     end
 
     # @api private

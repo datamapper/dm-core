@@ -612,7 +612,7 @@ module DataMapper
             return "(#{statement})", bind_values
           elsif comparison.relationship?
             value = comparison.value
-            if value.respond_to?(:query) && !value.loaded?
+            if value.respond_to?(:query) && value.respond_to?(:loaded?) && !value.loaded?
               return subquery(value.query, comparison.subject, qualify)
             else
               return conditions_statement(comparison.foreign_key_mapping, qualify)
