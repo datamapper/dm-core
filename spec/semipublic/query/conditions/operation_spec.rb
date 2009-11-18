@@ -469,7 +469,7 @@ describe DataMapper::Query::Conditions::Operation do
     describe 'with an invalid slug' do
       subject { DataMapper::Query::Conditions::Operation.new(:invalid) }
 
-      it { method(:subject).should raise_error(ArgumentError) }
+      it { method(:subject).should raise_error(ArgumentError, 'No Operation class for :invalid has been defined') }
     end
 
     describe 'with operands' do

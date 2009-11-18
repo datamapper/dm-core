@@ -20,7 +20,7 @@ module DataMapper
           if klass = operation_class(slug)
             klass.new(*operands)
           else
-            raise ArgumentError, "No Operation class for `#{slug.inspect}' has been defined"
+            raise ArgumentError, "No Operation class for #{slug.inspect} has been defined"
           end
         end
 
@@ -31,7 +31,7 @@ module DataMapper
         #
         # @api private
         def self.slugs
-          @slugs ||= AbstractOperation.descendants.map { |operation_class| operation_class.slug }
+          AbstractOperation.descendants.map { |operation_class| operation_class.slug }
         end
 
         class << self
