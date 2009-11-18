@@ -5,7 +5,7 @@ module DataMapper
     #
     # The Conditions module contains two types of class used for filtering
     # queries: Comparison and Operation. Although these are used on all
-    # repositorie types -- not just SQL-based repos -- these classes are best
+    # repository types -- not just SQL-based repos -- these classes are best
     # thought of as being the DataMapper counterpart to an SQL WHERE clause.
     #
     # Comparisons compare properties and relationships with values, while
