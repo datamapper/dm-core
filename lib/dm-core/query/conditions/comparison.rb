@@ -59,8 +59,7 @@ module DataMapper
           if klass = comparison_class(slug)
             klass.new(subject, value)
           else
-            raise ArgumentError,
-              "No Comparison class for `#{slug.inspect}' has been defined"
+            raise ArgumentError, "No Comparison class for #{slug.inspect} has been defined"
           end
         end
 
@@ -70,10 +69,7 @@ module DataMapper
         #
         # @api private
         def self.slugs
-          @slugs ||=
-            AbstractComparison.descendants.map do |comparison_class|
-              comparison_class.slug
-            end.freeze
+          AbstractComparison.descendants.map { |comparison_class| comparison_class.slug }
         end
 
         class << self
@@ -97,10 +93,7 @@ module DataMapper
           #
           # @api private
           def comparison_class(slug)
-            comparison_classes[slug] ||=
-              AbstractComparison.descendants.detect do |comparison_class|
-                comparison_class.slug == slug
-              end
+            comparison_classes[slug] ||= AbstractComparison.descendants.detect { |comparison_class| comparison_class.slug == slug }
           end
         end
       end # class Comparison

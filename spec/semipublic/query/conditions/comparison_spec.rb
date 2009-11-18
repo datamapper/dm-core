@@ -301,7 +301,7 @@ describe DataMapper::Query::Conditions::Comparison do
     describe 'with an invalid slug' do
       subject { DataMapper::Query::Conditions::Comparison.new(:invalid, @property, @value) }
 
-      it { pending { method(:subject).should raise_error(ArgumentError, 'No Comparison class for :invalid has been defined') } }
+      it { method(:subject).should raise_error(ArgumentError, 'No Comparison class for :invalid has been defined') }
     end
   end
 end
