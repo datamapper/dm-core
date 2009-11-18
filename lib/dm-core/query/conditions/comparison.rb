@@ -297,11 +297,12 @@ module DataMapper
         #
         # @api private
         def typecast(value)
-          if subject.respond_to?(:typecast)
-            subject.typecast(value)
-          else
-            value
-          end
+          typecast_property(value)
+        end
+
+        # @api private
+        def typecast_property(value)
+          subject.typecast(value)
         end
 
         # Dumps the given loaded_value using subject#value
@@ -437,6 +438,23 @@ module DataMapper
           inverse = subject.inverse
           Query.target_conditions(value, inverse.source_key, inverse.target_key)
         end
+
+        private
+
+        # Typecasts each value in the inclusion set
+        #
+        # @return [Array<Object>]
+        #
+        # @see AbtractComparison#typecast
+        #
+        # @api private
+        def typecast(value)
+          if relationship?
+            typecast_relationship(value)
+          else
+            super
+          end
+        end
       end # module RelationshipHandler
 
       # Tests whether the value in the record is equal to the expected
@@ -458,6 +476,24 @@ module DataMapper
         end
 
         private
+
+        # @api private
+        def typecast_relationship(value)
+          case value
+            when Hash     then typecast_hash(value)
+            when Resource then typecast_resource(value)
+          end
+        end
+
+        # @api private
+        def typecast_hash(hash)
+          subject.target_model.new(subject.query.merge(hash))
+        end
+
+        # @api private
+        def typecast_resource(resource)
+          resource
+        end
 
         # @return [String]
         #
@@ -487,7 +523,7 @@ module DataMapper
         # @api semipublic
         def matches?(record)
           record_value = record_value(record)
-          !record_value.nil? && expected.include?(record_value)
+          !record_value.nil? && expected.respond_to?(:include?) && expected.include?(record_value)
         end
 
         # Checks that the Comparison is valid
@@ -521,49 +557,63 @@ module DataMapper
         def expected
           if loaded_value.kind_of?(Range)
             Range.new(super(loaded_value.first), super(loaded_value.last), loaded_value.exclude_end?)
-          else
+          elsif loaded_value.respond_to?(:map)
             loaded_value.map { |val| super(val) }
-          end
-        end
-
-        # Typecasts each value in the inclusion set
-        #
-        # @return [Array<Object>]
-        #
-        # @see AbtractComparison#typecast
-        #
-        # @api private
-        def typecast(value)
-          if subject.respond_to?(:target_model)
-            typecast_relationship(value)
-          elsif subject.respond_to?(:typecast)
-            typecast_property(value)
-          else
-            value
-          end
-        end
-
-        # @api private
-        def typecast_relationship(value)
-          if value.kind_of?(Hash)
-            subject.target_model.all(subject.query.merge(value))
-          else
-            value
           end
         end
 
         # @api private
         def typecast_property(value)
           if value.kind_of?(Range)
-            unless subject.primitive?(value.first)
-              # Create a new range with the new type
-              return Range.new(subject.typecast(value.first), subject.typecast(value.last), value.exclude_end?)
-            end
-          elsif value.respond_to?(:map)
-            return value.map { |entry| subject.typecast(entry) }
+            typecast_range(value)
+          elsif value.respond_to?(:map) && !value.kind_of?(String)
+            value.map { |entry| super(entry) }
+          else
+            super
           end
+        end
 
-          value
+        # @api private
+        def typecast_range(range)
+          range.class.new(typecast_property(range.first), typecast_property(range.last), range.exclude_end?)
+        end
+
+        # @api private
+        def typecast_relationship(value)
+          case value
+            when Hash       then typecast_hash(value)
+            when Resource   then typecast_resource(value)
+            when Collection then typecast_collection(value)
+            when Enumerable then typecast_enumerable(value)
+          end
+        end
+
+        # @api private
+        def typecast_hash(hash)
+          subject.target_model.all(subject.query.merge(hash))
+        end
+
+        # @api private
+        def typecast_resource(resource)
+          resource.collection_for_self
+        end
+
+        # @api private
+        def typecast_collection(collection)
+          collection
+        end
+
+        # @api private
+        def typecast_enumerable(enumerable)
+          collection = nil
+          enumerable.each do |entry|
+            if collection
+              collection |= typecast_relationship(entry)
+            else
+              collection = typecast_relationship(entry)
+            end
+          end
+          collection
         end
 
         # Dumps the given +val+ using subject#value

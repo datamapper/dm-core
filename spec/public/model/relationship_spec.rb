@@ -562,8 +562,7 @@ describe DataMapper::Associations do
           before :all do
             @car = Car.create
 
-            @engine = Engine.new
-            @engine.car_id = @car.id
+            @engine = Engine.new(:car_id => @car.id)
           end
 
           it 'should set the associated resource' do

@@ -60,6 +60,21 @@ module DataMapper
         # @api semipublic
         alias source_key child_key
 
+        # Returns a hash of conditions that scopes query that fetches
+        # target object
+        #
+        # @return [Hash]
+        #   Hash of conditions that scopes query
+        #
+        # @api private
+        def source_scope(source)
+          if source.kind_of?(Resource)
+            Query.target_conditions(source, source_key, target_key)
+          else
+            super
+          end
+        end
+
         # Returns a Resource for this relationship with a given source
         #
         # @param [Resource] source

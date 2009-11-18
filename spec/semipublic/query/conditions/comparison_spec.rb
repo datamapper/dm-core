@@ -593,7 +593,7 @@ describe DataMapper::Query::Conditions::EqualToComparison do
             @comparison = DataMapper::Query::Conditions::Comparison.new(@slug, @relationship, :id => 1)
           end
 
-          it { pending { should == @model.new(:id => 1) } }
+          it { should == @model.new(:id => 1) }
         end
 
         describe 'with a Resource value' do
@@ -820,7 +820,7 @@ describe DataMapper::Query::Conditions::InclusionComparison do
           describe 'with a matching Hash' do
             subject { @comparison.matches?({ @relationship.field => @parent.attributes(:field) }) }
 
-            it { pending { should be_true } }
+            it { should be_true }
           end
 
           describe 'with a not matching Hash' do
@@ -871,7 +871,7 @@ describe DataMapper::Query::Conditions::InclusionComparison do
           describe 'with a not matching Resource' do
             subject { @comparison.matches?(@parent) }
 
-            it { pending { should be_false } }
+            it { should be_false }
           end
         end
 
@@ -919,25 +919,25 @@ describe DataMapper::Query::Conditions::InclusionComparison do
           describe 'with a matching Hash' do
             subject { @comparison.matches?({ @relationship.field => @parent.attributes(:field) }) }
 
-            it { should be_true }
+            it { pending { should be_true } }
           end
 
           describe 'with a not matching Hash' do
             subject { @comparison.matches?({ @relationship.field => @child.attributes(:field) }) }
 
-            it { pending { should be_false } }
+            it { should be_false }
           end
 
           describe 'with a matching Resource' do
             subject { @comparison.matches?(@child) }
 
-            it { pending { should be_true } }
+            it { should be_true }
           end
 
           describe 'with a not matching Resource' do
             subject { @comparison.matches?(@parent) }
 
-            it { pending { should be_false } }
+            it { should be_false }
           end
         end
 
@@ -1118,7 +1118,7 @@ describe DataMapper::Query::Conditions::InclusionComparison do
           @comparison = DataMapper::Query::Conditions::Comparison.new(@slug, @relationship, @value)
         end
 
-        it { pending { should be_false } }
+        it { should be_false }
       end
 
       describe 'with an empty Array value' do
@@ -1192,7 +1192,7 @@ describe DataMapper::Query::Conditions::InclusionComparison do
             @comparison = DataMapper::Query::Conditions::Comparison.new(@slug, @relationship, @value)
           end
 
-          it { pending { should be_kind_of(DataMapper::Collection) } }
+          it { should be_kind_of(DataMapper::Collection) }
 
           it { should == @value }
         end
@@ -1202,9 +1202,9 @@ describe DataMapper::Query::Conditions::InclusionComparison do
             @comparison = DataMapper::Query::Conditions::Comparison.new(@slug, @relationship, @parent)
           end
 
-          it { pending { should be_kind_of(DataMapper::Collection) } }
+          it { should be_kind_of(DataMapper::Collection) }
 
-          it { pending { should == [ @parent ] } }
+          it { should == [ @parent ] }
         end
 
         describe 'with a Collection value' do

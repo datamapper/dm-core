@@ -152,7 +152,7 @@ module DataMapper
         DataMapper.repository(repository_name).scope do
           query = target_model.query.dup
           query.update(self.query)
-          query.update(source_scope(source))
+          query.update(:conditions => source_scope(source))
           query.update(other_query) if other_query
           query.update(:fields => query.fields | target_key)
         end
