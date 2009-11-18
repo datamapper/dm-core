@@ -78,7 +78,7 @@ module DataMapper
         #   the parent operation
         #
         # @api semipublic
-        attr_reader :parent
+        attr_accessor :parent
 
         # Returns the child operations and comparisons
         #
@@ -130,20 +130,6 @@ module DataMapper
         # @api private
         def slug
           self.class.slug
-        end
-
-        # Set the parent operation
-        #
-        # @param [AbstractOperation] parent
-        #   the operation to become the parent
-        #
-        # @return [AbstractOperation]
-        #   the parent operation
-        #
-        # @api semipublic
-        def parent=(parent)
-          clear_memoized_values
-          @parent = parent
         end
 
         # Iterate through each operand in the operation
@@ -288,8 +274,7 @@ module DataMapper
         #
         # @api private
         def negated?
-          return @negated if defined?(@negated)
-          @negated = parent ? parent.negated? : false
+          parent ? parent.negated? : false
         end
 
         # Return a list of operands in predictable order
@@ -328,15 +313,6 @@ module DataMapper
         # @api semipublic
         def initialize_copy(*)
           @operands = map { |operand| operand.dup }.to_set
-        end
-
-        # Clear all memoized ivars
-        #
-        # @return [undefined]
-        #
-        # @api private
-        def clear_memoized_values
-          remove_instance_variable(:@negated) if defined?(@negated)
         end
 
         # Minimize the operands recursively
@@ -566,19 +542,6 @@ module DataMapper
           first
         end
 
-        # Test if the operation is negated
-        #
-        # Defaults to return true.
-        #
-        # @return [Boolean]
-        #   true if the operation is negated, false if not
-        #
-        # @api private
-        def negated?
-          return @negated if defined?(@negated)
-          @negated = parent ? !parent.negated? : true
-        end
-
         # Minimize the operation
         #
         # @return [self]
@@ -603,6 +566,18 @@ module DataMapper
         # @api semipublic
         def to_s
           empty? ? '' : "NOT(#{operand.to_s})"
+        end
+
+        # Test if the operation is negated
+        #
+        # Defaults to return false.
+        #
+        # @return [Boolean]
+        #   true if the operation is negated, false if not
+        #
+        # @api private
+        def negated?
+          parent ? !parent.negated? : true
         end
 
         private

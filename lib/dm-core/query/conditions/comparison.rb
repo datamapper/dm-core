@@ -105,10 +105,10 @@ module DataMapper
 
         deprecate :property, :subject
 
-        equalize :slug, :subject, :dumped_value
+        equalize :slug, :subject, :value
 
         # @api semipublic
-        attr_reader :parent
+        attr_accessor :parent
 
         # The property or relationship which is being matched against
         #
@@ -129,9 +129,9 @@ module DataMapper
         # @return [Object]
         #
         # @api semipublic
-        attr_reader :dumped_value
-
-        alias value dumped_value
+        def value
+          dumped_value
+        end
 
         # The loaded/typecast value
         #
@@ -199,12 +199,6 @@ module DataMapper
           self.class.slug
         end
 
-        # @api semipublic
-        def parent=(parent)
-          clear_memoized_values
-          @parent = parent
-        end
-
         # Tests that the Comparison is valid
         #
         # Subclasses can overload this to customise the means by which they
@@ -265,11 +259,13 @@ module DataMapper
 
         # @api private
         def negated?
-          return @negated if defined?(@negated)
-          @negated = parent ? parent.negated? : false
+          parent ? parent.negated? : false
         end
 
         private
+
+        # @api private
+        attr_reader :dumped_value
 
         # Creates a new AbstractComparison instance with +subject+ and +value+
         #
@@ -300,11 +296,11 @@ module DataMapper
         # @see Property#typecast
         #
         # @api private
-        def typecast_value(val)
+        def typecast_value(value)
           if subject.respond_to?(:typecast)
-            subject.typecast(val)
+            subject.typecast(value)
           else
-            val
+            value
           end
         end
 
@@ -417,11 +413,6 @@ module DataMapper
         # @api semipublic
         def valid_for_subject?(loaded_value)
           subject.valid?(loaded_value, negated?)
-        end
-
-        # @api private
-        def clear_memoized_values
-          remove_instance_variable(:@negated) if defined?(@negated)
         end
       end # class AbstractComparison
 
@@ -638,8 +629,8 @@ module DataMapper
         # @return [Object]
         #
         # @api private
-        def typecast_value(val)
-          val
+        def typecast_value(value)
+          value
         end
 
         # @return [String]
