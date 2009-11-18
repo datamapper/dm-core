@@ -317,11 +317,12 @@ module DataMapper
         #
         # @api private
         def dump_value
-          if subject.respond_to?(:value)
-            subject.value(loaded_value)
-          else
-            loaded_value
-          end
+          dump_property(loaded_value)
+        end
+
+        # @api private
+        def dump_property(value)
+          subject.value(value)
         end
 
         # Returns a value for the comparison +subject+
@@ -454,6 +455,20 @@ module DataMapper
           else
             super
           end
+        end
+
+        # @api private
+        def dump_value
+          if relationship?
+            dump_relationship(loaded_value)
+          else
+            super
+          end
+        end
+
+        # @api private
+        def dump_relationship(value)
+          value
         end
       end # module RelationshipHandler
 
@@ -624,14 +639,12 @@ module DataMapper
         #
         # @api private
         def dump_value
-          if subject.respond_to?(:value) && loaded_value.kind_of?(Range) && !subject.custom?
-            loaded_value
-          elsif subject.respond_to?(:value) && loaded_value.respond_to?(:map)
-            dumped_value = loaded_value.map { |value| subject.value(value) }
+          if subject.respond_to?(:value) && loaded_value.respond_to?(:map) && !loaded_value.kind_of?(Range)
+            dumped_value = loaded_value.map { |value| dump_property(value) }
             dumped_value.uniq!
             dumped_value
           else
-            loaded_value
+            super
           end
         end
 

@@ -1164,9 +1164,9 @@ describe DataMapper::Query::Conditions::InclusionComparison do
             @comparison = DataMapper::Query::Conditions::Comparison.new(@slug, @property, @value)
           end
 
-          it { pending { should be_kind_of(Range) } }
+          it { should be_kind_of(Range) }
 
-          it { pending { should == @value } }
+          it { should == @value }
         end
       end
 
