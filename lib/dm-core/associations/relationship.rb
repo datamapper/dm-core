@@ -121,6 +121,16 @@ module DataMapper
       # @api private
       attr_reader :query
 
+      # Returns the String the Relationship would use in a Hash
+      #
+      # @return [String]
+      #   String name for the Relationship
+      #
+      # @api private
+      def field
+        name.to_s
+      end
+
       # Returns a hash of conditions that scopes query that fetches
       # target object
       #
