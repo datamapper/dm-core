@@ -576,7 +576,7 @@ module DataMapper
 
         # @api private
         def match_property?(record)
-          expected.respond_to?(:include?) && expected.include?(record_value(record))
+          expected.include?(record_value(record))
         end
 
         # Overloads AbtractComparison#expected
@@ -587,9 +587,12 @@ module DataMapper
         # @api private
         def expected
           if loaded_value.kind_of?(Range)
-            Range.new(super(loaded_value.first), super(loaded_value.last), loaded_value.exclude_end?)
+            typecast_range(loaded_value)
           elsif loaded_value.respond_to?(:map)
+            # FIXME: causes a lazy load when a Collection
             loaded_value.map { |val| super(val) }
+          else
+            super
           end
         end
 
@@ -615,7 +618,7 @@ module DataMapper
           elsif value.respond_to?(:map) && !value.kind_of?(String)
             value.map { |entry| super(entry) }
           else
-            super
+            super || []
           end
         end
 
@@ -631,7 +634,7 @@ module DataMapper
             when Resource   then typecast_resource(value)
             when Collection then typecast_collection(value)
             when Enumerable then typecast_enumerable(value)
-          end
+          end || []
         end
 
         # @api private
