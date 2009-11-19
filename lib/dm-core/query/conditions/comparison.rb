@@ -208,7 +208,7 @@ module DataMapper
         #
         # @api semipublic
         def matches?(record)
-          expected === record_value(record)
+          match_property?(record)
         end
 
         # Tests that the Comparison is valid
@@ -292,6 +292,11 @@ module DataMapper
           @subject      = subject
           @loaded_value = typecast(value)
           @dumped_value = dump
+        end
+
+        # @api private
+        def match_property?(record, operator = :===)
+          expected.send(operator, record_value(record))
         end
 
         # Typecasts the given +val+ using subject#typecast
@@ -454,7 +459,7 @@ module DataMapper
           if relationship? && expected.respond_to?(:query)
             match_relationship?(record)
           else
-            match_property?(record)
+            super
           end
         end
 
@@ -531,11 +536,6 @@ module DataMapper
         private
 
         # @api private
-        def match_property?(record)
-          record_value(record) == expected
-        end
-
-        # @api private
         def typecast_relationship(value)
           case value
             when Hash     then typecast_hash(value)
@@ -592,7 +592,7 @@ module DataMapper
 
         # @api private
         def match_property?(record)
-          expected.include?(record_value(record))
+          super(record, :include?)
         end
 
         # Overloads AbtractComparison#expected
@@ -634,7 +634,7 @@ module DataMapper
           elsif value.respond_to?(:map) && !value.kind_of?(String)
             value.map { |entry| super(entry) }
           else
-            super || []
+            super
           end
         end
 
@@ -650,7 +650,7 @@ module DataMapper
             when Resource   then typecast_resource(value)
             when Collection then typecast_collection(value)
             when Enumerable then typecast_enumerable(value)
-          end || []
+          end
         end
 
         # @api private
