@@ -354,7 +354,7 @@ module DataMapper
         # @return [Object]
         #
         # @api semipublic
-        def record_value(record, subject = @subject, key_type = :source_key)
+        def record_value(record, key_type = :source_key)
           case record
             when Hash
               record_value_from_hash(record, subject, key_type)
@@ -410,8 +410,8 @@ module DataMapper
         # @return [Object]
         #
         # @api semipublic
-        def expected(val = @loaded_value)
-          expected = record_value(val, @subject, :target_key)
+        def expected(value = @loaded_value)
+          expected = record_value(value, :target_key)
 
           if @subject.respond_to?(:source_key)
             @subject.source_key.typecast(expected)
