@@ -512,6 +512,22 @@ module DataMapper
 
         slug :eql
 
+        # Tests that the record value matches the comparison
+        #
+        # @param [Resource, Hash] record
+        #   The record containing the value to be matched
+        #
+        # @return [Boolean]
+        #
+        # @api semipublic
+        def matches?(record)
+          if expected.nil?
+            record_value(record).nil?
+          else
+            super
+          end
+        end
+
         private
 
         # @api private
