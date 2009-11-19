@@ -760,7 +760,17 @@ module DataMapper
     #
     # @api private
     def conditions
-      model.key_conditions(repository, key)
+      key = self.key
+      if key
+        model.key_conditions(repository, key)
+      else
+        conditions = {}
+        properties.each do |property|
+          next unless property.loaded?(self)
+          conditions[property] = property.get!(self)
+        end
+        conditions
+      end
     end
 
     # @api private
