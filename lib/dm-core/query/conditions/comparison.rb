@@ -291,7 +291,7 @@ module DataMapper
         def initialize(subject, value)
           @subject      = subject
           @loaded_value = typecast(value)
-          @dumped_value = dump_value
+          @dumped_value = dump
         end
 
         # Typecasts the given +val+ using subject#typecast
@@ -328,7 +328,7 @@ module DataMapper
         # @see Property#value
         #
         # @api private
-        def dump_value
+        def dump
           dump_property(loaded_value)
         end
 
@@ -491,7 +491,7 @@ module DataMapper
         end
 
         # @api private
-        def dump_value
+        def dump
           if relationship?
             dump_relationship(loaded_value)
           else
@@ -669,10 +669,10 @@ module DataMapper
         #
         # @return [Array<Object>]
         #
-        # @see AbtractComparison#dump_value
+        # @see AbtractComparison#dump
         #
         # @api private
-        def dump_value
+        def dump
           if subject.respond_to?(:value) && loaded_value.respond_to?(:map) && !loaded_value.kind_of?(Range)
             dumped_value = loaded_value.map { |value| dump_property(value) }
             dumped_value.uniq!
