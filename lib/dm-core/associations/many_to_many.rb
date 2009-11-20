@@ -51,17 +51,20 @@ module DataMapper
         def through
           return @through if defined?(@through)
 
-          if options[:through].kind_of?(Associations::Relationship)
-            return @through = options[:through]
+          @through = options[:through]
+
+          if @through.kind_of?(Associations::Relationship)
+            return @through
           end
 
+          model           = source_model
           repository_name = source_repository_name
-          relationships   = source_model.relationships(repository_name)
+          relationships   = model.relationships(repository_name)
           name            = through_relationship_name
 
           @through = relationships[name] ||
             DataMapper.repository(repository_name) do
-              source_model.has(min..max, name, through_model, one_to_many_options)
+              model.has(min..max, name, through_model, one_to_many_options)
             end
 
           @through.child_key
@@ -73,17 +76,21 @@ module DataMapper
         def via
           return @via if defined?(@via)
 
-          if options[:via].kind_of?(Associations::Relationship)
-            return @via = options[:via]
+          @via = options[:via]
+
+          if @via.kind_of?(Associations::Relationship)
+            return @via
           end
 
+          name            = self.name
+          through         = self.through
           repository_name = through.relative_target_repository_name
           through_model   = through.target_model
           relationships   = through_model.relationships(repository_name)
           singular_name   = name.to_s.singularize.to_sym
 
-          @via = relationships[options[:via]] ||
-            relationships[name]               ||
+          @via = relationships[@via] ||
+            relationships[name]      ||
             relationships[singular_name]
 
           @via ||= if anonymous_through_model?
@@ -225,8 +232,9 @@ module DataMapper
 
         # @api private
         def valid_target?(target)
-          source_key = via.source_key
-          target_key = via.target_key
+          relationship = via
+          source_key   = relationship.source_key
+          target_key   = relationship.target_key
 
           target.kind_of?(target_model) &&
           source_key.valid?(target_key.get(target))
@@ -234,8 +242,9 @@ module DataMapper
 
         # @api private
         def valid_source?(source)
-          source_key = nearest_relationship.source_key
-          target_key = nearest_relationship.target_key
+          relationship = nearest_relationship
+          source_key   = relationship.source_key
+          target_key   = relationship.target_key
 
           source.kind_of?(source_model) &&
           target_key.valid?(source_key.get(source))
@@ -282,6 +291,8 @@ module DataMapper
               inverse.options.merge(:through => through)
             )
           end
+
+          options = self.options
 
           options.only(*OPTIONS - [ :min, :max ]).update(
             :through    => through,
@@ -351,6 +362,7 @@ module DataMapper
         def destroy!
           assert_source_saved 'The source must be saved before mass-deleting the collection'
 
+          model      = self.model
           key        = model.key(repository_name)
           conditions = Query.target_conditions(self, key, key)
 
@@ -375,6 +387,9 @@ module DataMapper
         #
         # @api public
         def intermediaries
+          through = self.through
+          source  = self.source
+
           @intermediaries ||= if through.loaded?(source)
             through.get!(source)
           else
@@ -382,10 +397,33 @@ module DataMapper
           end
         end
 
+        protected
+
+        # Map the resources in the collection to the intermediaries
+        #
+        # @return [Hash]
+        #   the map of resources to their intermediaries
+        #
+        # @api private
+        def intermediary_for
+          @intermediary_for ||= {}
+        end
+
+        # @api private
+        def through
+          relationship.through
+        end
+
+        # @api private
+        def via
+          relationship.via
+        end
+
         private
 
         # @api private
         def _create(safe, attributes)
+          via = self.via
           if via.respond_to?(:resource_for)
             resource = super
             if create_intermediary(safe, resource)
@@ -400,6 +438,8 @@ module DataMapper
 
         # @api private
         def _save(safe)
+          via = self.via
+
           if @removed.any?
             # delete only intermediaries linked to the removed targets
             return false unless intermediaries.all(via => @removed).send(safe ? :destroy : :destroy!)
@@ -407,6 +447,8 @@ module DataMapper
             # reset the intermediaries so that it reflects the current state of the datastore
             reset_intermediaries
           end
+
+          loaded_entries = self.loaded_entries
 
           if via.respond_to?(:resource_for)
             super
@@ -421,21 +463,15 @@ module DataMapper
           end
         end
 
-        # Map the resources in the collection to the intermediaries
-        #
-        # @return [Hash]
-        #   the map of resources to their intermediaries
-        #
-        # @api private
-        def intermediary_for
-          @intermediary_for ||= {}
-        end
-
         # @api private
         def create_intermediary(safe, resource = nil)
-          return intermediary_for[resource] if intermediary_for[resource]
+          intermediary_for = self.intermediary_for
 
-          method = safe ? :save : :save!
+          intermediary_resource = intermediary_for[resource]
+          return intermediary_resource if intermediary_resource
+
+          intermediaries = self.intermediaries
+          method         = safe ? :save : :save!
 
           return unless intermediaries.send(method)
 
@@ -451,17 +487,10 @@ module DataMapper
 
         # @api private
         def reset_intermediaries
+          through = self.through
+          source  = self.source
+
           through.set!(source, through.collection_for(source))
-        end
-
-        # @api private
-        def through
-          relationship.through
-        end
-
-        # @api private
-        def via
-          relationship.via
         end
 
         # @api private

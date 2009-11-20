@@ -30,16 +30,18 @@ module DataMapper
     #
     # @deprecated
     def update_attributes(attributes = {}, *allowed)
-      assert_update_clean_only(:update_attributes)
+      model  = self.model
+      caller = caller[0]
 
-      warn "#{model}#update_attributes is deprecated, use #{model}#update instead (#{caller[0]})"
+      warn "#{model}#update_attributes is deprecated, use #{model}#update instead (#{caller})"
 
       if allowed.any?
         warn "specifying allowed in #{model}#update_attributes is deprecated, " \
-          "use Hash#only to filter the attributes in the caller (#{caller[0]})"
+          "use Hash#only to filter the attributes in the caller (#{caller})"
         attributes = attributes.only(*allowed)
       end
 
+      assert_update_clean_only(:update_attributes)
       update(attributes)
     end
 
@@ -271,6 +273,7 @@ module DataMapper
     #
     # @api public
     def attributes=(attributes)
+      model = self.model
       attributes.each do |name, value|
         case name
           when String, Symbol
@@ -376,14 +379,16 @@ module DataMapper
     #
     # @api public
     def destroy!
-      if saved? && !destroyed?
-        repository.delete(collection_for_self)
-        @_destroyed = true
-        @_readonly  = true
-        reset
-      end
+      return true if destroyed?
 
-      destroyed?
+      if saved?
+        repository.delete(collection_for_self)
+        reset
+        @_readonly  = true
+        @_destroyed = true
+      else
+        false
+      end
     end
 
     # Compares another Resource for equality
@@ -436,6 +441,7 @@ module DataMapper
     #
     # @api public
     def <=>(other)
+      model = self.model
       unless other.kind_of?(model.base_model)
         raise ArgumentError, "Cannot compare a #{other.model} instance with a #{model} instance"
       end
@@ -553,7 +559,7 @@ module DataMapper
     # @api private
     def reset
       @_saved = false
-      identity_map.delete(key)
+      remove_from_identity_map
       original_attributes.clear
       self
     end
@@ -679,9 +685,19 @@ module DataMapper
     # @return [IdentityMap]
     #   identity map of repository this object was loaded from
     #
-    # @api semipublic
+    # @api private
     def identity_map
       repository.identity_map(model)
+    end
+
+    # @api private
+    def add_to_identity_map
+      identity_map[key] = self
+    end
+
+    # @api private
+    def remove_from_identity_map
+      identity_map.delete(key)
     end
 
     # Fetches all the names of the attributes that have been loaded,
@@ -844,14 +860,14 @@ module DataMapper
         end
       end
 
-      repository.create([ self ])
-
       @_repository = repository
-      @_saved      = true
+      @_repository.create([ self ])
+
+      @_saved = true
 
       original_attributes.clear
 
-      identity_map[key] = self
+      add_to_identity_map
 
       true
     end
@@ -867,13 +883,15 @@ module DataMapper
     #
     # @api private
     def _update
+      original_attributes = self.original_attributes
+
       if original_attributes.empty?
         true
-      elsif original_attributes.any? { |property, _| !property.valid?(property.get!(self)) }
+      elsif original_attributes.any? { |property, _value| !property.valid?(property.get!(self)) }
         false
       else
         # remove from the identity map
-        identity_map.delete(key)
+        remove_from_identity_map
 
         repository.update(dirty_attributes, collection_for_self)
 
@@ -882,7 +900,7 @@ module DataMapper
         # remove the cached key in case it is updated
         remove_instance_variable(:@_key)
 
-        identity_map[key] = self
+        add_to_identity_map
 
         true
       end
@@ -902,10 +920,11 @@ module DataMapper
     #
     # @api semipublic
     def save_self(safe = true)
+      new_resource = new?
       if safe
-        new? ? create_hook : update_hook
+        new_resource ? create_hook : update_hook
       else
-        new? ? _create : _update
+        new_resource ? _create : _update
       end
     end
 

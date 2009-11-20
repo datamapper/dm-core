@@ -125,11 +125,14 @@ module DataMapper
         return @primitive if primitive.nil?
         @primitive = primitive
 
+        return unless @primitive.respond_to?(:options)
+        options = @primitive.options
+
+        return unless options.respond_to?(:each)
+
         # inherit the options from the primitive if any
-        if @primitive.respond_to?(:options) && @primitive.options.respond_to?(:each)
-          @primitive.options.each do |key, value|
-            send(key, value) unless send(key)
-          end
+        options.each do |key, value|
+          send(key, value) unless send(key)
         end
       end
 

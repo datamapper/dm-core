@@ -50,7 +50,10 @@ module DataMapper
       def property(name, type, options = {})
         property = DataMapper::Property.new(self, name, type, options)
 
-        properties(repository_name) << property
+        repository_name = self.repository_name
+        properties      = properties(repository_name)
+
+        properties << property
 
         # Add property to the other mappings as well if this is for the default
         # repository.
@@ -72,8 +75,6 @@ module DataMapper
         if property.lazy?
           context = options.fetch(:lazy, :default)
           context = :default if context == true
-
-          properties = properties(repository_name)
 
           Array(context).each do |context|
             properties.lazy_context(context) << self
@@ -108,6 +109,8 @@ module DataMapper
         # TODO: create PropertySet#copy that will copy the properties, but assign the
         # new Relationship objects to a supplied repository and model.  dup does not really
         # do what is needed
+
+        default_repository_name = self.default_repository_name
 
         @properties[repository_name] ||= if repository_name == default_repository_name
           PropertySet.new

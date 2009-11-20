@@ -78,12 +78,14 @@ module DataMapper
           return @property.send(method, *args)
         end
 
+        path_class = self.class
+
         if relationship = @model.relationships(@repository_name)[method]
-          return self.class.new(@relationships.dup << relationship)
+          return path_class.new(@relationships.dup << relationship)
         end
 
         if @model.properties(@repository_name).named?(method)
-          return self.class.new(@relationships, method)
+          return path_class.new(@relationships, method)
         end
 
         raise NoMethodError, "undefined property or relationship '#{method}' on #{@model}"

@@ -271,6 +271,7 @@ module DataMapper
 
         # @api private
         def negated?
+          parent = self.parent
           parent ? parent.negated? : false
         end
 
@@ -360,6 +361,7 @@ module DataMapper
         #
         # @api semipublic
         def record_value(record, key_type = :source_key)
+          subject = self.subject
           case record
             when Hash
               record_value_from_hash(record, subject, key_type)
@@ -545,6 +547,7 @@ module DataMapper
 
         # @api private
         def typecast_hash(hash)
+          subject = self.subject
           subject.target_model.new(subject.query.merge(hash))
         end
 
@@ -579,6 +582,7 @@ module DataMapper
         #
         # @api semipublic
         def valid?
+          loaded_value = self.loaded_value
           case loaded_value
             when Collection then valid_collection?(loaded_value)
             when Range      then valid_range?(loaded_value)
@@ -602,6 +606,7 @@ module DataMapper
         #
         # @api private
         def expected
+          loaded_value = self.loaded_value
           if loaded_value.kind_of?(Range)
             typecast_range(loaded_value)
           elsif loaded_value.respond_to?(:map)
@@ -655,6 +660,7 @@ module DataMapper
 
         # @api private
         def typecast_hash(hash)
+          subject = self.subject
           subject.target_model.all(subject.query.merge(hash))
         end
 
@@ -672,10 +678,11 @@ module DataMapper
         def typecast_enumerable(enumerable)
           collection = nil
           enumerable.each do |entry|
+            typecasted = typecast_relationship(entry)
             if collection
-              collection |= typecast_relationship(entry)
+              collection |= typecasted
             else
-              collection = typecast_relationship(entry)
+              collection = typecasted
             end
           end
           collection
@@ -689,6 +696,7 @@ module DataMapper
         #
         # @api private
         def dump
+          loaded_value = self.loaded_value
           if subject.respond_to?(:value) && loaded_value.respond_to?(:map) && !loaded_value.kind_of?(Range)
             dumped_value = loaded_value.map { |value| dump_property(value) }
             dumped_value.uniq!

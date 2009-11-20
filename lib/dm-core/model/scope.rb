@@ -14,6 +14,8 @@ module DataMapper
       def default_scope(repository_name = default_repository_name)
         @default_scope ||= {}
 
+        default_repository_name = self.default_repository_name
+
         @default_scope[repository_name] ||= if repository_name == default_repository_name
           {}
         else
@@ -64,6 +66,7 @@ module DataMapper
           query.dup
         end
 
+        scope_stack = self.scope_stack
         scope_stack << query.options
 
         begin

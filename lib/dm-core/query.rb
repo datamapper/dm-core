@@ -47,10 +47,11 @@ module DataMapper
     #
     # @api private
     def self.target_conditions(source, source_key, target_key)
-      source_values = []
+      target_key_size = target_key.size
+      source_values   = []
 
       if source.nil?
-        source_values << [ nil ] * target_key.size
+        source_values << [ nil ] * target_key_size
       else
         Array(source).each do |resource|
           next unless source_key.loaded?(resource)
@@ -62,7 +63,7 @@ module DataMapper
 
       source_values.uniq!
 
-      if target_key.size == 1
+      if target_key_size == 1
         target_key = target_key.first
         source_values.flatten!
 
@@ -402,16 +403,18 @@ module DataMapper
     def relative(options)
       assert_kind_of 'options', options, Hash
 
-      options = options.dup
+      offset = nil
+      limit  = self.limit
 
-      if options.key?(:offset) && (options.key?(:limit) || self.limit)
-        offset = options.delete(:offset)
-        limit  = options.delete(:limit) || self.limit - offset
-
-        merge(options).slice!(offset, limit)
-      else
-        merge(options)
+      if options.key?(:offset) && (options.key?(:limit) || limit)
+        options = options.dup
+        offset  = options.delete(:offset)
+        limit   = options.delete(:limit) || limit - offset
       end
+
+      query = merge(options)
+      query = query.slice!(offset, limit) if offset
+      query
     end
 
     # Return the union with another query
@@ -501,6 +504,7 @@ module DataMapper
     #
     # @api semipublic
     def match_records(records)
+      conditions = self.conditions
       return records if conditions.nil?
       records.select { |record| conditions.matches?(record) }
     end
@@ -534,7 +538,9 @@ module DataMapper
     #
     # @api semipublic
     def limit_records(records)
-      size = records.size
+      offset = self.offset
+      limit  = self.limit
+      size   = records.size
 
       if offset > size - 1
         []
@@ -781,11 +787,15 @@ module DataMapper
     def assert_valid_fields(fields, unique)
       assert_kind_of 'options[:fields]', fields, Array
 
+      model = self.model
+
       fields.each do |field|
+        inspect = field.inspect
+
         case field
           when Symbol, String
             unless @properties.named?(field)
-              raise ArgumentError, "+options[:fields]+ entry #{field.inspect} does not map to a property in #{model}"
+              raise ArgumentError, "+options[:fields]+ entry #{inspect} does not map to a property in #{model}"
             end
 
           when Property
@@ -794,7 +804,7 @@ module DataMapper
             end
 
           else
-            raise ArgumentError, "+options[:fields]+ entry #{field.inspect} of an unsupported object #{field.class}"
+            raise ArgumentError, "+options[:fields]+ entry #{inspect} of an unsupported object #{field.class}"
         end
       end
     end
@@ -811,10 +821,12 @@ module DataMapper
       end
 
       links.each do |link|
+        inspect = link.inspect
+
         case link
           when Symbol, String
             unless @relationships.key?(link.to_sym)
-              raise ArgumentError, "+options[:links]+ entry #{link.inspect} does not map to a relationship in #{model}"
+              raise ArgumentError, "+options[:links]+ entry #{inspect} does not map to a relationship in #{model}"
             end
 
           when Associations::Relationship
@@ -824,7 +836,7 @@ module DataMapper
             #end
 
           else
-            raise ArgumentError, "+options[:links]+ entry #{link.inspect} of an unsupported object #{link.class}"
+            raise ArgumentError, "+options[:links]+ entry #{inspect} of an unsupported object #{link.class}"
         end
       end
     end
@@ -839,15 +851,19 @@ module DataMapper
       case conditions
         when Hash
           conditions.each do |subject, bind_value|
+            inspect = subject.inspect
+
             case subject
               when Symbol, String
                 unless subject.to_s.include?('.') || @properties.named?(subject) || @relationships.key?(subject)
-                  raise ArgumentError, "condition #{subject.inspect} does not map to a property or relationship in #{model}"
+                  raise ArgumentError, "condition #{inspect} does not map to a property or relationship in #{model}"
                 end
 
               when Operator
-                unless (Conditions::Comparison.slugs | [ :not ]).include?(subject.operator)
-                  raise ArgumentError, "condition #{subject.inspect} used an invalid operator #{subject.operator}"
+                operator = subject.operator
+
+                unless (Conditions::Comparison.slugs | [ :not ]).include?(operator)
+                  raise ArgumentError, "condition #{inspect} used an invalid operator #{operator}"
                 end
 
                 assert_valid_conditions(subject.target => bind_value)
@@ -863,7 +879,7 @@ module DataMapper
                 #end
 
               else
-                raise ArgumentError, "condition #{subject.inspect} of an unsupported object #{subject.class}"
+                raise ArgumentError, "condition #{inspect} of an unsupported object #{subject.class}"
             end
           end
 
@@ -872,7 +888,9 @@ module DataMapper
             raise ArgumentError, '+options[:conditions]+ should not be empty'
           end
 
-          unless conditions.first.kind_of?(String) && !conditions.first.blank?
+          first_condition = conditions.first
+
+          unless first_condition.kind_of?(String) && !first_condition.blank?
             raise ArgumentError, '+options[:conditions]+ should have a statement for the first entry'
           end
       end
@@ -918,11 +936,15 @@ module DataMapper
         raise ArgumentError, '+options[:order]+ should not be empty if +options[:fields] contains a non-operator'
       end
 
+      model = self.model
+
       order.each do |order_entry|
+        inspect = order_entry.inspect
+
         case order_entry
           when Symbol, String
             unless @properties.named?(order_entry)
-              raise ArgumentError, "+options[:order]+ entry #{order_entry.inspect} does not map to a property in #{model}"
+              raise ArgumentError, "+options[:order]+ entry #{inspect} does not map to a property in #{model}"
             end
 
           when Property
@@ -931,14 +953,16 @@ module DataMapper
             end
 
           when Operator, Direction
-            unless order_entry.operator == :asc || order_entry.operator == :desc
-              raise ArgumentError, "+options[:order]+ entry #{order_entry.inspect} used an invalid operator #{order_entry.operator}"
+            operator = order_entry.operator
+
+            unless operator == :asc || operator == :desc
+              raise ArgumentError, "+options[:order]+ entry #{inspect} used an invalid operator #{operator}"
             end
 
             assert_valid_order([ order_entry.target ], fields)
 
           else
-            raise ArgumentError, "+options[:order]+ entry #{order_entry.inspect} of an unsupported object #{order_entry.class}"
+            raise ArgumentError, "+options[:order]+ entry #{inspect} of an unsupported object #{order_entry.class}"
         end
       end
     end
@@ -956,12 +980,19 @@ module DataMapper
     #
     # @api private
     def assert_valid_other(other)
-      unless other.repository == repository
-        raise ArgumentError, "+other+ #{other.class} must be for the #{repository.name} repository, not #{other.repository.name}"
+      other_repository = other.repository
+      repository       = self.repository
+      other_class      = other.class
+
+      unless other_repository == repository
+        raise ArgumentError, "+other+ #{other_class} must be for the #{repository.name} repository, not #{other_repository.name}"
       end
 
-      unless other.model >= model
-        raise ArgumentError, "+other+ #{other.class} must be for the #{model.name} model, not #{other.model.name}"
+      other_model = other.model
+      model       = self.model
+
+      unless other_model >= model
+        raise ArgumentError, "+other+ #{other_class} must be for the #{model.name} model, not #{other_model.name}"
       end
     end
 
@@ -1193,7 +1224,9 @@ module DataMapper
         query_path = model
 
         target_components = string.split('.')
-        operator = target_components.pop.to_sym if DataMapper::Query::Conditions::Comparison.slugs.map{ |s| s.to_s }.include? target_components.last
+        last_component    = target_components.last
+        operator          = target_components.pop.to_sym if DataMapper::Query::Conditions::Comparison.slugs.any? { |slug| slug.to_s == last_component }
+
         target_components.each { |method| query_path = query_path.send(method) }
 
         append_condition(query_path, bind_value, model, operator)
@@ -1244,29 +1277,49 @@ module DataMapper
     #
     # @api private
     def extract_slice_arguments(*args)
-      first_arg, second_arg = args
-
-      if args.size == 2 && first_arg.kind_of?(Integer) && second_arg.kind_of?(Integer)
-        return first_arg, second_arg
-      elsif args.size == 1
-        if first_arg.kind_of?(Integer)
-          return first_arg, 1
-        elsif first_arg.kind_of?(Range)
-          offset = first_arg.first
-          limit  = first_arg.last - offset
-          limit += 1 unless first_arg.exclude_end?
-          return offset, limit
-        end
+      offset, limit = case args.size
+        when 2 then extract_offset_limit_from_two_arguments(*args)
+        when 1 then extract_offset_limit_from_one_argument(*args)
       end
+
+      return offset, limit if offset && limit
 
       raise ArgumentError, "arguments may be 1 or 2 Integers, or 1 Range object, was: #{args.inspect}"
     end
 
     # @api private
-    def get_relative_position(offset, limit)
-      new_offset = self.offset + offset
+    def extract_offset_limit_from_two_arguments(*args)
+      args if args.all? { |arg| arg.kind_of?(Integer) }
+    end
 
-      if limit <= 0 || (self.limit && new_offset + limit > self.offset + self.limit)
+    # @api private
+    def extract_offset_limit_from_one_argument(arg)
+      case arg
+        when Integer then extract_offset_limit_from_integer(arg)
+        when Range   then extract_offset_limit_from_range(arg)
+      end
+    end
+
+    # @api private
+    def extract_offset_limit_from_integer(integer)
+      [ integer, 1 ]
+    end
+
+    # @api private
+    def extract_offset_limit_from_range(range)
+      offset = range.first
+      limit  = range.last - offset
+      limit  = limit.succ unless range.exclude_end?
+      return offset, limit
+    end
+
+    # @api private
+    def get_relative_position(offset, limit)
+      self_offset = self.offset
+      self_limit  = self.limit
+      new_offset  = self_offset + offset
+
+      if limit <= 0 || (self_limit && new_offset + limit > self_offset + self_limit)
         raise RangeError, "offset #{offset} and limit #{limit} are outside allowed range"
       end
 
@@ -1363,12 +1416,16 @@ module DataMapper
     #
     # @api private
     def self_relationship
-      @self_relationship ||= Associations::OneToMany::Relationship.new(
-        :self,
-        model,
-        model,
-        self_relationship_options
-      )
+      @self_relationship ||=
+        begin
+          model = self.model
+          Associations::OneToMany::Relationship.new(
+            :self,
+            model,
+            model,
+            self_relationship_options
+            )
+        end
     end
 
     # Return options for the self referrential relationship
@@ -1378,10 +1435,11 @@ module DataMapper
     #
     # @api private
     def self_relationship_options
-      key = model_key
+      keys       = model_key.map { |property| property.name }
+      repository = self.repository
       {
-        :child_key              => key.map { |property| property.name },
-        :parent_key             => key.map { |property| property.name },
+        :child_key              => keys,
+        :parent_key             => keys,
         :child_repository_name  => repository,
         :parent_repository_name => repository,
       }

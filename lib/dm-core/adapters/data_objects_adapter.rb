@@ -32,26 +32,15 @@ module DataMapper
           reader = connection.create_command(statement).execute_reader(*bind_values)
           fields = reader.fields
 
-          results = []
-
           begin
             if fields.size > 1
-              fields = fields.map { |field| Extlib::Inflection.underscore(field).to_sym }
-              struct = Struct.new(*fields)
-
-              while reader.next!
-                results << struct.new(*reader.values)
-              end
+              select_fields(reader, fields)
             else
-              while reader.next!
-                results << reader.values.at(0)
-              end
+              select_field(reader)
             end
           ensure
             reader.close
           end
-
-          results
         end
       end
 
@@ -89,6 +78,8 @@ module DataMapper
       #
       # @api semipublic
       def create(resources)
+        name = self.name
+
         resources.each do |resource|
           model      = resource.model
           serial     = model.serial(name)
@@ -238,6 +229,7 @@ module DataMapper
         def open_connection
           # DataObjects::Connection.new(uri) will give you back the right
           # driver based on the DataObjects::URI#scheme
+          connection_stack = self.connection_stack
           connection = connection_stack.last || DataObjects::Connection.new(normalized_uri)
           connection_stack << connection
           connection
@@ -247,9 +239,16 @@ module DataMapper
         #
         # @api semipublic
         def close_connection(connection)
+          connection_stack = self.connection_stack
           connection_stack.pop
           connection.close if connection_stack.empty?
         end
+      end
+
+      # @api private
+      def connection_stack
+        connection_stack_for = Thread.current[:dm_do_connection_stack] ||= {}
+        connection_stack_for[self] ||= []
       end
 
       private
@@ -265,12 +264,6 @@ module DataMapper
       end
 
       # @api private
-      def connection_stack
-        connection_stack_for = Thread.current[:dm_do_connection_stack] ||= {}
-        connection_stack_for[self] ||= []
-      end
-
-      # @api private
       def with_connection
         begin
           yield connection = open_connection
@@ -282,18 +275,45 @@ module DataMapper
         end
       end
 
+      # @api private
+      def select_fields(reader, fields)
+        fields = fields.map { |field| Extlib::Inflection.underscore(field).to_sym }
+        struct = Struct.new(*fields)
+
+        results = []
+
+        while reader.next!
+          results << struct.new(*reader.values)
+        end
+
+        results
+      end
+
+      # @api private
+      def select_field(reader)
+        results = []
+
+        while reader.next!
+          results << reader.values.at(0)
+        end
+
+        results
+      end
+
       # This module is just for organization. The methods are included into the
       # Adapter below.
       module SQL #:nodoc:
         IDENTIFIER_MAX_LENGTH = 128
 
         # @api semipublic
-        def property_to_column_name(property, qualify, qualifier = nil)
+        def property_to_column_name(property, qualify, table_name = nil)
+          column_name = quote_name(property.field)
+
           if qualify
-            table_name = property.model.storage_name(name)
-            "#{qualifier || quote_name(table_name)}.#{quote_name(property.field)}"
+            table_name ||= quote_name(property.model.storage_name(name))
+            "#{table_name}.#{column_name}"
           else
-            quote_name(property.field)
+            column_name
           end
         end
 
@@ -399,14 +419,17 @@ module DataMapper
         #
         # @api private
         def update_statement(properties, query)
+          model = query.model
+          name  = self.name
+
           # TODO: DRY this up with delete_statement
           conditions_statement, bind_values = if query.limit || query.links.any?
-            subquery(query, query.model.key(name), false)
+            subquery(query, model.key(name), false)
           else
             conditions_statement(query.conditions)
           end
 
-          statement = "UPDATE #{quote_name(query.model.storage_name(name))}"
+          statement = "UPDATE #{quote_name(model.storage_name(name))}"
           statement << " SET #{properties.map { |property| "#{quote_name(property.field)} = ?" }.join(', ')}"
           statement << " WHERE #{conditions_statement}" unless conditions_statement.blank?
 
@@ -419,14 +442,17 @@ module DataMapper
         #
         # @api private
         def delete_statement(query)
+          model = query.model
+          name  = self.name
+
           # TODO: DRY this up with update_statement
           conditions_statement, bind_values = if query.limit || query.links.any?
-            subquery(query, query.model.key(name), false)
+            subquery(query, model.key(name), false)
           else
             conditions_statement(query.conditions)
           end
 
-          statement = "DELETE FROM #{quote_name(query.model.storage_name(name))}"
+          statement = "DELETE FROM #{quote_name(model.storage_name(name))}"
           statement << " WHERE #{conditions_statement}" unless conditions_statement.blank?
 
           return statement, bind_values
@@ -595,7 +621,8 @@ module DataMapper
         #
         # @api private
         def comparison_statement(comparison, qualify)
-          value = comparison.value
+          subject = comparison.subject
+          value   = comparison.value
 
           # TODO: move exclusive Range handling into another method, and
           # update conditions_statement to use it
@@ -603,17 +630,16 @@ module DataMapper
           # break exclusive Range queries up into two comparisons ANDed together
           if value.kind_of?(Range) && value.exclude_end?
             operation = Query::Conditions::Operation.new(:and,
-              Query::Conditions::Comparison.new(:gte, comparison.subject, value.first),
-              Query::Conditions::Comparison.new(:lt,  comparison.subject, value.last)
+              Query::Conditions::Comparison.new(:gte, subject, value.first),
+              Query::Conditions::Comparison.new(:lt,  subject, value.last)
             )
 
             statement, bind_values = conditions_statement(operation, qualify)
 
             return "(#{statement})", bind_values
           elsif comparison.relationship?
-            value = comparison.value
             if value.respond_to?(:query) && value.respond_to?(:loaded?) && !value.loaded?
-              return subquery(value.query, comparison.subject, qualify)
+              return subquery(value.query, subject, qualify)
             else
               return conditions_statement(comparison.foreign_key_mapping, qualify)
             end
@@ -621,23 +647,25 @@ module DataMapper
             return []  # match everything
           end
 
-          operator = comparison_operator(comparison)
+          operator    = comparison_operator(comparison)
+          column_name = property_to_column_name(subject, qualify)
 
           # if operator return value contains ? then it means that it is function call
           # and it contains placeholder (%s) for property name as well (used in Oracle adapter for regexp operator)
           if operator.include?('?')
-            return operator % property_to_column_name(comparison.subject, qualify), [ value ]
+            return operator % column_name, [ value ]
           else
-            return "#{property_to_column_name(comparison.subject, qualify)} #{operator} #{value.nil? ? 'NULL' : '?'}", [ value ].compact
+            return "#{column_name} #{operator} #{value.nil? ? 'NULL' : '?'}", [ value ].compact
           end
         end
 
         def comparison_operator(comparison)
-          value = comparison.value
+          subject = comparison.subject
+          value   = comparison.value
 
           case comparison.slug
-            when :eql    then equality_operator(comparison.subject, value)
-            when :in     then include_operator(comparison.subject, value)
+            when :eql    then equality_operator(subject, value)
+            when :in     then include_operator(subject, value)
             when :regexp then regexp_operator(value)
             when :like   then like_operator(value)
             when :gt     then '>'

@@ -30,8 +30,11 @@ module DataMapper
         end
 
         def select_statement(query)
+          name     = self.name
           qualify  = query.links.any?
           fields   = query.fields
+          offset   = query.offset
+          limit    = query.limit
           order_by = query.order
           group_by = if qualify || query.unique?
             fields.select { |property| property.kind_of?(Property) }
@@ -39,7 +42,15 @@ module DataMapper
 
           conditions_statement, bind_values = conditions_statement(query.conditions, qualify)
 
-          use_limit_offset_subquery = query.limit && query.offset > 0
+          use_limit_offset_subquery = limit && offset > 0
+
+          columns_statement = columns_statement(fields, qualify)
+          from_statement    = " FROM #{quote_name(query.model.storage_name(name))}"
+          where_statement   = " WHERE #{conditions_statement}" unless conditions_statement.blank?
+          join_statement    = join_statement(query, qualify)
+          order_statement   = order_statement(order_by, qualify)
+          no_group_by       = group_by ? group_by.empty? : true
+          no_order_by       = order_by ? order_by.empty? : true
 
           if use_limit_offset_subquery
             # If using qualifiers, we must qualify elements outside the subquery
@@ -47,25 +58,25 @@ module DataMapper
             # Otherwise, we hit upon "multi-part identifier cannot be bound"
             # error from SQL Server.
             statement = "SELECT #{columns_statement(fields, qualify, 'RowResults')}"
-            statement << " FROM ( SELECT Row_Number() OVER (ORDER BY #{order_statement(order_by, qualify)}) AS RowID,"
-            statement << " #{columns_statement(fields, qualify)}"
-            statement << " FROM #{quote_name(query.model.storage_name(name))}"
-            statement << join_statement(query, qualify)                      if qualify
-            statement << " WHERE #{conditions_statement}"                    unless conditions_statement.blank?
+            statement << " FROM ( SELECT Row_Number() OVER (ORDER BY #{order_statement}) AS RowID,"
+            statement << " #{columns_statement}"
+            statement << from_statement
+            statement << join_statement                                      if qualify
+            statement << where_statement                                     if where_statement
             statement << ") AS RowResults"
-            statement << " WHERE RowId > #{query.offset} AND RowId <= #{query.offset + query.limit}"
-            statement << " GROUP BY #{columns_statement(group_by, qualify, 'RowResults')}" if group_by && group_by.any?
-            statement << " ORDER BY #{order_statement(order_by, qualify, 'RowResults')}"   if order_by && order_by.any?
+            statement << " WHERE RowId > #{offset} AND RowId <= #{offset + limit}"
+            statement << " GROUP BY #{columns_statement(group_by, qualify, 'RowResults')}" unless no_group_by
+            statement << " ORDER BY #{order_statement(order_by, qualify, 'RowResults')}"   unless no_order_by
           else
-            statement = "SELECT #{columns_statement(fields, qualify)}"
-            statement << " FROM #{quote_name(query.model.storage_name(name))}"
-            statement << join_statement(query, qualify)                      if qualify
-            statement << " WHERE #{conditions_statement}"                    unless conditions_statement.blank?
-            statement << " GROUP BY #{columns_statement(group_by, qualify)}" if group_by && group_by.any?
-            statement << " ORDER BY #{order_statement(order_by, qualify)}"   if order_by && order_by.any?
+            statement = "SELECT #{columns_statement}"
+            statement << from_statement
+            statement << join_statement                                      if qualify
+            statement << where_statement                                     if where_statement
+            statement << " GROUP BY #{columns_statement(group_by, qualify)}" unless no_group_by
+            statement << " ORDER BY #{order_statement}"   unless no_order_by
           end
 
-          add_limit_offset!(statement, query.limit, query.offset, bind_values) unless use_limit_offset_subquery
+          add_limit_offset!(statement, limit, offset, bind_values) unless use_limit_offset_subquery
 
           return statement, bind_values
         end

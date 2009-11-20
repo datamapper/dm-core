@@ -137,6 +137,8 @@ module DataMapper
 
     # @api private
     def self.extended(model)
+      descendants = self.descendants
+
       descendants << model
 
       model.instance_variable_set(:@valid,         false)
@@ -152,6 +154,8 @@ module DataMapper
     # @api private
     chainable do
       def inherited(model)
+        descendants = self.descendants
+
         descendants << model
 
         model.instance_variable_set(:@valid,         false)
@@ -296,21 +300,18 @@ module DataMapper
     #
     # @api public
     def first(*args)
-      last_arg = args.last
+      first_arg = args.first
+      last_arg  = args.last
 
-      limit      = args.first if args.first.kind_of?(Integer)
-      with_query = last_arg.respond_to?(:merge) && !last_arg.blank?
+      limit_specified = first_arg.kind_of?(Integer)
+      with_query      = (last_arg.kind_of?(Hash) && !last_arg.empty?) || last_arg.kind_of?(Query)
 
-      query = with_query ? last_arg : {}
+      limit = limit_specified ? first_arg : 1
+      query = with_query      ? last_arg  : {}
 
-      query = if query.kind_of?(Query)
-        query.slice(0, limit || 1)
-      else
-        offset = query.fetch(:offset, 0)
-        scoped_query(query.except(:offset)).slice(offset, limit || 1)
-      end
+      query = self.query.slice(0, limit).update(query)
 
-      if limit
+      if limit_specified
         all(query)
       else
         query.repository.read(query).first
@@ -335,21 +336,18 @@ module DataMapper
     #
     # @api public
     def last(*args)
-      last_arg = args.last
+      first_arg = args.first
+      last_arg  = args.last
 
-      limit      = args.first if args.first.kind_of?(Integer)
-      with_query = last_arg.respond_to?(:merge) && !last_arg.blank?
+      limit_specified = first_arg.kind_of?(Integer)
+      with_query      = (last_arg.kind_of?(Hash) && !last_arg.empty?) || last_arg.kind_of?(Query)
 
-      query = with_query ? last_arg : {}
+      limit = limit_specified ? first_arg : 1
+      query = with_query      ? last_arg  : {}
 
-      query = if query.kind_of?(Query)
-        query.slice(0, limit || 1).reverse!
-      else
-        offset = query.fetch(:offset, 0)
-        scoped_query(query.except(:offset)).slice(offset, limit || 1).reverse!
-      end
+      query = self.query.slice(0, limit).update(query).reverse!
 
-      if limit
+      if limit_specified
         all(query)
       else
         query.repository.read(query).last
@@ -575,17 +573,14 @@ module DataMapper
     #   otherwise the requested repository.
     #
     # @api private
-    def repository(name = nil)
+    def repository(name = nil, &block)
       #
       # There has been a couple of different strategies here, but me (zond) and dkubb are at least
       # united in the concept of explicitness over implicitness. That is - the explicit wish of the
       # caller (+name+) should be given more priority than the implicit wish of the caller (Repository.context.last).
       #
-      if block_given?
-        DataMapper.repository(name || repository_name) { |*block_args| yield(*block_args) }
-      else
-        DataMapper.repository(name || repository_name)
-      end
+
+      DataMapper.repository(name || repository_name, &block)
     end
 
     # Get the current +repository_name+ for this Model.
@@ -598,7 +593,8 @@ module DataMapper
     #
     # @api private
     def repository_name
-      Repository.context.any? ? Repository.context.last.name : default_repository_name
+      context = Repository.context
+      context.any? ? context.last.name : default_repository_name
     end
 
     # Gets the current Set of repositories for which
@@ -680,10 +676,12 @@ module DataMapper
           self.repository
         end
 
+        query = self.query.merge(query)
+
         if self.query.repository == repository
-          self.query.merge(query)
+          query
         else
-          Query.new(repository, self, self.query.merge(query).options)
+          Query.new(repository, self, query.options)
         end
       end
     end
@@ -692,6 +690,9 @@ module DataMapper
     def assert_valid # :nodoc:
       return if @valid
       @valid = true
+
+      name            = self.name
+      repository_name = self.repository_name
 
       if properties(repository_name).empty? &&
         !relationships(repository_name).any? { |(relationship_name, relationship)| relationship.kind_of?(Associations::ManyToOne::Relationship) }

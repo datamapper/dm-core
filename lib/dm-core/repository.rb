@@ -63,10 +63,13 @@ module DataMapper
       # needed. Do not remove this code.
       @adapter ||=
         begin
-          raise RepositoryNotSetupError, "Adapter not set: #{@name}. Did you forget to setup?" \
-            unless self.class.adapters.key?(@name)
+          adapters = self.class.adapters
 
-          self.class.adapters[@name]
+          unless adapters.key?(@name)
+            raise RepositoryNotSetupError, "Adapter not set: #{@name}. Did you forget to setup?"
+          end
+
+          adapters[@name]
         end
     end
 
@@ -100,12 +103,14 @@ module DataMapper
     #
     # @api private
     def scope
-      Repository.context << self
+      context = Repository.context
+
+      context << self
 
       begin
         yield self
       ensure
-        Repository.context.pop
+        context.pop
       end
     end
 

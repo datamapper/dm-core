@@ -105,6 +105,7 @@ module DataMapper
 
       # @api semipublic
       def upgrade_model_storage(model)
+        name       = self.name
         properties = model.properties_with_subclasses(name)
 
         if success = create_model_storage(model)
@@ -129,17 +130,18 @@ module DataMapper
 
       # @api semipublic
       def create_model_storage(model)
+        name       = self.name
         properties = model.properties_with_subclasses(name)
 
         return false if storage_exists?(model.storage_name(name))
         return false if properties.empty?
 
         with_connection do |connection|
-          statement = create_table_statement(connection, model, properties)
-          command   = connection.create_command(statement)
-          command.execute_non_query
+          statements = [ create_table_statement(connection, model, properties) ]
+          statements.concat(create_index_statements(model))
+          statements.concat(create_unique_index_statements(model))
 
-          (create_index_statements(model) + create_unique_index_statements(model)).each do |statement|
+          statements.each do |statement|
             command   = connection.create_command(statement)
             command.execute_non_query
           end
@@ -194,15 +196,17 @@ module DataMapper
 
         # @api private
         def drop_table_statement(model)
+          table_name = quote_name(model.storage_name(name))
           if supports_drop_table_if_exists?
-            "DROP TABLE IF EXISTS #{quote_name(model.storage_name(name))}"
+            "DROP TABLE IF EXISTS #{table_name}"
           else
-            "DROP TABLE #{quote_name(model.storage_name(name))}"
+            "DROP TABLE #{table_name}"
           end
         end
 
         # @api private
         def create_index_statements(model)
+          name       = self.name
           table_name = model.storage_name(name)
           model.properties(name).indexes.map do |index_name, fields|
             <<-SQL.compress_lines
@@ -214,6 +218,7 @@ module DataMapper
 
         # @api private
         def create_unique_index_statements(model)
+          name       = self.name
           table_name = model.storage_name(name)
           model.properties(name).unique_indexes.map do |index_name, fields|
             <<-SQL.compress_lines
@@ -225,11 +230,17 @@ module DataMapper
 
         # @api private
         def property_schema_hash(property)
-          schema = (self.class.type_map[property.type] || self.class.type_map[property.primitive]).merge(:name => property.field)
+          primitive = property.primitive
+          type      = property.type
+          type_map  = self.class.type_map
 
-          if property.primitive == String && schema[:primitive] != 'TEXT' && schema[:primitive] != 'CLOB' && schema[:primitive] != 'NVARCHAR'
+          schema = (type_map[type] || type_map[primitive]).merge(:name => property.field)
+
+          schema_primitive = schema[:primitive]
+
+          if primitive == String && schema_primitive != 'TEXT' && schema_primitive != 'CLOB' && schema_primitive != 'NVARCHAR'
             schema[:length] = property.length
-          elsif property.primitive == BigDecimal || property.primitive == Float
+          elsif primitive == BigDecimal || primitive == Float
             schema[:precision] = property.precision
             schema[:scale]     = property.scale
           end
@@ -237,14 +248,16 @@ module DataMapper
           schema[:allow_nil] = property.allow_nil?
           schema[:serial]    = property.serial?
 
-          if property.default.nil? || property.default.respond_to?(:call)
+          default = property.default
+
+          if default.nil? || default.respond_to?(:call)
             # remove the default if the property does not allow nil
-            schema.delete(:default) unless property.allow_nil?
+            schema.delete(:default) unless schema[:allow_nil]
           else
-            schema[:default] = if property.type.respond_to?(:dump)
-              property.type.dump(property.default, property)
+            schema[:default] = if type.respond_to?(:dump)
+              type.dump(default, property)
             else
-              property.default
+              default
             end
           end
 
@@ -256,12 +269,14 @@ module DataMapper
           statement = quote_name(schema[:name])
           statement << " #{schema[:primitive]}"
 
+          length = schema[:length]
+
           if schema[:precision] && schema[:scale]
             statement << "(#{[ :precision, :scale ].map { |key| connection.quote_value(schema[key]) }.join(', ')})"
-          elsif schema[:length] == 'max'
+          elsif length == 'max'
             statement << '(max)'
-          elsif schema[:length]
-            statement << "(#{connection.quote_value(schema[:length])})"
+          elsif length
+            statement << "(#{connection.quote_value(length)})"
           end
 
           statement << " DEFAULT #{connection.quote_value(schema[:default])}" if schema.key?(:default)
@@ -356,8 +371,11 @@ module DataMapper
             schema.delete(:default)
           end
 
-          if property.primitive == Integer && property.min && property.max
-            schema[:primitive] = integer_column_statement(property.min..property.max)
+          min = property.min
+          max = property.max
+
+          if property.primitive == Integer && min && max
+            schema[:primitive] = integer_column_statement(min..max)
           end
 
           schema
@@ -465,11 +483,17 @@ module DataMapper
           min = range.first
           max = range.last
 
-          if    min >= -2**7  && max < 2**7  then 'TINYINT'
-          elsif min >= -2**15 && max < 2**15 then 'SMALLINT'
-          elsif min >= -2**23 && max < 2**23 then 'MEDIUMINT'
-          elsif min >= -2**31 && max < 2**31 then 'INT'
-          elsif min >= -2**63 && max < 2**63 then 'BIGINT'
+          tinyint   = 2**7
+          smallint  = 2**15
+          integer   = 2**31
+          mediumint = 2**23
+          bigint    = 2**63
+
+          if    min >= -tinyint   && max < tinyint   then 'TINYINT'
+          elsif min >= -smallint  && max < smallint  then 'SMALLINT'
+          elsif min >= -mediumint && max < mediumint then 'MEDIUMINT'
+          elsif min >= -integer   && max < integer   then 'INT'
+          elsif min >= -bigint    && max < bigint    then 'BIGINT'
           else
             raise ArgumentError, "min #{min} and max #{max} exceeds supported range"
           end
@@ -603,18 +627,23 @@ module DataMapper
         def property_schema_hash(property)
           schema = super
 
+          primitive = property.primitive
+
           # Postgres does not support precision and scale for Float
-          if property.primitive == Float
+          if primitive == Float
             schema.delete(:precision)
             schema.delete(:scale)
           end
 
-          if property.primitive == Integer && property.min && property.max
-            schema[:primitive] = integer_column_statement(property.min..property.max)
+          min = property.min
+          max = property.max
+
+          if primitive == Integer && min && max
+            schema[:primitive] = integer_column_statement(min..max)
           end
 
           if schema[:serial]
-            schema[:primitive] = serial_column_statement(property.min..property.max)
+            schema[:primitive] = serial_column_statement(min..max)
           end
 
           schema
@@ -635,9 +664,13 @@ module DataMapper
           min = range.first
           max = range.last
 
-          if    min >= -2**15 && max < 2**15 then 'SMALLINT'
-          elsif min >= -2**31 && max < 2**31 then 'INTEGER'
-          elsif min >= -2**63 && max < 2**63 then 'BIGINT'
+          smallint = 2**15
+          integer  = 2**31
+          bigint   = 2**63
+
+          if    min >= -smallint && max < smallint then 'SMALLINT'
+          elsif min >= -integer  && max < integer  then 'INTEGER'
+          elsif min >= -bigint   && max < bigint   then 'BIGINT'
           else
             raise ArgumentError, "min #{min} and max #{max} exceeds supported range"
           end
@@ -826,6 +859,7 @@ module DataMapper
 
       # @api semipublic
       def create_model_storage(model)
+        name       = self.name
         properties = model.properties_with_subclasses(name)
         table_name = model.storage_name(name)
         truncate_or_delete = self.class.auto_migrate_with
@@ -845,17 +879,12 @@ module DataMapper
               destroy_model_storage(model, true)
             end
 
-            statement = create_table_statement(connection, model, properties)
-            command   = connection.create_command(statement)
-            command.execute_non_query
+            statements = [ create_table_statement(connection, model, properties) ]
+            statements.concat(create_index_statements(model))
+            statements.concat(create_unique_index_statements(model))
+            statements.concat(create_sequence_statements(model))
 
-            (create_index_statements(model) + create_unique_index_statements(model)).each do |statement|
-              command   = connection.create_command(statement)
-              command.execute_non_query
-            end
-
-            # added creation of sequence
-            create_sequence_statements(model).each do |statement|
+            statements.each do |statement|
               command   = connection.create_command(statement)
               command.execute_non_query
             end
@@ -869,18 +898,18 @@ module DataMapper
       # @api semipublic
       def destroy_model_storage(model, forced = false)
         table_name = model.storage_name(name)
-        truncate_or_delete = self.class.auto_migrate_with
+        klass      = self.class
+        truncate_or_delete = klass.auto_migrate_with
         if storage_exists?(table_name)
           if truncate_or_delete && !forced
-            statement = case truncate_or_delete
+            case truncate_or_delete
             when :truncate
-              truncate_table_statement(model)
+              execute(truncate_table_statement(model))
             when :delete
-              delete_table_statement(model)
+              execute(delete_table_statement(model))
             else
               raise ArgumentError, "Unsupported auto_migrate_with option"
             end
-            execute(statement)
             @truncated_tables ||= {}
             @truncated_tables[table_name] = true
           else
@@ -889,14 +918,14 @@ module DataMapper
           end
         end
         # added destroy of sequences
-        reset_sequences = self.class.auto_migrate_reset_sequences
+        reset_sequences = klass.auto_migrate_reset_sequences
         table_is_truncated = @truncated_tables && @truncated_tables[table_name]
         unless truncate_or_delete && !reset_sequences && !forced
           if sequence_exists?(model_sequence_name(model))
-            if table_is_truncated && !forced
-              statement = reset_sequence_statement(model)
+            statement = if table_is_truncated && !forced
+              reset_sequence_statement(model)
             else
-              statement = drop_sequence_statement(model)
+              drop_sequence_statement(model)
             end
             execute(statement) if statement
           end
@@ -926,13 +955,17 @@ module DataMapper
 
         # @api private
         def create_sequence_statements(model)
+          name       = self.name
           table_name = model.storage_name(name)
-          serial = model.serial(name)
+          serial     = model.serial(name)
 
           statements = []
           if sequence_name = model_sequence_name(model)
+            sequence_name = quote_name(sequence_name)
+            column_name   = quote_name(serial.field)
+
             statements << <<-SQL.compress_lines
-              CREATE SEQUENCE #{quote_name(sequence_name)} NOCACHE
+              CREATE SEQUENCE #{sequence_name} NOCACHE
             SQL
 
             # create trigger only if custom sequence name was not specified
@@ -942,8 +975,8 @@ module DataMapper
                 BEFORE INSERT ON #{quote_name(table_name)} FOR EACH ROW
                 BEGIN
                   IF inserting THEN
-                    IF :new.#{quote_name(serial.field)} IS NULL THEN
-                      SELECT #{quote_name(sequence_name)}.NEXTVAL INTO :new.#{quote_name(serial.field)} FROM dual;
+                    IF :new.#{column_name} IS NULL THEN
+                      SELECT #{sequence_name}.NEXTVAL INTO :new.#{column_name} FROM dual;
                     END IF;
                   END IF;
                 END;
@@ -966,14 +999,15 @@ module DataMapper
         # @api private
         def reset_sequence_statement(model)
           if sequence_name = model_sequence_name(model)
+            sequence_name = quote_name(sequence_name)
             <<-SQL.compress_lines
             DECLARE
               cval   INTEGER;
             BEGIN
-              SELECT #{quote_name(sequence_name)}.NEXTVAL INTO cval FROM dual;
-              EXECUTE IMMEDIATE 'ALTER SEQUENCE #{quote_name(sequence_name)} INCREMENT BY -' || cval || ' MINVALUE 0';
-              SELECT #{quote_name(sequence_name)}.NEXTVAL INTO cval FROM dual;
-              EXECUTE IMMEDIATE 'ALTER SEQUENCE #{quote_name(sequence_name)} INCREMENT BY 1';
+              SELECT #{sequence_name}.NEXTVAL INTO cval FROM dual;
+              EXECUTE IMMEDIATE 'ALTER SEQUENCE #{sequence_name} INCREMENT BY -' || cval || ' MINVALUE 0';
+              SELECT #{sequence_name}.NEXTVAL INTO cval FROM dual;
+              EXECUTE IMMEDIATE 'ALTER SEQUENCE #{sequence_name} INCREMENT BY 1';
             END;
             SQL
           else
@@ -995,8 +1029,9 @@ module DataMapper
         private
 
         def model_sequence_name(model)
+          name       = self.name
           table_name = model.storage_name(name)
-          serial = model.serial(name)
+          serial     = model.serial(name)
 
           if serial
             serial.options[:sequence] || default_sequence_name(table_name)
@@ -1137,8 +1172,11 @@ module DataMapper
         def property_schema_hash(property)
           schema = super
 
-          if property.primitive == Integer && property.min && property.max
-            schema[:primitive] = integer_column_statement(property.min..property.max)
+          min = property.min
+          max = property.max
+
+          if property.primitive == Integer && min && max
+            schema[:primitive] = integer_column_statement(min..max)
           end
 
           if schema[:primitive] == 'TEXT'
@@ -1154,10 +1192,12 @@ module DataMapper
             statement = quote_name(schema[:name])
             statement << " #{schema[:primitive]}"
 
+            length = schema[:length]
+
             if schema[:precision] && schema[:scale]
               statement << "(#{[ :precision, :scale ].map { |key| connection.quote_value(schema[key]) }.join(', ')})"
-            elsif schema[:length]
-              statement << "(#{connection.quote_value(schema[:length])})"
+            elsif length
+              statement << "(#{connection.quote_value(length)})"
             end
 
             statement << ' IDENTITY'
@@ -1198,10 +1238,14 @@ module DataMapper
           min = range.first
           max = range.last
 
-          if    min >= 0      && max < 2**8  then 'TINYINT'
-          elsif min >= -2**15 && max < 2**15 then 'SMALLINT'
-          elsif min >= -2**31 && max < 2**31 then 'INT'
-          elsif min >= -2**63 && max < 2**63 then 'BIGINT'
+          smallint = 2**15
+          integer  = 2**31
+          bigint   = 2**63
+
+          if    min >= 0         && max < 2**8     then 'TINYINT'
+          elsif min >= -smallint && max < smallint then 'SMALLINT'
+          elsif min >= -integer  && max < integer  then 'INT'
+          elsif min >= -bigint   && max < bigint   then 'BIGINT'
           else
             raise ArgumentError, "min #{min} and max #{max} exceeds supported range"
           end
@@ -1245,6 +1289,7 @@ module DataMapper
       #
       # @api semipublic
       def storage_exists?(storage_name)
+        adapter = self.adapter
         if adapter.respond_to?(:storage_exists?)
           adapter.storage_exists?(storage_name)
         end
@@ -1252,6 +1297,7 @@ module DataMapper
 
       # @api semipublic
       def upgrade_model_storage(model)
+        adapter = self.adapter
         if adapter.respond_to?(:upgrade_model_storage)
           adapter.upgrade_model_storage(model)
         end
@@ -1259,6 +1305,7 @@ module DataMapper
 
       # @api semipublic
       def create_model_storage(model)
+        adapter = self.adapter
         if adapter.respond_to?(:create_model_storage)
           adapter.create_model_storage(model)
         end
@@ -1266,6 +1313,7 @@ module DataMapper
 
       # @api semipublic
       def destroy_model_storage(model)
+        adapter = self.adapter
         if adapter.respond_to?(:destroy_model_storage)
           adapter.destroy_model_storage(model)
         end
@@ -1320,6 +1368,7 @@ module DataMapper
       # @api public
       def auto_upgrade!(repository_name = self.repository_name)
         assert_valid
+        base_model = self.base_model
         if base_model == self
           repository(repository_name).upgrade_model_storage(self)
         else
@@ -1336,6 +1385,7 @@ module DataMapper
       # @api private
       def auto_migrate_down!(repository_name = self.repository_name)
         assert_valid
+        base_model = self.base_model
         if base_model == self
           repository(repository_name).destroy_model_storage(self)
         else
@@ -1350,6 +1400,7 @@ module DataMapper
       # @api private
       def auto_migrate_up!(repository_name = self.repository_name)
         assert_valid
+        base_model = self.base_model
         if base_model == self
           repository(repository_name).create_model_storage(self)
         else

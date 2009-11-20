@@ -9,8 +9,9 @@ module DataMapper
       def self.bind(property)
         repository_name = property.repository_name
         model           = property.model
+        property_name   = property.name
 
-        model.default_scope(repository_name).update(property.name => model.descendants)
+        model.default_scope(repository_name).update(property_name => model.descendants)
 
         model.class_eval <<-RUBY, __FILE__, __LINE__ + 1
           extend Chainable
@@ -37,7 +38,7 @@ module DataMapper
             private
 
             def set_discriminator_scope_for(model)
-              model.default_scope(#{repository_name.inspect}).update(#{property.name.inspect} => model.descendants)
+              model.default_scope(#{repository_name.inspect}).update(#{property_name.inspect} => model.descendants)
             end
           end
         RUBY

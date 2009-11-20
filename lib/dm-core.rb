@@ -169,10 +169,10 @@ module DataMapper
   #
   # @api public
   def self.setup(*args)
-    adapter = if args.first.kind_of?(Adapters::AbstractAdapter)
-      args.first
-    else
-      DataMapper::Adapters.new(*args)
+    adapter = args.first
+
+    unless adapter.kind_of?(Adapters::AbstractAdapter)
+      adapter = Adapters.new(*args)
     end
 
     Repository.adapters[adapter.name] = adapter
@@ -192,12 +192,17 @@ module DataMapper
   #
   # @api public
   def self.repository(name = nil)
+    context = Repository.context
+
     current_repository = if name
       assert_kind_of 'name', name, Symbol
-      Repository.context.detect { |repository| repository.name == name } || Repository.new(name)
+      context.detect { |repository| repository.name == name }
     else
-      Repository.context.last || Repository.new(Repository.default_name)
+      name = Repository.default_name
+      context.last
     end
+
+    current_repository ||= Repository.new(name)
 
     if block_given?
       current_repository.scope { |*block_args| yield(*block_args) }

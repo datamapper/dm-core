@@ -14,14 +14,12 @@ module DataMapper
       # @api private
       def <=>(other)
         other_value = other.value
+        value_nil   = @value.nil?
+        other_nil   = other_value.nil?
 
         cmp = case
-          when @value.nil? && other_value.nil?
-            0
-          when @value.nil?
-            1
-          when other_value.nil?
-            -1
+          when value_nil then other_nil ? 0 : 1
+          when other_nil then -1
           else
             @value <=> other_value
         end

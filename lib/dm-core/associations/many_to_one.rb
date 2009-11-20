@@ -28,7 +28,8 @@ module DataMapper
 
         # @api private
         def nullable?
-          warn "#{self.class}#nullable? is deprecated, use #{self.class}#required? instead (#{caller[0]})"
+          klass = self.class
+          warn "#{klass}#nullable? is deprecated, use #{klass}#required? instead (#{caller[0]})"
           !required?
         end
 
@@ -39,8 +40,9 @@ module DataMapper
         def child_key
           return @child_key if defined?(@child_key)
 
+          model           = child_model
           repository_name = child_repository_name || parent_repository_name
-          properties      = child_model.properties(repository_name)
+          properties      = model.properties(repository_name)
 
           child_key = parent_key.zip(@child_properties || []).map do |parent_property, property_name|
             property_name ||= "#{name}_#{parent_property.name}".to_sym
@@ -49,7 +51,7 @@ module DataMapper
               # create the property within the correct repository
               DataMapper.repository(repository_name) do
                 type = parent_property.send(parent_property.type == DataMapper::Types::Boolean ? :type : :primitive)
-                child_model.property(property_name, type, child_key_options(parent_property))
+                model.property(property_name, type, child_key_options(parent_property))
               end
             end
           end
@@ -126,6 +128,8 @@ module DataMapper
         #
         # @api semipublic
         def set(source, target)
+          target_model = self.target_model
+
           assert_kind_of 'source', source, source_model
           assert_kind_of 'target', target, target_model, Hash, NilClass
 
@@ -167,8 +171,9 @@ module DataMapper
           return unless valid_source?(source)
 
           # SEL: load all related resources in the source collection
-          if source.saved? && source.collection.size > 1
-            eager_load(source.collection)
+          collection = source.collection
+          if source.saved? && collection.size > 1
+            eager_load(collection)
           end
 
           unless loaded?(source)
@@ -210,8 +215,11 @@ module DataMapper
         def child_key_options(parent_property)
           options = parent_property.options.only(:length, :precision, :scale).update(:index => name, :required => required?)
 
-          if parent_property.primitive == Integer && parent_property.min && parent_property.max
-            options.update(:min => parent_property.min, :max => parent_property.max)
+          min = parent_property.min
+          max = parent_property.max
+
+          if parent_property.primitive == Integer && min && max
+            options.update(:min => min, :max => max)
           end
 
           options

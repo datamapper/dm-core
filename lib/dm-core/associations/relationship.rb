@@ -165,7 +165,9 @@ module DataMapper
       #
       # @api private
       def child_model
-        @child_model ||= (@parent_model || Object).find_const(child_model_name)
+        return @child_model if defined?(@child_model)
+        child_model_name = self.child_model_name
+        @child_model = (@parent_model || Object).find_const(child_model_name)
       rescue NameError
         raise NameError, "Cannot find the child_model #{child_model_name} for #{parent_model_name} in #{name}"
       end
@@ -216,7 +218,9 @@ module DataMapper
       #
       # @api private
       def parent_model
-        @parent_model ||= (@child_model || Object).find_const(parent_model_name)
+        return @parent_model if defined?(@parent_model)
+        parent_model_name = self.parent_model_name
+        @parent_model = (@child_model || Object).find_const(parent_model_name)
       rescue NameError
         raise NameError, "Cannot find the parent_model #{parent_model_name} for #{child_model_name} in #{name}"
       end
@@ -379,8 +383,10 @@ module DataMapper
       def inverse
         return @inverse if defined?(@inverse)
 
-        if kind_of_inverse?(options[:inverse])
-          return @inverse = options[:inverse]
+        @inverse = options[:inverse]
+
+        if kind_of_inverse?(@inverse)
+          return @inverse
         end
 
         relationships = target_model.relationships(relative_target_repository_name).values
@@ -509,9 +515,10 @@ module DataMapper
           # since what we're really checking is a Collection's ability
           # to reload itself, which is (currently) only possible if the
           # key was loaded.
-          model_key = target_model.key(repository.name)
+          model     = target_model
+          model_key = model.key(repository.name)
 
-          collection.model <= target_model                   &&
+          collection.model <= model                          &&
           (collection.query.fields & model_key) == model_key &&
           (collection.loaded? ? (collection.any? || negated) : true)
         else
@@ -550,10 +557,11 @@ module DataMapper
 
       # @api private
       def inverse_name
-        if options[:inverse].kind_of?(Relationship)
-          options[:inverse].name
+        inverse = options[:inverse]
+        if inverse.kind_of?(Relationship)
+          inverse.name
         else
-          options[:inverse]
+          inverse
         end
       end
 

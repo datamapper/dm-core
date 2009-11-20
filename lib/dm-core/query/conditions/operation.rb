@@ -145,7 +145,7 @@ module DataMapper
         #
         # @api semipublic
         def each
-          @operands.each { |operand| yield operand }
+          @operands.each { |op| yield op }
           self
         end
 
@@ -156,7 +156,7 @@ module DataMapper
         #
         # @api semipublic
         def valid?
-          any? && all? { |operand| valid_operand?(operand) }
+          any? && all? { |op| valid_operand?(op) }
         end
 
         # Add an operand to the operation
@@ -184,7 +184,7 @@ module DataMapper
         #
         # @api semipublic
         def merge(operands)
-          operands.each { |operand| self << operand }
+          operands.each { |op| self << op }
           self
         end
 
@@ -262,7 +262,7 @@ module DataMapper
         #
         # @api semipublic
         def to_s
-          empty? ? '' : "(#{sort_by { |operand| operand.to_s }.join(" #{slug.to_s.upcase} ")})"
+          empty? ? '' : "(#{sort_by { |op| op.to_s }.join(" #{slug.to_s.upcase} ")})"
         end
 
         # Test if the operation is negated
@@ -274,6 +274,7 @@ module DataMapper
         #
         # @api private
         def negated?
+          parent = self.parent
           parent ? parent.negated? : false
         end
 
@@ -284,7 +285,7 @@ module DataMapper
         #
         # @api private
         def sorted_operands
-          sort_by { |operand| operand.hash }
+          sort_by { |op| op.hash }
         end
 
         private
@@ -312,7 +313,7 @@ module DataMapper
         #
         # @api semipublic
         def initialize_copy(*)
-          @operands = map { |operand| operand.dup }.to_set
+          @operands = map { |op| op.dup }.to_set
         end
 
         # Minimize the operands recursively
@@ -322,8 +323,8 @@ module DataMapper
         # @api private
         def minimize_operands
           # FIXME: why does Set#map! not work here?
-          @operands = map do |operand|
-            relate_operand(operand.respond_to?(:minimize) ? operand.minimize : operand)
+          @operands = map do |op|
+            relate_operand(op.respond_to?(:minimize) ? op.minimize : op)
           end.to_set
         end
 
@@ -333,9 +334,7 @@ module DataMapper
         #
         # @api private
         def prune_operands
-          @operands.delete_if do |operand|
-            operand.respond_to?(:empty?) ? operand.empty? : false
-          end
+          @operands.delete_if { |op| op.respond_to?(:empty?) ? op.empty? : false }
         end
 
         # Test if the operand is valid
@@ -428,7 +427,7 @@ module DataMapper
         #
         # @api semipublic
         def matches?(record)
-          all? { |operand| operand.respond_to?(:matches?) ? operand.matches?(record) : true }
+          all? { |op| op.respond_to?(:matches?) ? op.matches?(record) : true }
         end
 
         # Minimize the operation
@@ -442,7 +441,7 @@ module DataMapper
         def minimize
           minimize_operands
 
-          return Operation.new(:null) if any? && all? { |operand| operand.nil? }
+          return Operation.new(:null) if any? && all? { |op| op.nil? }
 
           prune_operands
 
@@ -465,7 +464,7 @@ module DataMapper
         #
         # @api semipublic
         def matches?(record)
-          any? { |operand| operand.respond_to?(:matches?) ? operand.matches?(record) : true }
+          any? { |op| op.respond_to?(:matches?) ? op.matches?(record) : true }
         end
 
         # Test if the operation is valid
@@ -477,7 +476,7 @@ module DataMapper
         #
         # @api semipublic
         def valid?
-          any? { |operand| valid_operand?(operand) }
+          any? { |op| valid_operand?(op) }
         end
 
         # Minimize the operation
@@ -491,7 +490,7 @@ module DataMapper
         def minimize
           minimize_operands
 
-          return Operation.new(:null) if any? { |operand| operand.nil? }
+          return Operation.new(:null) if any? { |op| op.nil? }
 
           prune_operands
 
@@ -512,6 +511,7 @@ module DataMapper
         #
         # @api semipublic
         def matches?(record)
+          operand = self.operand
           operand.respond_to?(:matches?) ? !operand.matches?(record) : true
         end
 
@@ -555,6 +555,7 @@ module DataMapper
           prune_operands
 
           # factor out double negatives if possible
+          operand = self.operand
           one? && instance_of?(operand.class) ? operand.operand : self
         end
 
@@ -577,6 +578,7 @@ module DataMapper
         #
         # @api private
         def negated?
+          parent = self.parent
           parent ? !parent.negated? : true
         end
 
@@ -594,7 +596,7 @@ module DataMapper
         #
         # @api private
         def assert_one_operand(operand)
-          if self.operand && self.operand != operand
+          unless empty? || self.operand == operand
             raise ArgumentError, "#{self.class} cannot have more than one operand"
           end
         end

@@ -35,11 +35,12 @@ module DataMapper
 
     # @api semipublic
     def <<(property)
-      if named?(property.name)
-        add_property(property)
+      found = named?(property.name)
+      add_property(property)
+
+      if found
         superclass_slice(index(property), property)
       else
-        add_property(property)
         super
       end
     end
