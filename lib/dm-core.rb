@@ -71,6 +71,10 @@ require dir / 'core_ext' / 'symbol'             # TODO: do not load automaticall
 # A logger should always be present. Lets be consistent with DO
 DataMapper::Logger.new(StringIO.new, :fatal)
 
+unless defined?(Infinity)
+  Infinity = 1.0/0
+end
+
 # == Setup and Configuration
 # DataMapper uses URIs or a connection hash to connect to your data-store.
 # URI connections takes the form of:

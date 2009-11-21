@@ -62,7 +62,7 @@ module DataMapper
       #
       # @api public
       def n
-        1.0/0
+        Infinity
       end
 
       # A shorthand, clear syntax for defining one-to-one, one-to-many and
@@ -249,9 +249,9 @@ module DataMapper
       # @api private
       def extract_min_max(cardinality)
         case cardinality
-          when Integer then [ cardinality,       cardinality      ]
-          when Range   then [ cardinality.first, cardinality.last ]
-          when n       then [ 0,                 n                ]
+          when Integer  then [ cardinality,       cardinality      ]
+          when Range    then [ cardinality.first, cardinality.last ]
+          when Infinity then [ 0,                 Infinity         ]
         end
       end
 
@@ -268,7 +268,7 @@ module DataMapper
           assert_kind_of 'options[:min]', options[:min], Integer
           assert_kind_of 'options[:max]', options[:max], Integer, n.class
 
-          if options[:min] == n && options[:max] == n
+          if options[:min] == Infinity && options[:max] == Infinity
             raise ArgumentError, 'Cardinality may not be n..n.  The cardinality specifies the min/max number of results from the association'
           elsif options[:min] > options[:max]
             raise ArgumentError, "Cardinality min (#{options[:min]}) cannot be larger than the max (#{options[:max]})"
