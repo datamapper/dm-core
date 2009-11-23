@@ -76,8 +76,6 @@ module DataMapper
         end
       end
 
-      private
-
       # Initializes (if necessary) and returns current scope stack
       # @api private
       def scope_stack
