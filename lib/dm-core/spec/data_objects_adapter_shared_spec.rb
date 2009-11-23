@@ -239,8 +239,8 @@ share_examples_for 'A DataObjects Adapter' do
     describe 'with a Collection bind value' do
       describe 'with an inclusion comparison' do
         before :all do
-          5.times do |n|
-            @article_model.create(:name => "Test #{n}", :parent => @article_model.last).should be_saved
+          5.times do |index|
+            @article_model.create(:name => "Test #{index}", :parent => @article_model.last).should be_saved
           end
 
           @parents = @article_model.all
@@ -310,8 +310,8 @@ share_examples_for 'A DataObjects Adapter' do
 
       describe 'with an negated inclusion comparison' do
         before :all do
-          5.times do |n|
-            @article_model.create(:name => "Test #{n}", :parent => @article_model.last).should be_saved
+          5.times do |index|
+            @article_model.create(:name => "Test #{index}", :parent => @article_model.last).should be_saved
           end
 
           @parents = @article_model.all

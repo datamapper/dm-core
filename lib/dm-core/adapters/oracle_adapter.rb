@@ -41,7 +41,7 @@ module DataMapper
               statement << "#{serial_field}"
               statement << ", " unless no_properties
             end
-            statement << "#{properties.map { |p| quote_name(p.field) }.join(', ')}) "
+            statement << "#{properties.map { |property| quote_name(property.field) }.join(', ')}) "
             statement << "VALUES ("
             if custom_sequence
               statement << "#{quote_name(custom_sequence)}.NEXTVAL"
@@ -98,7 +98,7 @@ module DataMapper
           qualify = query.links.any?
 
           if query.unique?
-            group_by = fields.select { |p| p.kind_of?(Property) }
+            group_by = fields.select { |property| property.kind_of?(Property) }
           end
 
           # create subquery to find all valid keys and then use these keys to retrive all other columns

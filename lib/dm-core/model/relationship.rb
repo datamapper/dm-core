@@ -101,7 +101,7 @@ module DataMapper
       #
       # @api public
       def has(cardinality, name, *args)
-        assert_kind_of 'cardinality', cardinality, Integer, Range, n.class
+        assert_kind_of 'cardinality', cardinality, Integer, Range, Infinity.class
         assert_kind_of 'name',        name,        Symbol
 
         model   = extract_model(args)
@@ -274,7 +274,7 @@ module DataMapper
           max = options[:max]
 
           assert_kind_of 'options[:min]', min, Integer
-          assert_kind_of 'options[:max]', max, Integer, n.class
+          assert_kind_of 'options[:max]', max, Integer, Infinity.class
 
           if min == Infinity && max == Infinity
             raise ArgumentError, 'Cardinality may not be n..n.  The cardinality specifies the min/max number of results from the association'

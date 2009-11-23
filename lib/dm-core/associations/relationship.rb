@@ -626,7 +626,7 @@ module DataMapper
         # kicker is fired, then it'll load up the collection, and then
         # populate all the other methods
 
-        target_maps = Hash.new { |h,k| h[k] = [] }
+        target_maps = Hash.new { |hash, key| hash[key] = [] }
 
         targets.each do |target|
           target_maps[target_key.get(target)] << target

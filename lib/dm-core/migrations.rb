@@ -936,7 +936,7 @@ module DataMapper
       private
 
       def storage_has_all_fields?(table_name, properties)
-        properties.map{|p| oracle_upcase(p.field)}.sort == storage_fields(table_name).sort
+        properties.map { |property| oracle_upcase(property.field) }.sort == storage_fields(table_name).sort
       end
 
       # If table or column name contains just lowercase characters then do uppercase
