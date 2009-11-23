@@ -1,5 +1,5 @@
 Autotest.add_hook :initialize do |at|
-  %w[ .git burn www log plugins script tasks bin CHANGELOG FAQ MIT-LICENSE PERFORMANCE QUICKLINKS README ].each do |exception|
+  %w[ .git log script tasks LICENSE README.rdoc ].each do |exception|
     at.add_exception(exception)
   end
 
