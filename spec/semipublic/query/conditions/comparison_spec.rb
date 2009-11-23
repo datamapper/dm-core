@@ -851,21 +851,21 @@ describe DataMapper::Query::Conditions::InclusionComparison do
           end
 
           describe 'with a matching Hash' do
-            subject { rescue_if { @comparison.matches?({ @relationship.field => @parent.attributes(:field) }) } }
+            subject { @comparison.matches?({ @relationship.field => @parent.attributes(:field) }) }
 
             it { pending { should be_true } }
           end
 
           describe 'with a not matching Hash' do
-            subject { rescue_if { @comparison.matches?({ @relationship.field => @child.attributes(:field) }) } }
+            subject { @comparison.matches?({ @relationship.field => @child.attributes(:field) }) }
 
-            it { pending { should be_false } }
+            it { should be_false }
           end
 
           describe 'with a matching Resource' do
-            subject { rescue_if { @comparison.matches?(@child) } }
+            subject { @comparison.matches?(@child) }
 
-            it { pending { should be_true } }
+            it { should be_true }
           end
 
           describe 'with a not matching Resource' do
