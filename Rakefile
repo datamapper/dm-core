@@ -4,6 +4,7 @@ require 'rake'
 FileList['tasks/**/*.rake'].each { |task| load task }
 
 begin
+  gem 'jeweler', '~> 1.4'
   require 'jeweler'
 
   Jeweler::Tasks.new do |gem|
