@@ -1,9 +1,6 @@
 require 'pathname'
 require 'rubygems'
 
-gem 'addressable', '~>2.0'
-gem 'rspec',       '>1.1.2'
-
 require 'addressable/uri'
 require 'spec'
 
