@@ -24,6 +24,7 @@ end
 
 begin
   require 'roodi'
+  require 'rake/tasklib'
   require 'roodi_task'
 
   RoodiTask.new do |t|
