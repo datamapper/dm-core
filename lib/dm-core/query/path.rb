@@ -7,7 +7,12 @@
 module DataMapper
   class Query
     class Path
-      instance_methods.each { |method| undef_method method unless %w[ __id__ __send__ send class dup object_id kind_of? instance_of? respond_to? equal? should should_not instance_variable_set instance_variable_get extend hash inspect ].include?(method.to_s) }
+      # TODO: replace this with BasicObject
+      instance_methods.each do |method|
+        next if method =~ /\A__/ ||
+          %w[ send class dup object_id kind_of? instance_of? respond_to? equal? should should_not instance_variable_set instance_variable_get instance_variable_defined? extend hash inspect copy_object ].include?(method.to_s)
+        undef_method method
+      end
 
       include Extlib::Assertions
       extend Equalizer
