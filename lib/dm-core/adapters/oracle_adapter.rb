@@ -26,7 +26,7 @@ module DataMapper
 
           no_properties   = properties.empty?
           custom_sequence = serial && serial.options[:sequence]
-          serial_field    = quote_name(serial.field)
+          serial_field    = serial && quote_name(serial.field)
 
           if supports_default_values? && no_properties && !custom_sequence
             statement << "(#{serial_field}) " if serial
@@ -118,10 +118,11 @@ module DataMapper
 
             # if a unique property is used, and there is no OR operator, then an ORDER
             # and LIMIT are unecessary because it should only return a single row
-            if conditions.slug == :and &&
-               conditions.any? { |operand| operand.slug == :eql && operand.subject.respond_to?(:unique?) && operand.subject.unique? } &&
-               !conditions.any? { |operand| operand.slug == :or }
+            if conditions.respond_to?(:slug) && conditions.slug == :and &&
+               conditions.any? { |operand| operand.respond_to?(:slug) && operand.slug == :eql && operand.subject.respond_to?(:unique?) && operand.subject.unique? } &&
+               !conditions.any? { |operand| operand.respond_to?(:slug) && operand.slug == :or }
               order = nil
+              no_order = true
               limit = nil
             end
           end
