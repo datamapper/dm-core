@@ -1178,7 +1178,7 @@ describe DataMapper::Query::Conditions::InclusionComparison do
 
         describe 'with an Hash value' do
           before do
-            @comparison = DataMapper::Query::Conditions::Comparison.new(@slug, @relationship, :id => 1)
+            @comparison = DataMapper::Query::Conditions::Comparison.new(@slug, @relationship, :id => @parent.id)
           end
 
           it { should be_kind_of(DataMapper::Collection) }
