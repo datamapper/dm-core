@@ -137,6 +137,8 @@ module DataMapper
             statement << from_statement
             statement << " WHERE (#{model_key_column}) IN"
             statement << " (SELECT DISTINCT #{model_key_column}"
+            # do not need to do group by for uniqueness as just one row per primary key will be returned
+            no_group_by = true
           end
           statement << from_statement
           statement << join_statement(query, qualify)     if qualify
