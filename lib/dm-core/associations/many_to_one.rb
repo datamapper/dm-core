@@ -148,8 +148,10 @@ module DataMapper
         # @api semipublic
         def initialize(name, source_model, target_model, options = {})
           if options.key?(:nullable)
-            warn ":nullable option is deprecated, use :required instead (#{caller[2]})"
-            options[:required] = !options.delete(:nullable)
+            nullable_options = options.only(:nullable)
+            required_options = { :required => !options.delete(:nullable) }
+            warn "#{nullable_options.inspect} is deprecated, use #{required_options.inspect} instead (#{caller[2]})"
+            options.update(required_options)
           end
 
           @required      = options.fetch(:required, true)

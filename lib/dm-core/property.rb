@@ -802,9 +802,10 @@ module DataMapper
           warn ":size option is deprecated, specify :min and :max instead (#{caller_method})"
         end
       elsif options.key?(:nullable)
-        # :required is preferable to :allow_nil, but :nullable maps precisely to :allow_nil
-        warn ":nullable option is deprecated, use :required instead (#{caller_method})"
-        options[:allow_nil] = options.delete(:nullable)
+        nullable_options = options.only(:nullable)
+        required_options = { :required => !options.delete(:nullable) }
+        warn "#{nullable_options.inspect} is deprecated, use #{required_options.inspect} instead (#{caller_method})"
+        options.update(required_options)
       end
 
       assert_valid_options(options)
