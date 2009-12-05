@@ -34,13 +34,13 @@ describe DataMapper::Property, 'Object type' do
 
   describe '#value' do
     describe 'with a value' do
-      subject { @property.value('lang' => 'en_CA') }
-
-      if RUBY_VERSION >= '1.9'
-        it { should == "BAh7BkkiCWxhbmcGOg1lbmNvZGluZyINVVMtQVNDSUlJIgplbl9DQQY7AEAH\n" }
-      else
-        it { should == "BAh7BiIJbGFuZyIKZW5fQ0E=\n" }
+      before do
+        @value = { 'lang' => 'en_CA' }
       end
+
+      subject { @property.value(@value) }
+
+      it { @property.type.load(subject, @property).should == @value }
     end
 
     describe 'with nil' do
