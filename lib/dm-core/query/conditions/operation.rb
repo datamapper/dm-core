@@ -262,7 +262,7 @@ module DataMapper
         #
         # @api semipublic
         def to_s
-          empty? ? '' : "(#{sort_by { |op| op.to_s }.join(" #{slug.to_s.upcase} ")})"
+          empty? ? '' : "(#{sort_by { |op| op.to_s }.map { |op| op.to_s }.join(" #{slug.to_s.upcase} ")})"
         end
 
         # Test if the operation is negated
