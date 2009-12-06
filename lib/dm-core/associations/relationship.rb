@@ -413,6 +413,11 @@ module DataMapper
         end
       end
 
+      # @api private
+      def hash
+        source_model.hash ^ name.hash
+      end
+
       private
 
       # @api private
