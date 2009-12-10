@@ -455,7 +455,7 @@ describe DataMapper::Property do
       end
 
       it 'does not typecast non-time values' do
-        pending 'Time#parse is too permissive' do
+        pending_if 'Time#parse is too permissive', RUBY_VERSION <= '1.9.1' do
           @property.typecast('not-time').should eql('not-time')
         end
       end
