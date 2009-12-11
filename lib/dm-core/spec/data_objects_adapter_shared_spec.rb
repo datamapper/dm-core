@@ -10,6 +10,8 @@ share_examples_for 'A DataObjects Adapter' do
     # set up the adapter after switching the logger so queries can be captured
     @adapter = DataMapper.setup(@adapter.name, @adapter.options)
 
+    @jruby = !!(RUBY_PLATFORM =~ /java/)
+
     @postgres   = defined?(DataMapper::Adapters::PostgresAdapter)  && @adapter.kind_of?(DataMapper::Adapters::PostgresAdapter)
     @mysql      = defined?(DataMapper::Adapters::MysqlAdapter)     && @adapter.kind_of?(DataMapper::Adapters::MysqlAdapter)
     @sql_server = defined?(DataMapper::Adapters::SqlserverAdapter) && @adapter.kind_of?(DataMapper::Adapters::SqlserverAdapter)
@@ -185,7 +187,7 @@ share_examples_for 'A DataObjects Adapter' do
     end
 
     it 'should not have an insert_id' do
-      pending_if 'Inconsistent insert_id results', !(@postgres || @oracle) && !!(RUBY_VERSION =~ /jruby/) do
+      pending_if 'Inconsistent insert_id results', !(@postgres || @oracle || (@jruby && @mysql)) do
         @result.insert_id.should be_nil
       end
     end
