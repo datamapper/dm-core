@@ -10,6 +10,7 @@ share_examples_for 'A DataObjects Adapter' do
     # set up the adapter after switching the logger so queries can be captured
     @adapter = DataMapper.setup(@adapter.name, @adapter.options)
 
+    @postgres   = defined?(DataMapper::Adapters::PostgresAdapter)  && @adapter.kind_of?(DataMapper::Adapters::PostgresAdapter)
     @mysql      = defined?(DataMapper::Adapters::MysqlAdapter)     && @adapter.kind_of?(DataMapper::Adapters::MysqlAdapter)
     @sql_server = defined?(DataMapper::Adapters::SqlserverAdapter) && @adapter.kind_of?(DataMapper::Adapters::SqlserverAdapter)
     @oracle     = defined?(DataMapper::Adapters::OracleAdapter)    && @adapter.kind_of?(DataMapper::Adapters::OracleAdapter)
@@ -184,8 +185,7 @@ share_examples_for 'A DataObjects Adapter' do
     end
 
     it 'should not have an insert_id' do
-      pending_if 'Inconsistent insert_id results', !(defined?(DataMapper::Adapters::PostgresAdapter) && @adapter.kind_of?(DataMapper::Adapters::PostgresAdapter) ||
-                                                     defined?(DataMapper::Adapters::OracleAdapter) && @adapter.kind_of?(DataMapper::Adapters::OracleAdapter)) do
+      pending_if 'Inconsistent insert_id results', !(@postgres || @oracle) && !!(RUBY_VERSION =~ /jruby/) do
         @result.insert_id.should be_nil
       end
     end
@@ -270,15 +270,7 @@ share_examples_for 'A DataObjects Adapter' do
 
           it 'should execute one subquery' do
             pending_if @mysql do
-              statement = if @mysql
-                [ 'SELECT `name`, `parent_name` FROM `articles` WHERE `parent_name` IN (SELECT `name` FROM `articles`) ORDER BY `name`' ]
-              elsif @oracle
-                [ 'SELECT "NAME", "PARENT_NAME" FROM "ARTICLES" WHERE ("PARENT_NAME" IN (SELECT "NAME" FROM "ARTICLES")) ORDER BY "NAME"' ]
-              else
-                [ 'SELECT "name", "parent_name" FROM "articles" WHERE "parent_name" IN (SELECT "name" FROM "articles") ORDER BY "name"' ]
-              end
-
-              log_output.should == statement
+              log_output.size.should == 1
             end
           end
         end
@@ -303,16 +295,7 @@ share_examples_for 'A DataObjects Adapter' do
           end
 
           it 'should execute one query' do
-            statement = if @mysql
-              [ %[SELECT `name`, `parent_name` FROM `articles` WHERE `parent_name` IN ('Test 0', 'Test 1', 'Test 2', 'Test 3', 'Test 4') ORDER BY `name`] ]
-            elsif @oracle
-              bind_variables = defined?(JRUBY_VERSION) ? (["?"]*5).join(',') : (1..5).map{|i| ":a1_#{i}"}.join(', ')
-              [ %[SELECT "NAME", "PARENT_NAME" FROM "ARTICLES" WHERE ("PARENT_NAME" IN (#{bind_variables})) ORDER BY "NAME"] ]
-            else
-              [ %[SELECT "name", "parent_name" FROM "articles" WHERE "parent_name" IN ('Test 0', 'Test 1', 'Test 2', 'Test 3', 'Test 4') ORDER BY "name"] ]
-            end
-
-            log_output.should == statement
+            log_output.size.should == 1
           end
         end
       end
@@ -346,15 +329,7 @@ share_examples_for 'A DataObjects Adapter' do
 
           it 'should execute one subquery' do
             pending_if @mysql do
-              statement = if @mysql
-                [ 'SELECT `name`, `parent_name` FROM `articles` WHERE NOT(`parent_name` IN (SELECT `name` FROM `articles`)) ORDER BY `name`' ]
-              elsif @oracle
-                [ 'SELECT "NAME", "PARENT_NAME" FROM "ARTICLES" WHERE (NOT("PARENT_NAME" IN (SELECT "NAME" FROM "ARTICLES"))) ORDER BY "NAME"' ]
-              else
-                [ 'SELECT "name", "parent_name" FROM "articles" WHERE NOT("parent_name" IN (SELECT "name" FROM "articles")) ORDER BY "name"' ]
-              end
-
-              log_output.should == statement
+              log_output.size.should == 1
             end
           end
         end
@@ -379,16 +354,7 @@ share_examples_for 'A DataObjects Adapter' do
           end
 
           it 'should execute one query' do
-            statement = if @mysql
-              [ %[SELECT `name`, `parent_name` FROM `articles` WHERE NOT(`parent_name` IN ('Test 0', 'Test 1', 'Test 2', 'Test 3', 'Test 4')) ORDER BY `name`] ]
-            elsif @oracle
-              bind_variables = defined?(JRUBY_VERSION) ? (["?"]*5).join(',') : (1..5).map{|i| ":a1_#{i}"}.join(', ')
-              [ %[SELECT "NAME", "PARENT_NAME" FROM "ARTICLES" WHERE (NOT("PARENT_NAME" IN (#{bind_variables}))) ORDER BY "NAME"] ]
-            else
-              [ %[SELECT "name", "parent_name" FROM "articles" WHERE NOT("parent_name" IN ('Test 0', 'Test 1', 'Test 2', 'Test 3', 'Test 4')) ORDER BY "name"] ]
-            end
-
-            log_output.should == statement
+            log_output.size.should == 1
           end
         end
       end
