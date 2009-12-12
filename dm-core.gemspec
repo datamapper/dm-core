@@ -18,6 +18,7 @@ Gem::Specification.new do |s|
   ]
   s.files = [
     ".autotest",
+     ".document",
      ".gitignore",
      "LICENSE",
      "README.rdoc",
