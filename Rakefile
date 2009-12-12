@@ -23,9 +23,6 @@ begin
   end
 
   Jeweler::GemcutterTasks.new
-  Jeweler::RubyforgeTasks.new do |rubyforge|
-    rubyforge.doc_task = 'yardoc'
-  end
 
   FileList['tasks/**/*.rake'].each { |task| import task }
 rescue LoadError
