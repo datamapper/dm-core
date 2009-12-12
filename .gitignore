@@ -1,20 +1,27 @@
-*.log
-log/*
-doc
-cov
-pkg
-coverage.html
-coverage/*
-*.db
-spec/db
-spec/integration/*.db*
-nbproject
-profile_results.*
+## MAC OS
+.DS_Store
+
+## TEXTMATE
+*.tmproj
+tmtags
+
+## EMACS
+*~
 \#*
-TAGS
-lib/coverage.html
-*.rbc
-_Yardoc
+.\#*
+
+## VIM
+*.swp
+
+## PROJECT::GENERAL
+coverage
+rdoc
+pkg
+tmp
+doc
+log
 .yardoc
-tmp/*
-\.*
+
+## PROJECT::SPECIFIC
+
+spec/db/
