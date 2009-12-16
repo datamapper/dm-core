@@ -14,7 +14,6 @@ module DataMapper::Spec
         AdapterHelpers.current_adapters << adapters
 
         describe("with #{adapter}") do
-
           before :all do
             # store these in instance vars for the shared adapter specs
             @adapter    = DataMapper.setup(:default, connection_uri)
@@ -31,6 +30,8 @@ module DataMapper::Spec
             if DataMapper.respond_to?(:auto_migrate_down!, true)
               DataMapper.send(:auto_migrate_down!, @repository.name)
             end
+
+            DataMapper::Repository.adapters.delete(@repository.name)
           end
 
           # TODO: add destroy_model_storage and migrations code
@@ -47,7 +48,7 @@ module DataMapper::Spec
             end
           end
 
-          self.instance_eval(&block)
+          instance_eval(&block)
         end
 
         AdapterHelpers.current_adapters.pop
@@ -59,7 +60,6 @@ module DataMapper::Spec
 
       ALTERNATE.only(*adapters).each do |adapter, connection_uri|
         describe("and #{adapter}") do
-
           before :all do
             @alternate_adapter    = DataMapper.setup(:alternate, connection_uri)
             @alternate_repository = DataMapper.repository(@alternate_adapter.name)
@@ -75,6 +75,8 @@ module DataMapper::Spec
             if DataMapper.respond_to?(:auto_migrate_down!, true)
               DataMapper.send(:auto_migrate_down!, @alternate_repository.name)
             end
+
+            DataMapper::Repository.adapters.delete(@alternate_repository.name)
           end
 
           # TODO: add destroy_model_storage and migrations code
@@ -91,7 +93,7 @@ module DataMapper::Spec
             end
           end
 
-          self.instance_eval(&block)
+          instance_eval(&block)
         end
       end
     end

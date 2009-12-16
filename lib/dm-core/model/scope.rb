@@ -80,7 +80,7 @@ module DataMapper
       # @api private
       def scope_stack
         scope_stack_for = Thread.current[:dm_scope_stack] ||= {}
-        scope_stack_for[self] ||= []
+        scope_stack_for[object_id] ||= []
       end
     end # module Scope
 

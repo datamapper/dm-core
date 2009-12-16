@@ -248,7 +248,7 @@ module DataMapper
       # @api private
       def connection_stack
         connection_stack_for = Thread.current[:dm_do_connection_stack] ||= {}
-        connection_stack_for[self] ||= []
+        connection_stack_for[object_id] ||= []
       end
 
       private

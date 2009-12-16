@@ -1,5 +1,9 @@
 class CounterAdapter < DataMapper::Adapters::AbstractAdapter
-  instance_methods.each { |method| undef_method method unless %w[ __id__ __send__ send class dup object_id kind_of? instance_of? respond_to? equal? assert_kind_of should should_not instance_variable_set instance_variable_get extend ].include?(method.to_s) }
+  instance_methods.each do |method|
+    next if method =~ /\A__/ ||
+      %w[ send class dup object_id kind_of? instance_of? respond_to? equal? freeze frozen? should should_not instance_variables instance_variable_set instance_variable_get instance_variable_defined? remove_instance_variable extend hash inspect copy_object ].include?(method.to_s)
+    undef_method method
+  end
 
   attr_reader :counts
 
