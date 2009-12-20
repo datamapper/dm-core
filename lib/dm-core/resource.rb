@@ -762,7 +762,7 @@ module DataMapper
     #
     # @api private
     def eager_load(properties)
-      unless properties.empty? || key.nil?
+      unless properties.empty? || key.nil? || collection.nil?
         collection.reload(:fields => properties)
       end
 

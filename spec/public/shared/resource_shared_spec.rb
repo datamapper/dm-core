@@ -199,6 +199,19 @@ share_examples_for 'A public Resource' do
       end
     end
 
+    describe 'with a new resource with a property set' do
+      before :all do
+        rescue_if @skip do
+          @user = @user.model.new
+          @user.name = 'dbussink'
+        end
+      end
+
+      it 'should return the expected values' do
+        @user.attributes.should == {:name => 'dbussink'}
+      end
+    end
+
     describe 'with a saved resource' do
       it 'should return the expected values' do
         @user.attributes.only(:name, :description, :age).should == { :name => 'dbussink', :description => 'Test', :age => 25 }
