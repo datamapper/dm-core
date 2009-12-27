@@ -96,9 +96,7 @@ describe DataMapper::Property, 'Object type' do
 
       it 'should load the correct value' do
         pending_if 'Fix adapters to use different serialization methods', !@do_adapter do
-          pending_if 'Fix DO adapter to send String for Text primitive', !!(RUBY_PLATFORM =~ /java/) do
-            should == { 'lang' => 'en_CA' }
-          end
+          should == { 'lang' => 'en_CA' }
         end
       end
     end
