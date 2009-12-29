@@ -808,6 +808,11 @@ module DataMapper
         options.update(required_options)
       end
 
+      reserved_method_names = DataMapper::Resource.instance_methods + DataMapper::Resource.private_instance_methods
+      if reserved_method_names.map { |m| m.to_s }.include?(name.to_s)
+        raise ArgumentError, "+name+ was #{name.inspect}, which cannot be used as a property name since it collides with an existing method"
+      end
+
       assert_valid_options(options)
 
       # if the type can be found within Types then

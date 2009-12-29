@@ -385,5 +385,19 @@ describe DataMapper::Property do
         Image.properties[:title].unique_index.should be_nil
       end
     end
+
+    describe "exception on bad property names" do
+      it "is raised for 'model'" do
+        lambda {
+          Track.property :model, String
+        }.should raise_error(ArgumentError)
+      end
+
+      it "is raised for 'repository_name'" do
+        lambda {
+          Track.property :repository_name, String
+        }.should raise_error(ArgumentError)
+      end
+    end
   end
 end # DataMapper::Property
