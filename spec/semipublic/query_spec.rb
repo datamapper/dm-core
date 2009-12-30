@@ -521,16 +521,10 @@ describe DataMapper::Query do
 
           it { @return.should be_kind_of(DataMapper::Query) }
 
-          it 'should set the conditions' do
-            @return.conditions.should ==
-              DataMapper::Query::Conditions::Operation.new(
-                :and,
-                DataMapper::Query::Conditions::Comparison.new(
-                  :eql,
-                  @model.referrer.name,
-                  'Dan Kubb'
-                )
-              )
+          it 'should not set the conditions' do
+            pending do
+              @return.conditions.should be_nil
+            end
           end
 
           it 'should set the links' do
@@ -550,16 +544,10 @@ describe DataMapper::Query do
 
           it { @return.should be_kind_of(DataMapper::Query) }
 
-          it 'should set the conditions' do
-            @return.conditions.should ==
-              DataMapper::Query::Conditions::Operation.new(
-                :and,
-                DataMapper::Query::Conditions::Comparison.new(
-                  :eql,
-                  @model.referrer.name,
-                  'Dan Kubb'
-                )
-              )
+          it 'should not set the conditions' do
+            pending do
+              @return.conditions.should be_nil
+            end
           end
 
           it 'should set the links' do
@@ -3742,16 +3730,10 @@ describe DataMapper::Query do
 
         it { @return.should be_kind_of(DataMapper::Query) }
 
-        it 'should set the conditions' do
-          @return.conditions.should ==
-            DataMapper::Query::Conditions::Operation.new(
-              :and,
-              DataMapper::Query::Conditions::Comparison.new(
-                :eql,
-                @model.grandparents.name,
-                'Dan Kubb'
-              )
-            )
+        it 'should not set the conditions' do
+          pending do
+            @return.conditions.should be_nil
+          end
         end
 
         it 'should set the links' do
