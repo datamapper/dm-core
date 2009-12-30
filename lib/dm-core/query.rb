@@ -1105,28 +1105,6 @@ module DataMapper
         if relationship.respond_to?(:links)
           stack.concat(relationship.links)
         elsif !@links.include?(relationship)
-          repository_name = relationship.relative_target_repository_name
-          model           = relationship.target_model
-
-          # TODO: see if this can handle extracting the :order option and sort the
-          # resulting collection using the order specified by through relationships
-
-          model.current_scope.merge(relationship.query).each do |subject, value|
-            # TODO: figure out how to merge Query options from links
-            if OPTIONS.include?(subject)
-              next  # skip for now
-            end
-
-            # set @repository when appending conditions
-            original, @repository = @repository, DataMapper.repository(repository_name)
-
-            begin
-              append_condition(subject, value, model)
-            ensure
-              @repository = original
-            end
-          end
-
           @links << relationship
         end
       end
