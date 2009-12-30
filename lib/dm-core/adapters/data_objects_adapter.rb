@@ -306,15 +306,17 @@ module DataMapper
         IDENTIFIER_MAX_LENGTH = 128
 
         # @api semipublic
-        def property_to_column_name(property, qualify, table_name = nil)
-          column_name = quote_name(property.field)
+        def property_to_column_name(property, qualify)
+          column_name = ''
 
-          if qualify
-            table_name ||= quote_name(property.model.storage_name(name))
-            "#{table_name}.#{column_name}"
-          else
-            column_name
+          case qualify
+            when true
+              column_name << "#{quote_name(property.model.storage_name(name))}."
+            when String
+              column_name << "#{quote_name(qualify)}."
           end
+
+          column_name << quote_name(property.field)
         end
 
         private
@@ -464,8 +466,8 @@ module DataMapper
         #   list of fields as a string
         #
         # @api private
-        def columns_statement(properties, qualify, qualifier = nil)
-          properties.map { |property| property_to_column_name(property, qualify, qualifier) }.join(', ')
+        def columns_statement(properties, qualify)
+          properties.map { |property| property_to_column_name(property, qualify) }.join(', ')
         end
 
         # Constructs joins clause
@@ -576,9 +578,9 @@ module DataMapper
         #   order clause
         #
         # @api private
-        def order_statement(order, qualify, qualifier = nil)
+        def order_statement(order, qualify)
           statements = order.map do |direction|
-            statement = property_to_column_name(direction.target, qualify, qualifier)
+            statement = property_to_column_name(direction.target, qualify)
             statement << ' DESC' if direction.operator == :desc
             statement
           end

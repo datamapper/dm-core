@@ -57,7 +57,7 @@ module DataMapper
             # with 'RowResults' -- this is a different scope to the subquery.
             # Otherwise, we hit upon "multi-part identifier cannot be bound"
             # error from SQL Server.
-            statement = "SELECT #{columns_statement(fields, qualify, 'RowResults')}"
+            statement = "SELECT #{columns_statement(fields, 'RowResults')}"
             statement << " FROM ( SELECT Row_Number() OVER (ORDER BY #{order_statement}) AS RowID,"
             statement << " #{columns_statement}"
             statement << from_statement
@@ -65,8 +65,8 @@ module DataMapper
             statement << where_statement                                     if where_statement
             statement << ") AS RowResults"
             statement << " WHERE RowId > #{offset} AND RowId <= #{offset + limit}"
-            statement << " GROUP BY #{columns_statement(group_by, qualify, 'RowResults')}" unless no_group_by
-            statement << " ORDER BY #{order_statement(order_by, qualify, 'RowResults')}"   unless no_order_by
+            statement << " GROUP BY #{columns_statement(group_by, 'RowResults')}" unless no_group_by
+            statement << " ORDER BY #{order_statement(order_by, 'RowResults')}"   unless no_order_by
           else
             statement = "SELECT #{columns_statement}"
             statement << from_statement
