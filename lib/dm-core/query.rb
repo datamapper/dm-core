@@ -734,7 +734,7 @@ module DataMapper
       @offset       = @options.fetch :offset,       0
       @limit        = @options.fetch :limit,        nil
       @order        = @options.fetch :order,        @model.default_order(repository_name)
-      @unique       = @options.fetch :unique,       false
+      @unique       = @options.fetch :unique,       true
       @add_reversed = @options.fetch :add_reversed, false
       @reload       = @options.fetch :reload,       false
       @raw          = false
