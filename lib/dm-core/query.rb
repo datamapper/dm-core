@@ -1424,7 +1424,7 @@ module DataMapper
             model,
             model,
             self_relationship_options
-            )
+          )
         end
     end
 
