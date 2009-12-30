@@ -210,18 +210,18 @@ Gem::Specification.new do |s|
       s.add_runtime_dependency(%q<extlib>, ["~> 0.9.14"])
       s.add_runtime_dependency(%q<addressable>, ["~> 2.1"])
       s.add_development_dependency(%q<rspec>, ["~> 1.2.9"])
-      s.add_development_dependency(%q<yard>, ["~> 0.4.0"])
+      s.add_development_dependency(%q<yard>, ["~> 0.5"])
     else
       s.add_dependency(%q<extlib>, ["~> 0.9.14"])
       s.add_dependency(%q<addressable>, ["~> 2.1"])
       s.add_dependency(%q<rspec>, ["~> 1.2.9"])
-      s.add_dependency(%q<yard>, ["~> 0.4.0"])
+      s.add_dependency(%q<yard>, ["~> 0.5"])
     end
   else
     s.add_dependency(%q<extlib>, ["~> 0.9.14"])
     s.add_dependency(%q<addressable>, ["~> 2.1"])
     s.add_dependency(%q<rspec>, ["~> 1.2.9"])
-    s.add_dependency(%q<yard>, ["~> 0.4.0"])
+    s.add_dependency(%q<yard>, ["~> 0.5"])
   end
 end
 
