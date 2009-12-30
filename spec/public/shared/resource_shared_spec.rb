@@ -959,21 +959,15 @@ share_examples_for 'A public Resource' do
         end
 
         it 'should relate the child to the parent' do
-          pending_if @one_to_one_through do
-            @child.model.get(*@child.key).referrer.should == @parent
-          end
+          @child.model.get(*@child.key).referrer.should == @parent
         end
 
         it 'should relate the parent to the grandparent' do
-          pending_if @one_to_one_through do
-            @parent.model.get(*@parent.key).referrer.should == @grandparent
-          end
+          @parent.model.get(*@parent.key).referrer.should == @grandparent
         end
 
         it 'should relate the grandparent to nothing' do
-          pending_if @one_to_one_through do
-            @grandparent.model.get(*@grandparent.key).referrer.should be_nil
-          end
+          @grandparent.model.get(*@grandparent.key).referrer.should be_nil
         end
       end
 
@@ -1095,29 +1089,23 @@ share_examples_for 'A public Resource' do
 
       describe 'with attributes where one is a parent association' do
         before :all do
-          rescue_if 'Use table aliases to avoid ambiguous named in query', @one_to_one_through do
+          rescue_if @skip do
             @attributes = { :referrer => @user_model.create(:name => 'dkubb', :age => 33, :comment => @comment) }
             @return = @user.__send__(method, @attributes)
           end
         end
 
         it 'should return true' do
-          pending_if @one_to_one_through do
-            @return.should be_true
-          end
+          @return.should be_true
         end
 
         it 'should update attributes of Resource' do
-          pending_if @one_to_one_through do
-            @attributes.each { |key, value| @user.__send__(key).should == value }
-          end
+          @attributes.each { |key, value| @user.__send__(key).should == value }
         end
 
         it 'should persist the changes' do
-          pending_if @one_to_one_through do
-            resource = @user_model.get(*@user.key)
-            @attributes.each { |key, value| resource.__send__(key).should == value }
-          end
+          resource = @user_model.get(*@user.key)
+          @attributes.each { |key, value| resource.__send__(key).should == value }
         end
       end
 

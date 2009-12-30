@@ -354,7 +354,7 @@ module DataMapper
 
           statement = "SELECT #{columns_statement(fields, qualify)}"
           statement << " FROM #{quote_name(query.model.storage_name(name))}"
-          statement << join_statement(query, qualify)                      if qualify
+          statement << " #{join_statement(query, bind_values, qualify)}"   if qualify
           statement << " WHERE #{conditions_statement}"                    unless conditions_statement.blank?
           statement << " GROUP BY #{columns_statement(group_by, qualify)}" if group_by && group_by.any?
           statement << " ORDER BY #{order_statement(order_by, qualify)}"   if order_by && order_by.any?
@@ -476,17 +476,57 @@ module DataMapper
         #   joins clause
         #
         # @api private
-        def join_statement(query, qualify)
-          statement = ''
+        def join_statement(query, bind_values, qualify)
+          statements       = []
+          join_bind_values = []
+
+          target_alias = query.model.storage_name(name)
+          seen = { target_alias => 0 }
 
           query.links.reverse_each do |relationship|
-            statement << " INNER JOIN #{quote_name(relationship.source_model.storage_name(name))} ON "
-            statement << relationship.target_key.zip(relationship.source_key).map do |target_property, source_property|
-              "#{property_to_column_name(target_property, qualify)} = #{property_to_column_name(source_property, qualify)}"
-            end.join(' AND ')
+            storage_name = relationship.source_model.storage_name(name)
+            source_alias = storage_name
+
+            statements << "INNER JOIN #{quote_name(storage_name)}"
+
+            if seen.key?(source_alias)
+              seen[source_alias] += 1
+              source_alias = "#{source_alias}_#{seen[source_alias]}"
+              statements << quote_name(source_alias)
+            else
+              seen[source_alias] = 0
+            end
+
+            statements << 'ON'
+
+            add_join_conditions(relationship, target_alias, source_alias, statements)
+            add_extra_join_conditions(relationship, target_alias, statements, join_bind_values)
+
+            target_alias = source_alias
           end
 
-          statement
+          # prepend the join bind values to the statement bind values
+          bind_values.unshift(*join_bind_values)
+
+          statements.join(' ')
+        end
+
+        def add_join_conditions(relationship, target_alias, source_alias, statements)
+          statements << relationship.target_key.zip(relationship.source_key).map do |target_property, source_property|
+            "#{property_to_column_name(target_property, target_alias)} = #{property_to_column_name(source_property, source_alias)}"
+          end.join(' AND ')
+        end
+
+        def add_extra_join_conditions(relationship, target_alias, statements, bind_values)
+          conditions = DataMapper.repository(name).scope do
+            relationship.target_model.all(relationship.query).query.conditions
+          end
+
+          return if conditions.nil?
+
+          extra_statement, extra_bind_values = conditions_statement(conditions, target_alias)
+          statements << "AND #{extra_statement}"
+          bind_values.concat(extra_bind_values)
         end
 
         # Constructs where clause

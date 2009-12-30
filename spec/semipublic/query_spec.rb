@@ -1617,9 +1617,7 @@ describe DataMapper::Query do
           it { should_not equal(@other) }
 
           it 'should put each query into a subquery and AND them together, and negate the other query' do
-            pending_if 'TODO: Fix once table aliasing works', @do_adapter do
-              subject.conditions.should == @expected
-            end
+            subject.conditions.should == @expected
           end
         end
 
@@ -1645,9 +1643,7 @@ describe DataMapper::Query do
           it { should_not equal(@other) }
 
           it 'should put each query into a subquery and AND them together, and negate the other query' do
-            pending_if 'TODO: Fix once table aliasing works', @do_adapter do
-              subject.conditions.should == @expected
-            end
+            subject.conditions.should == @expected
           end
         end
 
@@ -2118,9 +2114,7 @@ describe DataMapper::Query do
           it { should_not equal(@other) }
 
           it 'should put each query into a subquery and AND them together' do
-            pending_if 'TODO: Fix once table aliasing works', @do_adapter do
-              subject.conditions.should == @expected
-            end
+            subject.conditions.should == @expected
           end
         end
 
@@ -2144,9 +2138,7 @@ describe DataMapper::Query do
           it { should_not equal(@other) }
 
           it 'should put each query into a subquery and AND them together' do
-            pending_if 'TODO: Fix once table aliasing works', @do_adapter do
-              subject.conditions.should == @expected
-            end
+            subject.conditions.should == @expected
           end
         end
 
@@ -3253,9 +3245,7 @@ describe DataMapper::Query do
           it { should_not equal(@other) }
 
           it 'should put each query into a subquery and OR them together' do
-            pending_if 'TODO: Fix once table aliasing works', @do_adapter do
-              subject.conditions.should == @expected
-            end
+            subject.conditions.should == @expected
           end
         end
 
@@ -3279,9 +3269,7 @@ describe DataMapper::Query do
           it { should_not equal(@other) }
 
           it 'should put each query into a subquery and OR them together' do
-            pending_if 'TODO: Fix once table aliasing works', @do_adapter do
-              subject.conditions.should == @expected
-            end
+            subject.conditions.should == @expected
           end
         end
 

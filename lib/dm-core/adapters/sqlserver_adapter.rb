@@ -47,7 +47,7 @@ module DataMapper
           columns_statement = columns_statement(fields, qualify)
           from_statement    = " FROM #{quote_name(query.model.storage_name(name))}"
           where_statement   = " WHERE #{conditions_statement}" unless conditions_statement.blank?
-          join_statement    = join_statement(query, qualify)
+          join_statement    = join_statement(query, bind_values, qualify)
           order_statement   = order_statement(order_by, qualify)
           no_group_by       = group_by ? group_by.empty? : true
           no_order_by       = order_by ? order_by.empty? : true

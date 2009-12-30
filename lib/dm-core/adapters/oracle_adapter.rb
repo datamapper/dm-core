@@ -141,7 +141,7 @@ module DataMapper
             no_group_by = true
           end
           statement << from_statement
-          statement << join_statement(query, qualify)     if qualify
+          statement << join_statement(query, bind_values, qualify)     if qualify
           statement << " WHERE (#{conditions_statement})" unless conditions_statement.blank?
           if use_subquery
             statement << ")"
