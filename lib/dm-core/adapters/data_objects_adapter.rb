@@ -66,9 +66,9 @@ module DataMapper
       # (or equivalent) statement to create a new record in the data store for
       # the instance
       #
-      # Note that this method does not update identity map. A plugin needs to use
-      # adapter directly, it is up to plugin developer to keep identity map
-      # up to date.
+      # Note that this method does not update the identity map. If a plugin
+      # needs to use an adapter directly, it is up to plugin developer to
+      # keep the identity map up to date.
       #
       # @param [Enumerable(Resource)] resources
       #   The list of resources (model instances) to create

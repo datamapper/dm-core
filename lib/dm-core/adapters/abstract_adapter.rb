@@ -27,7 +27,7 @@ module DataMapper
       #
       # DataMapper.setup(:default, 'postgres://postgres@localhost/dm_core_test')
       #
-      # then adapter name is currently be set to is :default
+      # the adapter name is currently set to :default
       #
       # @return [Symbol]
       #   the adapter name
