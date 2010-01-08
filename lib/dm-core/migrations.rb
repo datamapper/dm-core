@@ -354,9 +354,6 @@ module DataMapper
           normalized_uri.path.split('/').last
         end
 
-        # TODO: update dkubb/dm-more/dm-migrations to use schema_name and remove this
-        alias db_name schema_name
-
         # @api private
         def create_table_statement(connection, model, properties)
           "#{super} ENGINE = #{DEFAULT_ENGINE} CHARACTER SET #{character_set} COLLATE #{collation}"
