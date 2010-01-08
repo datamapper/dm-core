@@ -1111,7 +1111,7 @@ module DataMapper
       end # module ClassMethods
     end # module PostgresAdapter
 
-   module SqlserverAdapter
+    module SqlserverAdapter
       DEFAULT_CHARACTER_SET = 'utf8'.freeze
 
       # @api private
@@ -1275,6 +1275,7 @@ module DataMapper
           ).freeze
         end
       end # module ClassMethods
+
     end # module SqlserverAdapter
 
 
