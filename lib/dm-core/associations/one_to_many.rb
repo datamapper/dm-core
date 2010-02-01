@@ -54,8 +54,6 @@ module DataMapper
         #
         # @api semipublic
         def get(source, other_query = nil)
-          assert_kind_of 'source', source, source_model
-
           lazy_load(source) unless loaded?(source)
 
           collection = get!(source)
@@ -67,9 +65,6 @@ module DataMapper
         #
         # @api semipublic
         def set(source, targets)
-          assert_kind_of 'source',  source,  source_model
-          assert_kind_of 'targets', targets, Array
-
           lazy_load(source) unless loaded?(source)
 
           get!(source).replace(targets)
