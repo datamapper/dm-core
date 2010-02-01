@@ -319,8 +319,6 @@ module DataMapper
       #
       # @api semipublic
       def loaded?(resource)
-        assert_kind_of 'resource', resource, source_model
-
         resource.instance_variable_defined?(instance_variable_name)
       end
 

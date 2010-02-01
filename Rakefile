@@ -18,7 +18,7 @@ begin
     gem.add_dependency 'extlib',      '~> 0.9.14'
     gem.add_dependency 'addressable', '~> 2.1'
 
-    gem.add_development_dependency 'rspec', '~> 1.2.9'
+    gem.add_development_dependency 'rspec', '~> 1.3'
     gem.add_development_dependency 'yard',  '~> 0.5'
   end
 

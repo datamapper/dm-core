@@ -107,8 +107,6 @@ module DataMapper
         #
         # @api semipublic
         def get(source, other_query = nil)
-          assert_kind_of 'source', source, source_model
-
           lazy_load(source) unless loaded?(source)
 
           resource = get!(source)
@@ -129,9 +127,6 @@ module DataMapper
         # @api semipublic
         def set(source, target)
           target_model = self.target_model
-
-          assert_kind_of 'source', source, source_model
-          assert_kind_of 'target', target, target_model, Hash, NilClass
 
           if target.kind_of?(Hash)
             target = target_model.new(target)

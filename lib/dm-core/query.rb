@@ -1418,8 +1418,8 @@ module DataMapper
       {
         :child_key              => keys,
         :parent_key             => keys,
-        :child_repository_name  => repository,
-        :parent_repository_name => repository,
+        :child_repository_name  => repository.name,
+        :parent_repository_name => repository.name,
       }
     end
 

@@ -109,6 +109,7 @@ module DataMapper
         # TODO: create PropertySet#copy that will copy the properties, but assign the
         # new Relationship objects to a supplied repository and model.  dup does not really
         # do what is needed
+        assert_kind_of 'repository_name', repository_name, Symbol
 
         default_repository_name = self.default_repository_name
 

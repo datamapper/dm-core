@@ -1455,8 +1455,8 @@ describe DataMapper::Query do
             {
               :child_key              => @key.map { |p| p.name },
               :parent_key             => @key.map { |p| p.name },
-              :child_repository_name  => @repository,
-              :parent_repository_name => @repository,
+              :child_repository_name  => @repository.name,
+              :parent_repository_name => @repository.name,
             }
           )
 
@@ -1952,8 +1952,8 @@ describe DataMapper::Query do
             {
               :child_key              => @key.map { |p| p.name },
               :parent_key             => @key.map { |p| p.name },
-              :child_repository_name  => @repository,
-              :parent_repository_name => @repository,
+              :child_repository_name  => @repository.name,
+              :parent_repository_name => @repository.name,
             }
           )
 
@@ -3087,8 +3087,8 @@ describe DataMapper::Query do
             {
               :child_key              => @key.map { |p| p.name },
               :parent_key             => @key.map { |p| p.name },
-              :child_repository_name  => @repository,
-              :parent_repository_name => @repository,
+              :child_repository_name  => @repository.name,
+              :parent_repository_name => @repository.name,
             }
           )
 

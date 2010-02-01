@@ -13,8 +13,6 @@ module DataMapper
         #
         # @api semipublic
         def get(source, other_query = nil)
-          assert_kind_of 'source', source, source_model
-
           return unless loaded?(source) || valid_source?(source)
 
           relationship.get(source, other_query).first
@@ -25,9 +23,6 @@ module DataMapper
         #
         # @api semipublic
         def set(source, target)
-          assert_kind_of 'source', source, source_model
-          assert_kind_of 'target', target, target_model, Hash, NilClass
-
           relationship.set(source, [ target ].compact).first
         end
 
