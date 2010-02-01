@@ -471,8 +471,10 @@ module DataMapper
         #
         # @api semipublic
         def foreign_key_mapping
-          inverse = subject.inverse
-          Query.target_conditions(value, inverse.source_key, inverse.target_key)
+          relationship = subject.inverse
+          relationship = relationship.links.first if relationship.respond_to?(:links)
+
+          Query.target_conditions(value, relationship.source_key, relationship.target_key)
         end
 
         private
