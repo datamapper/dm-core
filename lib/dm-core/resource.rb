@@ -849,9 +849,6 @@ module DataMapper
     #
     # @api private
     def _create
-      # Can't create a resource that is not dirty and doesn't have serial keys
-      return false if new? && clean?
-
       # set defaults for new resource
       properties.each do |property|
         unless property.serial? || property.loaded?(self)
@@ -884,9 +881,7 @@ module DataMapper
     def _update
       original_attributes = self.original_attributes
 
-      if original_attributes.empty?
-        true
-      elsif original_attributes.any? { |property, _value| !property.valid?(property.get!(self)) }
+      if original_attributes.any? { |property, _value| !property.valid?(property.get!(self)) }
         false
       else
         # remove from the identity map
@@ -919,6 +914,9 @@ module DataMapper
     #
     # @api semipublic
     def save_self(safe = true)
+      # short-circuit if the resource is not dirty
+      return saved? unless dirty_self?
+
       new_resource = new?
       if safe
         new_resource ? create_hook : update_hook

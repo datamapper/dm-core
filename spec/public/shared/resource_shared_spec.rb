@@ -704,6 +704,17 @@ share_examples_for 'A public Resource' do
     it { @user.should respond_to(method) }
 
     describe "##{method}" do
+      before :all do
+        @user_model.class_eval do
+          attr_accessor :save_hook_call_count
+
+          before :save do
+            @save_hook_call_count ||= 0
+            @save_hook_call_count += 1
+          end
+        end
+      end
+
       describe 'on a new, not dirty resource' do
         before :all do
           @user = @user_model.new
@@ -713,11 +724,23 @@ share_examples_for 'A public Resource' do
         it 'should return false' do
           @return.should be_false
         end
+
+        it 'should call save hook expected number of times' do
+          @user.save_hook_call_count.should be_nil
+        end
       end
 
       describe 'on a not new, not dirty resource' do
+        before :all do
+          @return = @user.__send__(method)
+        end
+
         it 'should return true even when resource is not dirty' do
-          @user.__send__(method).should be_true
+          @return.should be_true
+        end
+
+        it 'should call save hook expected number of times' do
+          @user.save_hook_call_count.should be_nil
         end
       end
 
@@ -736,6 +759,10 @@ share_examples_for 'A public Resource' do
         it 'should actually store the changes to persistent storage' do
           @user.attributes.should == @user.reload.attributes
         end
+
+        it 'should call save hook expected number of times' do
+          @user.save_hook_call_count.should == (method == :save ? 1 : nil)
+        end
       end
 
       describe 'on a dirty invalid resource' do
@@ -747,6 +774,10 @@ share_examples_for 'A public Resource' do
 
         it 'should not save an invalid resource' do
           @user.__send__(method).should be_false
+        end
+
+        it 'should call save hook expected number of times' do
+          @user.save_hook_call_count.should == (method == :save ? 1 : nil)
         end
       end
 
