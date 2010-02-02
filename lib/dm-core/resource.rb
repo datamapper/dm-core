@@ -960,7 +960,7 @@ module DataMapper
     # @return [Boolean]
     #  true if the resource has unsaged changes
     #
-    # @api private
+    # @api semipublic
     def dirty_self?
       if original_attributes.any?
         true
