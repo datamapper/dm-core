@@ -445,12 +445,11 @@ module DataMapper
       unless other.kind_of?(model.base_model)
         raise ArgumentError, "Cannot compare a #{other.model} instance with a #{model} instance"
       end
-      cmp = 0
       model.default_order(repository_name).each do |direction|
         cmp = direction.get(self) <=> direction.get(other)
-        break if cmp != 0
+        return cmp if cmp.nonzero?
       end
-      cmp
+      0
     end
 
     # Returns hash value of the object.
