@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Dan Kubb"]
-  s.date = %q{2010-01-27}
+  s.date = %q{2010-02-02}
   s.description = %q{Faster, Better, Simpler.}
   s.email = %q{dan.kubb@gmail.com}
   s.extra_rdoc_files = [
@@ -90,6 +90,7 @@ Gem::Specification.new do |s|
      "spec/lib/counter_adapter.rb",
      "spec/lib/pending_helpers.rb",
      "spec/lib/rspec_immediate_feedback_formatter.rb",
+     "spec/public/associations/many_to_many/read_multiple_join_spec.rb",
      "spec/public/associations/many_to_many_spec.rb",
      "spec/public/associations/many_to_one_spec.rb",
      "spec/public/associations/many_to_one_with_boolean_cpk_spec.rb",
@@ -155,6 +156,7 @@ Gem::Specification.new do |s|
      "spec/lib/counter_adapter.rb",
      "spec/lib/pending_helpers.rb",
      "spec/lib/rspec_immediate_feedback_formatter.rb",
+     "spec/public/associations/many_to_many/read_multiple_join_spec.rb",
      "spec/public/associations/many_to_many_spec.rb",
      "spec/public/associations/many_to_one_spec.rb",
      "spec/public/associations/many_to_one_with_boolean_cpk_spec.rb",
