@@ -732,7 +732,9 @@ share_examples_for 'A public Resource' do
 
       describe 'on a not new, not dirty resource' do
         before :all do
-          @return = @user.__send__(method)
+          rescue_if @skip do
+            @return = @user.__send__(method)
+          end
         end
 
         it 'should return true even when resource is not dirty' do
