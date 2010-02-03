@@ -49,6 +49,7 @@ module DataMapper
     #
     # @api private
     def self.included(model)
+      model.send(:undef_method, :id, :type)
       model.extend Model
     end
 

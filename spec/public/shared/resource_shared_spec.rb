@@ -21,6 +21,10 @@ share_examples_for 'A public Resource' do
     pending if @skip
   end
 
+  it { @user.should_not respond_to(:id) }
+
+  it { @user.should_not respond_to(:type) }
+
   [ :==, :=== ].each do |method|
     it { @user.should respond_to(method) }
 
