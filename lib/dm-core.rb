@@ -34,6 +34,7 @@ require dir / 'type'
 require dir / 'types' / 'boolean'
 require dir / 'types' / 'discriminator'
 require dir / 'types' / 'text'
+require dir / 'types' / 'paranoid' / 'base'
 require dir / 'types' / 'paranoid_datetime'     # TODO: move to dm-more
 require dir / 'types' / 'paranoid_boolean'      # TODO: move to dm-more
 require dir / 'types' / 'object'

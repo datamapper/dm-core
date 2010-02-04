@@ -370,7 +370,8 @@ module DataMapper
     #
     # @api public
     def destroy
-      destroy!
+      return true if destroyed?
+      destroy_hook
     end
 
     # Destroy the instance, remove it from the repository, bypassing hooks
@@ -381,15 +382,7 @@ module DataMapper
     # @api public
     def destroy!
       return true if destroyed?
-
-      if saved?
-        repository.delete(collection_for_self)
-        reset
-        @_readonly  = true
-        @_destroyed = true
-      else
-        false
-      end
+      _destroy(false)
     end
 
     # Compares another Resource for equality
@@ -632,6 +625,16 @@ module DataMapper
     # @api private
     def update_hook
       _update
+    end
+
+    # Method for hooking callbacks on resource destruction
+    #
+    # @return [Boolean]
+    #   true if the destroy was successful, false if not
+    #
+    # @api private
+    def destroy_hook
+      _destroy(true)
     end
 
     private
@@ -899,6 +902,21 @@ module DataMapper
 
         true
       end
+    end
+
+    # @api private
+    def _destroy(safe)
+      return false unless saved?
+      repository.delete(collection_for_self)
+      set_destroyed_state
+      true
+    end
+
+    # @api private
+    def set_destroyed_state
+      reset
+      @_readonly  = true
+      @_destroyed = true
     end
 
     # @api private

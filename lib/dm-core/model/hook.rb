@@ -6,7 +6,7 @@ module DataMapper
       def self.included(model)
         model.send(:include, Extlib::Hook)
         model.extend Methods
-        model.register_instance_hooks :create_hook, :update_hook, :destroy
+        model.register_instance_hooks :create_hook, :update_hook, :destroy_hook
       end
 
       module Methods
@@ -29,10 +29,11 @@ module DataMapper
         # @api private
         def remap_target_method(target_method)
           case target_method
-            when :create then [ :create_hook               ]
-            when :update then [ :update_hook               ]
-            when :save   then [ :create_hook, :update_hook ]
-            else              [ target_method              ]
+            when :create  then [ :create_hook               ]
+            when :update  then [ :update_hook               ]
+            when :save    then [ :create_hook, :update_hook ]
+            when :destroy then [ :destroy_hook              ]
+            else               [ target_method              ]
           end
         end
       end
