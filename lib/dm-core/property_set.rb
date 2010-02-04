@@ -147,6 +147,11 @@ module DataMapper
       properties_in_context.flatten.uniq
     end
 
+    # @api private
+    def field_map
+      map { |property| [ property.field, property ] }.to_hash
+    end
+
     private
 
     # @api semipublic

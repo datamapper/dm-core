@@ -133,7 +133,7 @@ Spec::Runner.configure do |config|
       constant_name = parts.pop.to_sym
       base          = parts.empty? ? Object : Object.full_const_get(parts.join('::'))
 
-      if base.const_defined?(constant_name)
+      if constant_name.to_s[0] != ?# && base.const_defined?(constant_name)
         base.send(:remove_const, constant_name)
       end
 

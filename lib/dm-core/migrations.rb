@@ -208,7 +208,7 @@ module DataMapper
         def create_index_statements(model)
           name       = self.name
           table_name = model.storage_name(name)
-          model.properties(name).indexes.map do |index_name, fields|
+          indexes(model).map do |index_name, fields|
             <<-SQL.compress_lines
               CREATE INDEX #{quote_name("index_#{table_name}_#{index_name}")} ON
               #{quote_name(table_name)} (#{fields.map { |field| quote_name(field) }.join(', ')})
@@ -220,7 +220,7 @@ module DataMapper
         def create_unique_index_statements(model)
           name       = self.name
           table_name = model.storage_name(name)
-          model.properties(name).unique_indexes.map do |index_name, fields|
+          unique_indexes(model).map do |index_name, fields|
             <<-SQL.compress_lines
               CREATE UNIQUE INDEX #{quote_name("unique_#{table_name}_#{index_name}")} ON
               #{quote_name(table_name)} (#{fields.map { |field| quote_name(field) }.join(', ')})
@@ -282,6 +282,16 @@ module DataMapper
           statement << " DEFAULT #{connection.quote_value(schema[:default])}" if schema.key?(:default)
           statement << ' NOT NULL' unless schema[:allow_nil]
           statement
+        end
+
+        # @api private
+        def indexes(model)
+          model.properties(name).indexes
+        end
+
+        # @api private
+        def unique_indexes(model)
+          model.properties(name).unique_indexes
         end
       end # module SQL
 
@@ -546,6 +556,26 @@ module DataMapper
         # @api private
         def integer_statement_sign(range)
           ' UNSIGNED' unless range.first < 0
+        end
+
+        # @api private
+        def indexes(model)
+          filter_indexes(model, super)
+        end
+
+        # @api private
+        def unique_indexes(model)
+          filter_indexes(model, super)
+        end
+
+        # Filter out any indexes with an unindexable column in MySQL
+        #
+        # @api private
+        def filter_indexes(model, indexes)
+          field_map = model.properties(name).field_map
+          indexes.select do |index_name, fields|
+            fields.all? { |field| field_map[field].type != Types::Text }
+          end
         end
       end # module SQL
 
@@ -1274,7 +1304,6 @@ module DataMapper
       end # module ClassMethods
 
     end # module SqlserverAdapter
-
 
     module Repository
       # Determine whether a particular named storage exists in this repository
