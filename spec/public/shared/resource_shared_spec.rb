@@ -1090,18 +1090,6 @@ share_examples_for 'A public Resource' do
     it { @user.should respond_to(method) }
 
     describe "##{method}" do
-      describe 'with no arguments' do
-        before :all do
-          rescue_if @skip do
-            @return = @user.__send__(method)
-          end
-        end
-
-        it 'should return true' do
-          @return.should be_true
-        end
-      end
-
       describe 'with attributes' do
         before :all do
           rescue_if @skip do

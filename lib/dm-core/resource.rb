@@ -322,7 +322,7 @@ module DataMapper
     #   true if resource and storage state match
     #
     # @api public
-    def update(attributes = {})
+    def update(attributes)
       assert_update_clean_only(:update)
       self.attributes = attributes
       save
@@ -337,7 +337,7 @@ module DataMapper
     #   true if resource and storage state match
     #
     # @api public
-    def update!(attributes = {})
+    def update!(attributes)
       assert_update_clean_only(:update!)
       self.attributes = attributes
       save!

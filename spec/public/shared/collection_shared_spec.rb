@@ -1572,20 +1572,6 @@ share_examples_for 'A public Collection' do
     it { should respond_to(method) }
 
     describe "##{method}" do
-      describe 'with no arguments' do
-        before :all do
-          @return = @articles.send(method)
-        end
-
-        if method == :update!
-          should_not_be_a_kicker
-        end
-
-        it 'should return true' do
-          @return.should be_true
-        end
-      end
-
       describe 'with attributes' do
         before :all do
           @attributes = { :title => 'Updated Title' }

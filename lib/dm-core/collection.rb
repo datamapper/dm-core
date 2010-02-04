@@ -814,7 +814,7 @@ module DataMapper
     #   true if the resources were successfully updated
     #
     # @api public
-    def update(attributes = {})
+    def update(attributes)
       assert_update_clean_only(:update)
 
       dirty_attributes = model.new(attributes).dirty_attributes
@@ -832,7 +832,7 @@ module DataMapper
     #   true if the resources were successfully updated
     #
     # @api public
-    def update!(attributes = {})
+    def update!(attributes)
       assert_update_clean_only(:update!)
 
       model = self.model
