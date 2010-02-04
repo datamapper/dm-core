@@ -49,7 +49,9 @@ module DataMapper
     #
     # @api private
     def self.included(model)
-      model.send(:undef_method, :id, :type)
+      [ :id, :type ].each do |method|
+        model.send(:undef_method, method) if model.method_defined?(method)
+      end
       model.extend Model
     end
 
