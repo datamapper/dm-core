@@ -681,6 +681,12 @@ module DataMapper
       end
     end
 
+    # @api semipublic
+    def load(value)
+      return type.load(value, self) if type.respond_to?(:load)
+      typecast(value)
+    end
+
     # Returns a default value of the
     # property for given resource.
     #

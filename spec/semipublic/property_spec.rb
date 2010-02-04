@@ -96,10 +96,44 @@ describe DataMapper::Property do
         property :deleted_at, Time
         property :created_at, DateTime
         property :created_on, Date
+        property :info,       Text
       end
     end
 
     @model = Blog::Author
+  end
+
+  describe '#load' do
+    before :all do
+      @value = mock('value')
+    end
+
+    subject { @property.load(@value) }
+
+    describe 'with a custom type' do
+      before do
+        @property = @model.properties[:info]
+        @type     = @property.type
+      end
+
+      it 'should delegate to #type.load' do
+        return_value = mock('return value')
+        @type.should_receive(:load).with(@value, @property).and_return(return_value)
+        should == return_value
+      end
+    end
+
+    describe 'with a property' do
+      before do
+        @property = @model.properties[:name]
+      end
+
+      it 'should delegate to #typecast' do
+        return_value = mock('return value')
+        @property.should_receive(:typecast).with(@value).and_return(return_value)
+        should == return_value
+      end
+    end
   end
 
   describe '#typecast' do
