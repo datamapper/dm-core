@@ -19,4 +19,23 @@ describe DataMapper::Property, 'Text type' do
       end
     end
   end if defined?(DataObjects::SyntaxError)
+
+  describe 'migration with a unique index' do
+    supported_by :all do
+      before do
+        @model = DataMapper::Model.new do
+          storage_names[:default] = 'anonymous'
+
+          property :id,   DataMapper::Types::Serial
+          property :body, DataMapper::Types::Text, :unique_index => true
+        end
+      end
+
+      it 'should allow a migration' do
+        lambda {
+          @model.auto_migrate!
+        }.should_not raise_error(DataObjects::SyntaxError)
+      end
+    end
+  end if defined?(DataObjects::SyntaxError)
 end
