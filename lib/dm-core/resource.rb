@@ -30,14 +30,14 @@ module DataMapper
     #
     # @deprecated
     def update_attributes(attributes = {}, *allowed)
-      model  = self.model
-      caller = caller[0]
+      model      = self.model
+      call_stack = caller[0]
 
-      warn "#{model}#update_attributes is deprecated, use #{model}#update instead (#{caller})"
+      warn "#{model}#update_attributes is deprecated, use #{model}#update instead (#{call_stack})"
 
       if allowed.any?
         warn "specifying allowed in #{model}#update_attributes is deprecated, " \
-          "use Hash#only to filter the attributes in the caller (#{caller})"
+          "use Hash#only to filter the attributes in the caller (#{call_stack})"
         attributes = attributes.only(*allowed)
       end
 
