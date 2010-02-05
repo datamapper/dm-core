@@ -4,7 +4,7 @@ module DataMapper
       # Relationship class with implementation specific
       # to n side of 1 to n association
       class Relationship < Associations::Relationship
-        OPTIONS = superclass::OPTIONS.dup << :required
+        OPTIONS = superclass::OPTIONS.dup << :required << :key
 
         # @api semipublic
         alias source_repository_name child_repository_name
@@ -24,6 +24,11 @@ module DataMapper
         # @api semipublic
         def required?
           @required
+        end
+
+        # @api semipublic
+        def key?
+          @key
         end
 
         # @api private
@@ -150,6 +155,7 @@ module DataMapper
           end
 
           @required      = options.fetch(:required, true)
+          @key           = options.fetch(:key,      false)
           target_model ||= Extlib::Inflection.camelize(name)
           options        = { :min => @required ? 1 : 0, :max => 1 }.update(options)
           super
@@ -210,7 +216,11 @@ module DataMapper
 
         # @api private
         def child_key_options(parent_property)
-          options = parent_property.options.only(:length, :precision, :scale).update(:index => name, :required => required?)
+          options = parent_property.options.only(:length, :precision, :scale).update(
+            :index    => name,
+            :required => required?,
+            :key      => key?
+          )
 
           min = parent_property.min
           max = parent_property.max

@@ -481,6 +481,18 @@ describe DataMapper::Associations do
       it { @car.should respond_to("#{@name}=") }
 
       it_should_behave_like 'it creates a one mutator'
+
+      describe 'with a :key option' do
+        before :all do
+          @relationship = Car.belongs_to("#{@name}_with_key".to_sym, @model, :required => false, :key => true)
+        end
+
+        it 'should create a foreign key that is part of the key' do
+          @relationship.child_key.each do |property|
+            property.should be_key
+          end
+        end
+      end
     end
 
     # TODO: refactor these specs into above structure once they pass

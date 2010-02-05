@@ -162,9 +162,9 @@ module DataMapper
             namespace.const_get(name)
           else
             model = Model.new do
-              # all properties added to the anonymous through model are keys by default
+              # all properties added to the anonymous through model are keys
               def property(name, type, options = {})
-                options[:key] = true unless options.key?(:key)
+                options[:key] = true
                 options.delete(:index)
                 super
               end
