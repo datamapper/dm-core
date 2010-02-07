@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Dan Kubb"]
-  s.date = %q{2010-02-04}
+  s.date = %q{2010-02-07}
   s.description = %q{Faster, Better, Simpler.}
   s.email = %q{dan.kubb@gmail.com}
   s.extra_rdoc_files = [
@@ -43,7 +43,6 @@ Gem::Specification.new do |s|
      "lib/dm-core/associations/one_to_one.rb",
      "lib/dm-core/associations/relationship.rb",
      "lib/dm-core/collection.rb",
-     "lib/dm-core/core_ext/enumerable.rb",
      "lib/dm-core/core_ext/kernel.rb",
      "lib/dm-core/core_ext/symbol.rb",
      "lib/dm-core/identity_map.rb",

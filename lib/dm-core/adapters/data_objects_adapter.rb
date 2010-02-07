@@ -685,7 +685,7 @@ module DataMapper
             else
               return conditions_statement(comparison.foreign_key_mapping, qualify)
             end
-          elsif comparison.slug == :in && value.empty?
+          elsif comparison.slug == :in && !value.any?
             return []  # match everything
           end
 

@@ -626,7 +626,7 @@ module DataMapper
 
         # @api private
         def valid_range?(range)
-          (!range.empty? || negated?) && valid_for_subject?(range.first) && valid_for_subject?(range.last)
+          (range.any? || negated?) && valid_for_subject?(range.first) && valid_for_subject?(range.last)
         end
 
         # @api private

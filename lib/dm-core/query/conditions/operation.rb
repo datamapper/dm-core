@@ -132,6 +132,17 @@ module DataMapper
           self.class.slug
         end
 
+        # Get the first operand
+        #
+        # @return [AbstractOperation, AbstractComparison, Array]
+        #   returns the first operand
+        #
+        # @api semipublic
+        def first
+          each { |operand| return operand }
+          nil
+        end
+
         # Iterate through each operand in the operation
         #
         # @yield [operand]
@@ -147,6 +158,26 @@ module DataMapper
         def each
           @operands.each { |op| yield op }
           self
+        end
+
+        # Test to see if there are operands
+        #
+        # @return [Boolean]
+        #   returns true if there are operands
+        #
+        # @api semipublic
+        def empty?
+          @operands.empty?
+        end
+
+        # Test to see if there is one operand
+        #
+        # @return [Boolean]
+        #   true if there is only one operand
+        #
+        # @api semipublic
+        def one?
+          @operands.size == 1
         end
 
         # Test if the operation is valid
