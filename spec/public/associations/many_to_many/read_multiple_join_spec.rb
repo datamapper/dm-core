@@ -2,7 +2,7 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'sp
 
 describe 'Many to Many Associations read across multiple join associations' do
   before :all do
-    class User
+    class ::User
       include DataMapper::Resource
 
       property :id, Serial
@@ -12,7 +12,7 @@ describe 'Many to Many Associations read across multiple join associations' do
       has n, :items,      :through => :sale_items
     end
 
-    class Sale
+    class ::Sale
       include DataMapper::Resource
 
       property :id, Serial
@@ -22,7 +22,7 @@ describe 'Many to Many Associations read across multiple join associations' do
       has n, :items, :through => :sale_items
     end
 
-    class SaleItem
+    class ::SaleItem
       include DataMapper::Resource
 
       property :id, Serial
@@ -31,7 +31,7 @@ describe 'Many to Many Associations read across multiple join associations' do
       belongs_to :item
     end
 
-    class Item
+    class ::Item
       include DataMapper::Resource
 
       property :id, Serial
