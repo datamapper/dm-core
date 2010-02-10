@@ -101,9 +101,7 @@ module DataMapper
       #
       # @api public
       def has(cardinality, name, *args)
-        assert_kind_of 'cardinality', cardinality, Integer, Range, Infinity.class
-        assert_kind_of 'name',        name,        Symbol
-
+        name    = name.to_sym
         model   = extract_model(args)
         options = extract_options(args)
 
@@ -165,8 +163,7 @@ module DataMapper
       #
       # @api public
       def belongs_to(name, *args)
-        assert_kind_of 'name', name, Symbol
-
+        name       = name.to_sym
         model_name = self.name
         model      = extract_model(args)
         options    = extract_options(args)
@@ -236,12 +233,7 @@ module DataMapper
       # @api private
       def extract_options(args)
         options = args.last
-
-        if options.kind_of?(Hash)
-          options.dup
-        else
-          {}
-        end
+        options.respond_to?(:to_hash) ? options.to_hash.dup : {}
       end
 
       # A support method for converting Integer, Range or Infinity values into two
@@ -255,6 +247,8 @@ module DataMapper
           when Integer  then [ cardinality,       cardinality      ]
           when Range    then [ cardinality.first, cardinality.last ]
           when Infinity then [ 0,                 Infinity         ]
+          else
+            assert_kind_of 'options', options, Integer, Range, Infinity.class
         end
       end
 
@@ -273,8 +267,8 @@ module DataMapper
           min = options[:min]
           max = options[:max]
 
-          assert_kind_of 'options[:min]', min, Integer
-          assert_kind_of 'options[:max]', max, Integer, Infinity.class
+          min = min.to_int unless min == Infinity
+          max = max.to_int unless max == Infinity
 
           if min == Infinity && max == Infinity
             raise ArgumentError, 'Cardinality may not be n..n.  The cardinality specifies the min/max number of results from the association'
@@ -288,23 +282,17 @@ module DataMapper
         end
 
         if options.key?(:repository)
-          repository = options[:repository]
-
-          assert_kind_of 'options[:repository]', repository, Repository, Symbol
-
-          if repository.kind_of?(Repository)
-            options[:repository] = repository.name
-          end
+          options[:repository] = options[:repository].to_sym
         end
 
         if options.key?(:class_name)
-          assert_kind_of 'options[:class_name]', options[:class_name], String
+          options[:class_name] = options[:class_name].to_str
           warn "+options[:class_name]+ is deprecated, use :model instead (#{caller_method})"
           options[:model] = options.delete(:class_name)
         end
 
         if options.key?(:remote_name)
-          assert_kind_of 'options[:remote_name]', options[:remote_name], Symbol
+          options[:remote_name] = options[:remote_name].to_sym
           warn "+options[:remote_name]+ is deprecated, use :via instead (#{caller_method})"
           options[:via] = options.delete(:remote_name)
         end

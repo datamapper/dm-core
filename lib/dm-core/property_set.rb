@@ -25,7 +25,7 @@ module DataMapper
 
     # @api semipublic
     def named?(name)
-      @properties.key?(name)
+      @properties.key?(name.to_sym)
     end
 
     # @api semipublic

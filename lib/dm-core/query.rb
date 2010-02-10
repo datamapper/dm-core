@@ -349,13 +349,12 @@ module DataMapper
     #
     # @api semipublic
     def update(other)
-      assert_kind_of 'other', other, self.class, Hash
-
       other_options = if kind_of?(other.class)
         return self if self.eql?(other)
         assert_valid_other(other)
         other.options
       else
+        other = other.to_hash
         return self if other.empty?
         other
       end
@@ -401,7 +400,7 @@ module DataMapper
     #
     # @api semipublic
     def relative(options)
-      assert_kind_of 'options', options, Hash
+      options = options.to_hash
 
       offset = nil
       limit  = self.limit
@@ -763,7 +762,7 @@ module DataMapper
     #
     # @api private
     def assert_valid_options(options)
-      assert_kind_of 'options', options, Hash
+      options = options.to_hash
 
       options.each do |attribute, value|
         case attribute
@@ -785,7 +784,7 @@ module DataMapper
     #
     # @api private
     def assert_valid_fields(fields, unique)
-      assert_kind_of 'options[:fields]', fields, Array
+      fields = fields.to_ary
 
       model = self.model
 
@@ -814,7 +813,7 @@ module DataMapper
     #
     # @api private
     def assert_valid_links(links)
-      assert_kind_of 'options[:links]', links, Array
+      links = links.to_ary
 
       if links.empty?
         raise ArgumentError, '+options[:links]+ should not be empty'
@@ -899,7 +898,7 @@ module DataMapper
     # Verifies that query offset is non-negative and only used together with limit
     # @api private
     def assert_valid_offset(offset, limit)
-      assert_kind_of 'options[:offset]', offset, Integer
+      offset = offset.to_int
 
       unless offset >= 0
         raise ArgumentError, "+options[:offset]+ must be greater than or equal to 0, but was #{offset.inspect}"
@@ -917,7 +916,7 @@ module DataMapper
     #
     # @api private
     def assert_valid_limit(limit)
-      assert_kind_of 'options[:limit]', limit, Integer
+      limit = limit.to_int
 
       unless limit >= 0
         raise ArgumentError, "+options[:limit]+ must be greater than or equal to 0, but was #{limit.inspect}"

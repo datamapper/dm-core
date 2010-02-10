@@ -112,7 +112,7 @@ module DataMapper
       #
       # @api private
       def load_adapter(name)
-        assert_kind_of 'name', name, String, Symbol
+        name = name.to_sym
 
         lib  = "#{name}_adapter"
         file = DataMapper.root / 'lib' / 'dm-core' / 'adapters' / "#{lib}.rb"

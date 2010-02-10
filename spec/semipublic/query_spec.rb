@@ -171,7 +171,7 @@ describe DataMapper::Query do
         it 'should raise an exception' do
           lambda {
             DataMapper::Query.new(@repository, @model, @options.update(:fields => :name))
-          }.should raise_error(ArgumentError, '+options[:fields]+ should be Array, but was Symbol')
+          }.should raise_error(StandardError)
         end
       end
 
@@ -265,7 +265,7 @@ describe DataMapper::Query do
         it 'should raise an exception' do
           lambda {
             DataMapper::Query.new(@repository, @model, @options.update(:links => :referral))
-          }.should raise_error(ArgumentError, '+options[:links]+ should be Array, but was Symbol')
+          }.should raise_error(StandardError)
         end
       end
 
@@ -834,7 +834,7 @@ describe DataMapper::Query do
         it 'should raise an exception' do
           lambda {
             DataMapper::Query.new(@repository, @model, @options.update(:offset => '0'))
-          }.should raise_error(ArgumentError, '+options[:offset]+ should be Integer, but was String')
+          }.should raise_error(StandardError)
         end
       end
 
@@ -884,7 +884,7 @@ describe DataMapper::Query do
         it 'should raise an exception' do
           lambda {
             DataMapper::Query.new(@repository, @model, @options.update(:limit => '1'))
-          }.should raise_error(ArgumentError, '+options[:limit]+ should be Integer, but was String')
+          }.should raise_error(StandardError)
         end
       end
 
@@ -1268,7 +1268,7 @@ describe DataMapper::Query do
         it 'should raise an exception' do
           lambda {
             DataMapper::Query.new(@repository, @model, 'invalid')
-          }.should raise_error(ArgumentError, '+options+ should be Hash, but was String')
+          }.should raise_error(StandardError)
         end
       end
     end

@@ -62,16 +62,14 @@ module DataMapper
 
       # @api semipublic
       def initialize(relationships, property_name = nil)
-        assert_kind_of 'relationships', relationships, Array
-        assert_kind_of 'property_name', property_name, Symbol, NilClass
-
-        @relationships = relationships.dup
+        @relationships = relationships.to_ary.dup
 
         last_relationship = @relationships.last
         @repository_name  = last_relationship.relative_target_repository_name
         @model            = last_relationship.target_model
 
         if property_name
+          property_name = property_name.to_sym
           @property = @model.properties(@repository_name)[property_name] ||
             raise(ArgumentError, "Unknown property '#{property_name}' in #{@model}")
         end

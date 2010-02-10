@@ -785,12 +785,8 @@ module DataMapper
 
     # @api semipublic
     def initialize(model, name, type, options = {})
-      assert_kind_of 'model',   model,   Model
-      assert_kind_of 'name',    name,    Symbol
-      assert_kind_of 'type',    type,    Class, Module
-      assert_kind_of 'options', options, Hash
-
-      options       = options.dup
+      name          = name.to_sym
+      options       = options.to_hash.dup
       caller_method = caller[2]
 
       if TrueClass == type

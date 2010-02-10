@@ -195,7 +195,7 @@ module DataMapper
     context = Repository.context
 
     current_repository = if name
-      assert_kind_of 'name', name, Symbol
+      name = name.to_sym
       context.detect { |repository| repository.name == name }
     else
       name = Repository.default_name
