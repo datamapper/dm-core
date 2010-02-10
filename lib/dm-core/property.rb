@@ -289,7 +289,7 @@ module DataMapper
   # * You may declare a Property with the data-type of <tt>Class</tt>.
   #   see SingleTableInheritance for more on how to use <tt>Class</tt> columns.
   class Property
-    include Extlib::Assertions
+    include DataMapper::Assertions
     extend Deprecate
     extend Equalizer
 

@@ -6,7 +6,7 @@ module DataMapper
     # (1 to 1, 1 to n, n to m) implements a subclass of this class
     # with methods like get and set overridden.
     class Relationship
-      include Extlib::Assertions
+      include DataMapper::Assertions
 
       OPTIONS = [ :child_repository_name, :parent_repository_name, :child_key, :parent_key, :min, :max, :inverse, :reader_visibility, :writer_visibility ].to_set
 

@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Dan Kubb"]
-  s.date = %q{2010-02-10}
+  s.date = %q{2010-03-18}
   s.description = %q{Faster, Better, Simpler.}
   s.email = %q{dan.kubb@gmail.com}
   s.extra_rdoc_files = [
@@ -20,6 +20,7 @@ Gem::Specification.new do |s|
     ".autotest",
      ".document",
      ".gitignore",
+     "Gemfile",
      "LICENSE",
      "README.rdoc",
      "Rakefile",
@@ -42,8 +43,15 @@ Gem::Specification.new do |s|
      "lib/dm-core/associations/one_to_one.rb",
      "lib/dm-core/associations/relationship.rb",
      "lib/dm-core/collection.rb",
+     "lib/dm-core/core_ext/array.rb",
+     "lib/dm-core/core_ext/hash.rb",
      "lib/dm-core/core_ext/kernel.rb",
+     "lib/dm-core/core_ext/module.rb",
+     "lib/dm-core/core_ext/object.rb",
+     "lib/dm-core/core_ext/pathname.rb",
+     "lib/dm-core/core_ext/string.rb",
      "lib/dm-core/core_ext/symbol.rb",
+     "lib/dm-core/core_ext/try_dup.rb",
      "lib/dm-core/identity_map.rb",
      "lib/dm-core/migrations.rb",
      "lib/dm-core/model.rb",
@@ -66,9 +74,12 @@ Gem::Specification.new do |s|
      "lib/dm-core/resource.rb",
      "lib/dm-core/spec/adapter_shared_spec.rb",
      "lib/dm-core/spec/data_objects_adapter_shared_spec.rb",
+     "lib/dm-core/support/assertions.rb",
      "lib/dm-core/support/chainable.rb",
      "lib/dm-core/support/deprecate.rb",
      "lib/dm-core/support/equalizer.rb",
+     "lib/dm-core/support/hook.rb",
+     "lib/dm-core/support/lazy_array.rb",
      "lib/dm-core/support/logger.rb",
      "lib/dm-core/support/naming_conventions.rb",
      "lib/dm-core/transaction.rb",
@@ -141,6 +152,13 @@ Gem::Specification.new do |s|
      "spec/semipublic/shared/resource_shared_spec.rb",
      "spec/spec.opts",
      "spec/spec_helper.rb",
+     "spec/unit/array_spec.rb",
+     "spec/unit/hash_spec.rb",
+     "spec/unit/hook_spec.rb",
+     "spec/unit/lazy_array_spec.rb",
+     "spec/unit/module_spec.rb",
+     "spec/unit/object_spec.rb",
+     "spec/unit/try_dup_spec.rb",
      "tasks/ci.rake",
      "tasks/metrics.rake",
      "tasks/spec.rake",
@@ -151,7 +169,7 @@ Gem::Specification.new do |s|
   s.rdoc_options = ["--charset=UTF-8"]
   s.require_paths = ["lib"]
   s.rubyforge_project = %q{datamapper}
-  s.rubygems_version = %q{1.3.5}
+  s.rubygems_version = %q{1.3.6}
   s.summary = %q{An Object/Relational Mapper for Ruby}
   s.test_files = [
     "spec/lib/adapter_helpers.rb",
@@ -208,7 +226,14 @@ Gem::Specification.new do |s|
      "spec/semipublic/resource_spec.rb",
      "spec/semipublic/shared/condition_shared_spec.rb",
      "spec/semipublic/shared/resource_shared_spec.rb",
-     "spec/spec_helper.rb"
+     "spec/spec_helper.rb",
+     "spec/unit/array_spec.rb",
+     "spec/unit/hash_spec.rb",
+     "spec/unit/hook_spec.rb",
+     "spec/unit/lazy_array_spec.rb",
+     "spec/unit/module_spec.rb",
+     "spec/unit/object_spec.rb",
+     "spec/unit/try_dup_spec.rb"
   ]
 
   if s.respond_to? :specification_version then
@@ -218,17 +243,20 @@ Gem::Specification.new do |s|
     if Gem::Version.new(Gem::RubyGemsVersion) >= Gem::Version.new('1.2.0') then
       s.add_runtime_dependency(%q<extlib>, ["~> 0.9.14"])
       s.add_runtime_dependency(%q<addressable>, ["~> 2.1"])
+      s.add_development_dependency(%q<bundler>, ["~> 0.9.11"])
       s.add_development_dependency(%q<rspec>, ["~> 1.3"])
       s.add_development_dependency(%q<yard>, ["~> 0.5"])
     else
       s.add_dependency(%q<extlib>, ["~> 0.9.14"])
       s.add_dependency(%q<addressable>, ["~> 2.1"])
+      s.add_dependency(%q<bundler>, ["~> 0.9.11"])
       s.add_dependency(%q<rspec>, ["~> 1.3"])
       s.add_dependency(%q<yard>, ["~> 0.5"])
     end
   else
     s.add_dependency(%q<extlib>, ["~> 0.9.14"])
     s.add_dependency(%q<addressable>, ["~> 2.1"])
+    s.add_dependency(%q<bundler>, ["~> 0.9.11"])
     s.add_dependency(%q<rspec>, ["~> 1.3"])
     s.add_dependency(%q<yard>, ["~> 0.5"])
   end

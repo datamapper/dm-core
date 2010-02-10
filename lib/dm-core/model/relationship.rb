@@ -6,7 +6,7 @@ module DataMapper
     module Relationship
       Model.append_extensions self
 
-      include Extlib::Assertions
+      include DataMapper::Assertions
       extend Chainable
 
       # Initializes relationships hash for extended model

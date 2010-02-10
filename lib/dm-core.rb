@@ -2,11 +2,53 @@ require 'addressable/uri'
 require 'bigdecimal'
 require 'bigdecimal/util'
 require 'date'
-require 'extlib'
 require 'pathname'
 require 'set'
 require 'time'
 require 'yaml'
+
+begin
+
+  # Prefer active_support
+
+  require 'active_support/core_ext/object/singleton_class'
+  require 'active_support/core_ext/class/inheritable_attributes'
+  require 'active_support/core_ext/object/blank'
+  require 'active_support/core_ext/hash/except'
+
+  require 'active_support/hash_with_indifferent_access'
+  require 'active_support/inflector'
+
+  Mash = ActiveSupport::HashWithIndifferentAccess
+
+  require 'dm-core/core_ext/hash'
+  require 'dm-core/core_ext/object'
+  require 'dm-core/core_ext/string'
+
+rescue LoadError
+
+  # Default to extlib
+
+  require 'extlib/inflection'
+  require 'extlib/mash'
+  require 'extlib/string'
+  require 'extlib/hash'
+  require 'extlib/object'
+  require 'extlib/class'
+
+  class Object
+    unless respond_to?(:singleton_class)
+      def singleton_class
+        class << self; self end
+      end
+    end
+  end
+
+  module ActiveSupport
+    Inflector = Extlib::Inflection
+  end
+
+end
 
 begin
   require 'fastthread'
@@ -14,59 +56,65 @@ rescue LoadError
   # fastthread not installed
 end
 
-dir = Pathname(__FILE__).dirname.expand_path / 'dm-core'
+require 'dm-core/core_ext/pathname'
+require 'dm-core/core_ext/module'
+require 'dm-core/core_ext/array'
 
-require dir / 'support' / 'chainable'
-require dir / 'support' / 'deprecate'
-require dir / 'support' / 'equalizer'
+require 'dm-core/support/chainable'
+require 'dm-core/support/deprecate'
+require 'dm-core/support/equalizer'
+require 'dm-core/support/assertions'
+require 'dm-core/support/lazy_array'
+require 'dm-core/support/hook'
 
-require dir / 'model'
-require dir / 'model' / 'descendant_set'
-require dir / 'model' / 'hook'
-require dir / 'model' / 'is'
-require dir / 'model' / 'scope'
-require dir / 'model' / 'relationship'
-require dir / 'model' / 'property'
 
-require dir / 'collection'
+require 'dm-core/model'
+require 'dm-core/model/descendant_set'
+require 'dm-core/model/hook'
+require 'dm-core/model/is'
+require 'dm-core/model/scope'
+require 'dm-core/model/relationship'
+require 'dm-core/model/property'
 
-require dir / 'type'
-require dir / 'types' / 'boolean'
-require dir / 'types' / 'discriminator'
-require dir / 'types' / 'text'
-require dir / 'types' / 'paranoid' / 'base'
-require dir / 'types' / 'paranoid_datetime'     # TODO: move to dm-more
-require dir / 'types' / 'paranoid_boolean'      # TODO: move to dm-more
-require dir / 'types' / 'object'
-require dir / 'types' / 'serial'
+require 'dm-core/collection'
 
-require dir / 'adapters'
-require dir / 'adapters' / 'abstract_adapter'
-require dir / 'associations' / 'relationship'
-require dir / 'associations' / 'one_to_many'
-require dir / 'associations' / 'one_to_one'
-require dir / 'associations' / 'many_to_one'
-require dir / 'associations' / 'many_to_many'
-require dir / 'identity_map'
-require dir / 'migrations'                      # TODO: move to dm-more
-require dir / 'property'
-require dir / 'property_set'
-require dir / 'query'
-require dir / 'query' / 'conditions' / 'operation'
-require dir / 'query' / 'conditions' / 'comparison'
-require dir / 'query' / 'operator'
-require dir / 'query' / 'direction'
-require dir / 'query' / 'path'
-require dir / 'query' / 'sort'
-require dir / 'repository'
-require dir / 'resource'
-require dir / 'support' / 'logger'
-require dir / 'support' / 'naming_conventions'
-require dir / 'transaction'                     # TODO: move to dm-more
-require dir / 'version'
+require 'dm-core/type'
+require 'dm-core/types/boolean'
+require 'dm-core/types/discriminator'
+require 'dm-core/types/text'
+require 'dm-core/types/paranoid/base'
+require 'dm-core/types/paranoid_datetime'     # TODO: move to dm-more
+require 'dm-core/types/paranoid_boolean'      # TODO: move to dm-more
+require 'dm-core/types/object'
+require 'dm-core/types/serial'
 
-require dir / 'core_ext' / 'kernel'             # TODO: do not load automatically
-require dir / 'core_ext' / 'symbol'             # TODO: do not load automatically
+require 'dm-core/adapters'
+require 'dm-core/adapters/abstract_adapter'
+require 'dm-core/associations/relationship'
+require 'dm-core/associations/one_to_many'
+require 'dm-core/associations/one_to_one'
+require 'dm-core/associations/many_to_one'
+require 'dm-core/associations/many_to_many'
+require 'dm-core/identity_map'
+require 'dm-core/migrations'                  # TODO: move to dm-more
+require 'dm-core/property'
+require 'dm-core/property_set'
+require 'dm-core/query'
+require 'dm-core/query/conditions/operation'
+require 'dm-core/query/conditions/comparison'
+require 'dm-core/query/operator'
+require 'dm-core/query/direction'
+require 'dm-core/query/path'
+require 'dm-core/query/sort'
+require 'dm-core/repository'
+require 'dm-core/resource'
+require 'dm-core/support/logger'
+require 'dm-core/support/naming_conventions'
+require 'dm-core/transaction'                 # TODO: move to dm-more
+require 'dm-core/version'
+
+require 'dm-core/core_ext/kernel'             # TODO: do not load automatically
+require 'dm-core/core_ext/symbol'             # TODO: do not load automatically
 
 # A logger should always be present. Lets be consistent with DO
 DataMapper::Logger.new(StringIO.new, :fatal)
@@ -121,7 +169,7 @@ end
 # see DataMapper::Logger for more information.
 #
 module DataMapper
-  extend Extlib::Assertions
+  extend DataMapper::Assertions
 
   class RepositoryNotSetupError < StandardError; end
 

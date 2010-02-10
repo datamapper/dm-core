@@ -66,7 +66,7 @@ module DataMapper
       end # class Operation
 
       class AbstractOperation
-        include Extlib::Assertions
+        include DataMapper::Assertions
         include Enumerable
         extend Equalizer
 

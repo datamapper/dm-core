@@ -14,7 +14,7 @@ module DataMapper
         undef_method method
       end
 
-      include Extlib::Assertions
+      include DataMapper::Assertions
       extend Equalizer
 
       equalize :relationships, :property

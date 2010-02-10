@@ -74,7 +74,7 @@ module DataMapper
 
         # @api semipublic
         def initialize(name, target_model, source_model, options = {})
-          target_model ||= Extlib::Inflection.camelize(name.to_s.singular)
+          target_model ||= ActiveSupport::Inflector.camelize(name.to_s.singularize)
           options        = { :min => 0, :max => source_model.n }.update(options)
           super
         end
@@ -135,7 +135,7 @@ module DataMapper
         #
         # @api private
         def inverse_name
-          super || Extlib::Inflection.underscore(Extlib::Inflection.demodulize(source_model.name)).to_sym
+          super || ActiveSupport::Inflector.underscore(ActiveSupport::Inflector.demodulize(source_model.name)).to_sym
         end
 
         # @api private

@@ -3,7 +3,7 @@
 
 module DataMapper
   module Resource
-    include Extlib::Assertions
+    include DataMapper::Assertions
     extend Chainable
     extend Deprecate
 

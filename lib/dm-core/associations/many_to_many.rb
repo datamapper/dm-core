@@ -196,7 +196,7 @@ module DataMapper
         def through_relationship_name
           if anonymous_through_model?
             namespace = through_model_namespace_name.first
-            relationship_name = Extlib::Inflection.underscore(through_model.name.sub(/\A#{namespace.name}::/, '')).tr('/', '_')
+            relationship_name = ActiveSupport::Inflector.underscore(through_model.name.sub(/\A#{namespace.name}::/, '')).tr('/', '_')
             relationship_name.pluralize.to_sym
           else
             options[:through]

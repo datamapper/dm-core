@@ -12,8 +12,8 @@ module DataMapper
     # Note that in case of adapters to relational databases it makes
     # sense to inherit from DataObjectsAdapter class.
     class AbstractAdapter
-      include Extlib::Assertions
-      extend Extlib::Assertions
+      include DataMapper::Assertions
+      extend DataMapper::Assertions
       extend Equalizer
 
       equalize :name, :options, :resource_naming_convention, :field_naming_convention

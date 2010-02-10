@@ -20,7 +20,7 @@ share_examples_for 'A Collection supporting Strategic Eager Loading' do
     before :all do
       @original_adapter = @adapter
 
-      @adapter.meta_class.class_eval do
+      @adapter.singleton_class.class_eval do
         def eql?(other)
           super || self == other
         end
@@ -75,7 +75,7 @@ share_examples_for 'A Resource supporting Strategic Eager Loading' do
     before :all do
       @original_adapter = @adapter
 
-      @adapter.meta_class.class_eval do
+      @adapter.singleton_class.class_eval do
         def eql?(other)
           super || other == self
         end

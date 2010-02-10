@@ -1,7 +1,7 @@
 module DataMapper
   module Adapters
     extend Chainable
-    extend Extlib::Assertions
+    extend DataMapper::Assertions
 
     # Set up an adapter for a storage engine
     #
@@ -97,7 +97,7 @@ module DataMapper
       #
       # @api private
       def adapter_class(name)
-        class_name = (Extlib::Inflection.camelize(name) << 'Adapter').to_sym
+        class_name = (ActiveSupport::Inflector.camelize(name) << 'Adapter').to_sym
         load_adapter(name) unless const_defined?(class_name)
         const_get(class_name)
       end

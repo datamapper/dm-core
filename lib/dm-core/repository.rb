@@ -1,6 +1,6 @@
 module DataMapper
   class Repository
-    include Extlib::Assertions
+    include DataMapper::Assertions
     extend Equalizer
 
     equalize :name, :adapter

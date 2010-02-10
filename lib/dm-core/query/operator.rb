@@ -8,7 +8,7 @@
 module DataMapper
   class Query
     class Operator
-      include Extlib::Assertions
+      include DataMapper::Assertions
       extend Equalizer
 
       equalize :target, :operator

@@ -4,7 +4,7 @@ module DataMapper
       Model.append_inclusions self
 
       def self.included(model)
-        model.send(:include, Extlib::Hook)
+        model.send(:include, DataMapper::Hook)
         model.extend Methods
         model.register_instance_hooks :create_hook, :update_hook, :destroy_hook
       end

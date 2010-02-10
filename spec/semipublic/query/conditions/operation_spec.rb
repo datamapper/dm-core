@@ -107,7 +107,7 @@ shared_examples_for 'DataMapper::Query::Conditions::AbstractOperation' do
     describe 'when the other AbstractOperation is equal' do
       # artifically modify the object so #eql? will throw an
       # exception if the equal? branch is not followed when heckling
-      before { @operation.meta_class.send(:undef_method, :slug) }
+      before { @operation.singleton_class.send(:undef_method, :slug) }
 
       subject { @operation == @operation }
 
@@ -247,7 +247,7 @@ shared_examples_for 'DataMapper::Query::Conditions::AbstractOperation' do
     describe 'when the other AbstractOperation is equal' do
       # artifically modify the object so #eql? will throw an
       # exception if the equal? branch is not followed when heckling
-      before { @operation.meta_class.send(:undef_method, :slug) }
+      before { @operation.singleton_class.send(:undef_method, :slug) }
 
       subject { @operation.eql?(@operation) }
 

@@ -1436,7 +1436,7 @@ module DataMapper
 
       if model.model_method_defined?(method)
         delegate_to_model(method, *args, &block)
-      elsif relationship = relationships[method] || relationships[method.to_s.singular.to_sym]
+      elsif relationship = relationships[method] || relationships[method.to_s.singularize.to_sym]
         delegate_to_relationship(relationship, *args)
       else
         super

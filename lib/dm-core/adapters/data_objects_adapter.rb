@@ -262,7 +262,7 @@ module DataMapper
 
       # @api private
       def select_fields(reader, fields)
-        fields = fields.map { |field| Extlib::Inflection.underscore(field).to_sym }
+        fields = fields.map { |field| ActiveSupport::Inflector.underscore(field).to_sym }
         struct = Struct.new(*fields)
 
         results = []

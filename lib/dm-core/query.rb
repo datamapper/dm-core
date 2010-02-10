@@ -26,7 +26,7 @@ module DataMapper
   # Generally Query objects can be found inside Collection objects.
   #
   class Query
-    include Extlib::Assertions
+    include DataMapper::Assertions
     extend Equalizer
 
     OPTIONS = [ :fields, :links, :conditions, :offset, :limit, :order, :unique, :add_reversed, :reload ].to_set.freeze

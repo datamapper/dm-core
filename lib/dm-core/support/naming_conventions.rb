@@ -28,25 +28,25 @@ module DataMapper
 
       module UnderscoredAndPluralized
         def self.call(name)
-          Extlib::Inflection.pluralize(Extlib::Inflection.underscore(name)).gsub('/', '_')
+          ActiveSupport::Inflector.pluralize(ActiveSupport::Inflector.underscore(name)).gsub('/', '_')
         end
       end # module UnderscoredAndPluralized
 
       module UnderscoredAndPluralizedWithoutModule
         def self.call(name)
-          Extlib::Inflection.pluralize(Extlib::Inflection.underscore(Extlib::Inflection.demodulize(name)))
+          ActiveSupport::Inflector.pluralize(ActiveSupport::Inflector.underscore(ActiveSupport::Inflector.demodulize(name)))
         end
       end # module UnderscoredAndPluralizedWithoutModule
 
       module Underscored
         def self.call(name)
-          Extlib::Inflection.underscore(name)
+          ActiveSupport::Inflector.underscore(name)
         end
       end # module Underscored
 
       module Yaml
         def self.call(name)
-          "#{Extlib::Inflection.pluralize(Extlib::Inflection.underscore(name))}.yaml"
+          "#{ActiveSupport::Inflector.pluralize(ActiveSupport::Inflector.underscore(name))}.yaml"
         end
       end # module Yaml
 
@@ -56,25 +56,25 @@ module DataMapper
 
       module UnderscoredAndPluralized
         def self.call(property)
-          Extlib::Inflection.pluralize(Extlib::Inflection.underscore(property.name.to_s)).gsub('/', '_')
+          ActiveSupport::Inflector.pluralize(ActiveSupport::Inflector.underscore(property.name.to_s)).gsub('/', '_')
         end
       end # module UnderscoredAndPluralized
 
       module UnderscoredAndPluralizedWithoutModule
         def self.call(property)
-          Extlib::Inflection.pluralize(Extlib::Inflection.underscore(Extlib::Inflection.demodulize(property.name.to_s)))
+          ActiveSupport::Inflector.pluralize(ActiveSupport::Inflector.underscore(ActiveSupport::Inflector.demodulize(property.name.to_s)))
         end
       end # module UnderscoredAndPluralizedWithoutModule
 
       module Underscored
         def self.call(property)
-          Extlib::Inflection.underscore(property.name.to_s)
+          ActiveSupport::Inflector.underscore(property.name.to_s)
         end
       end # module Underscored
 
       module Yaml
         def self.call(property)
-          "#{Extlib::Inflection.pluralize(Extlib::Inflection.underscore(property.name.to_s))}.yaml"
+          "#{ActiveSupport::Inflector.pluralize(ActiveSupport::Inflector.underscore(property.name.to_s))}.yaml"
         end
       end # module Yaml
 

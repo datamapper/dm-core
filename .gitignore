@@ -21,6 +21,10 @@ tmp
 doc
 log
 .yardoc
+measurements
+
+## BUNDLER
+.bundle
 
 ## PROJECT::SPECIFIC
 

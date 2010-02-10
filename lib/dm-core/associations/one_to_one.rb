@@ -51,7 +51,7 @@ module DataMapper
         # @api semipublic
         def initialize(name, target_model, source_model, options = {})
           klass = options.key?(:through) ? ManyToMany::Relationship : OneToMany::Relationship
-          target_model ||= Extlib::Inflection.camelize(name).freeze
+          target_model ||= ActiveSupport::Inflector.camelize(name).freeze
           @relationship = klass.new(name, target_model, source_model, options)
         end
 

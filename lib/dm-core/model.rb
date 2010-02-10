@@ -33,7 +33,7 @@ module DataMapper
         warn "Passing in +storage_name+ to #{name}.new is deprecated (#{caller[0]})"
         model.class_eval <<-RUBY, __FILE__, __LINE__ + 1
           def self.default_storage_name
-            #{Extlib::Inflection.classify(storage_name).inspect}.freeze
+            #{ActiveSupport::Inflector.classify(storage_name).inspect}.freeze
           end
         RUBY
       end
@@ -780,7 +780,7 @@ module DataMapper
 
     # @api private
     def model_methods
-      @model_methods ||= ancestor_instance_methods { |mod| mod.meta_class }
+      @model_methods ||= ancestor_instance_methods { |mod| mod.singleton_class }
     end
 
     # @api private
