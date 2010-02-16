@@ -227,28 +227,15 @@ module DataMapper
         #
         # @api semipublic
         def open_connection
-          # DataObjects::Connection.new(uri) will give you back the right
-          # driver based on the DataObjects::URI#scheme
-          connection_stack = self.connection_stack
-          connection = connection_stack.last || DataObjects::Connection.new(normalized_uri)
-          connection_stack << connection
-          connection
+          DataObjects::Connection.new(normalized_uri)
         end
 
         # Takes connection and closes it
         #
         # @api semipublic
         def close_connection(connection)
-          connection_stack = self.connection_stack
-          connection_stack.pop
-          connection.close if connection_stack.empty?
+          connection.close if connection.respond_to?(:close)
         end
-      end
-
-      # @api private
-      def connection_stack
-        connection_stack_for = Thread.current[:dm_do_connection_stack] ||= {}
-        connection_stack_for[object_id] ||= []
       end
 
       private
@@ -265,14 +252,12 @@ module DataMapper
 
       # @api private
       def with_connection
-        begin
-          yield connection = open_connection
-        rescue Exception => exception
-          DataMapper.logger.error(exception.to_s)
-          raise exception
-        ensure
-          close_connection(connection) if connection
-        end
+        yield connection = open_connection
+      rescue Exception => exception
+        DataMapper.logger.error(exception.to_s)
+        raise
+      ensure
+        close_connection(connection)
       end
 
       # @api private

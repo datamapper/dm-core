@@ -414,9 +414,7 @@ module DataMapper
 
         # @api semipublic
         def close_connection(connection)
-          unless current_connection == connection
-            super
-          end
+          super unless current_connection.equal?(connection)
         end
       end
 
