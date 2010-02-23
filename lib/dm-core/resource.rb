@@ -385,7 +385,9 @@ module DataMapper
     # @api public
     def save
       assert_not_destroyed(:save)
-      _save(true)
+      result = _save(true)
+      assert_save_successful(:save, result)
+      result
     end
 
     # Save the instance and loaded, dirty associations to the data-store, bypassing hooks
@@ -396,7 +398,9 @@ module DataMapper
     # @api public
     def save!
       assert_not_destroyed(:save!)
-      _save(false)
+      result = _save(false)
+      assert_save_successful(:save!, result)
+      result
     end
 
     # Destroy the instance, remove it from the repository
@@ -1109,6 +1113,25 @@ module DataMapper
     def assert_not_destroyed(method)
       if destroyed?
         raise PersistenceError, "#{model}##{method} cannot be called on a destroyed resource"
+      end
+    end
+
+    # Raises an exception if #save returns false
+    #
+    # @param [Symbol] method
+    #   the name of the method to use in the exception
+    # @param [Boolean] save_result
+    #   the result of the #save call
+    #
+    # @return [undefined]
+    #
+    # @raise [SaveFailureError]
+    #   raise if the resource was not saved
+    #
+    # @api private
+    def assert_save_successful(method, save_result)
+      if save_result != true && raise_on_save_failure
+        raise SaveFailureError, "#{model}##{method} returned #{save_result.inspect}, #{model} was not saved"
       end
     end
 

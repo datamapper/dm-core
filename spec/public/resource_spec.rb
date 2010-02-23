@@ -151,5 +151,31 @@ describe DataMapper::Resource do
         end
       end
     end
+
+    [ :save, :save! ].each do |method|
+      describe "##{method}" do
+        subject { @user.__send__(method) }
+
+        describe 'when raise_on_save_failure is true' do
+          before do
+            @user.raise_on_save_failure = true
+          end
+
+          describe 'and it is a savable resource' do
+            it { should be_true }
+          end
+
+          describe 'and it is an invalid resource' do
+            before do
+              @user.name = nil  # name is required
+            end
+
+            it 'should raise an exception' do
+              method(:subject).should raise_error(DataMapper::SaveFailureError, "Blog::User##{method} returned false, Blog::User was not saved")
+            end
+          end
+        end
+      end
+    end
   end
 end

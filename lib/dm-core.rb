@@ -137,6 +137,8 @@ module DataMapper
 
   class UpdateConflictError < PersistenceError; end
 
+  class SaveFailureError < PersistenceError; end
+
   # Raised on attempt to operate on collection of child objects
   # when parent object is not yet saved.
   # For instance, if your article object is not saved,
