@@ -123,6 +123,14 @@ Spec::Runner.configure do |config|
     end
   end
 
+  def reset_raise_on_save_failure(object)
+    object.instance_eval do
+      if defined?(@raise_on_save_failure)
+        remove_instance_variable(:@raise_on_save_failure)
+      end
+    end
+  end
+
   config.after :all do
     # global model cleanup
     descendants = DataMapper::Model.descendants.to_a

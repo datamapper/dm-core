@@ -76,5 +76,80 @@ describe DataMapper::Resource do
 
     it_should_behave_like 'A public Resource'
     it_should_behave_like 'A Resource supporting Strategic Eager Loading'
+
+    it 'A resource should respond to raise_on_save_failure' do
+      @user.should respond_to(:raise_on_save_failure)
+    end
+
+    describe '#raise_on_save_failure' do
+      after do
+        # reset to the default value
+        reset_raise_on_save_failure(@user_model)
+        reset_raise_on_save_failure(@user)
+      end
+
+      subject { @user.raise_on_save_failure }
+
+      describe 'when model.raise_on_save_failure has not been set' do
+        it { should be_false }
+      end
+
+      describe 'when model.raise_on_save_failure has been set to true' do
+        before do
+          @user_model.raise_on_save_failure = true
+        end
+
+        it { should be_true }
+      end
+
+      describe 'when resource.raise_on_save_failure has been set to true' do
+        before do
+          @user.raise_on_save_failure = true
+        end
+
+        it { should be_true }
+      end
+    end
+
+    it 'A model should respond to raise_on_save_failure=' do
+      @user_model.should respond_to(:raise_on_save_failure=)
+    end
+
+    describe '#raise_on_save_failure=' do
+      after do
+        # reset to the default value
+        @user_model.raise_on_save_failure = false
+      end
+
+      subject { @user_model.raise_on_save_failure = @value }
+
+      describe 'with a true value' do
+        before do
+          @value = true
+        end
+
+        it { should be_true }
+
+        it 'should set raise_on_save_failure' do
+          method(:subject).should change {
+            @user_model.raise_on_save_failure
+          }.from(false).to(true)
+        end
+      end
+
+      describe 'with a false value' do
+        before do
+          @value = false
+        end
+
+        it { should be_false }
+
+        it 'should set raise_on_save_failure' do
+          method(:subject).should_not change {
+            @user_model.raise_on_save_failure
+          }
+        end
+      end
+    end
   end
 end

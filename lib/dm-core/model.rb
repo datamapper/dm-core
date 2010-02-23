@@ -1,5 +1,8 @@
 # TODO: add Model#create!, Model#update, Model#update!, Model#destroy and Model#destroy!
 
+# TODO: DRY up raise_on_save_failure with attr_accessor_with_default
+# once AS branch is merged in
+
 module DataMapper
   module Model
     extend Chainable
@@ -71,6 +74,68 @@ module DataMapper
     #
     # @api semipublic
     attr_reader :descendants
+
+    # Return if Resource#save should raise an exception on save failures (globally)
+    #
+    # This is false by default.
+    #
+    #   DataMapper::Model.raise_on_save_failure  # => false
+    #
+    # @return [Boolean]
+    #   true if a failure in Resource#save should raise an exception
+    #
+    # @api public
+    def self.raise_on_save_failure
+      if defined?(@raise_on_save_failure)
+        @raise_on_save_failure
+      else
+        false
+      end
+    end
+
+    # Specify if Resource#save should raise an exception on save failures (globally)
+    #
+    # @param [Boolean]
+    #   a boolean that if true will cause Resource#save to raise an exception
+    #
+    # @return [Boolean]
+    #   true if a failure in Resource#save should raise an exception
+    #
+    # @api public
+    def self.raise_on_save_failure=(raise_on_save_failure)
+      @raise_on_save_failure = raise_on_save_failure
+    end
+
+    # Return if Resource#save should raise an exception on save failures (per-model)
+    #
+    # This delegates to DataMapper::Model.raise_on_save_failure by default.
+    #
+    #   User.raise_on_save_failure  # => false
+    #
+    # @return [Boolean]
+    #   true if a failure in Resource#save should raise an exception
+    #
+    # @api public
+    def raise_on_save_failure
+      if defined?(@raise_on_save_failure)
+        @raise_on_save_failure
+      else
+        DataMapper::Model.raise_on_save_failure
+      end
+    end
+
+    # Specify if Resource#save should raise an exception on save failures (per-model)
+    #
+    # @param [Boolean]
+    #   a boolean that if true will cause Resource#save to raise an exception
+    #
+    # @return [Boolean]
+    #   true if a failure in Resource#save should raise an exception
+    #
+    # @api public
+    def raise_on_save_failure=(raise_on_save_failure)
+      @raise_on_save_failure = raise_on_save_failure
+    end
 
     # Appends a module for inclusion into the model class after Resource.
     #

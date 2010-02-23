@@ -155,5 +155,131 @@ describe DataMapper::Model do
     end
 
     it_should_behave_like 'Finder Interface'
+
+    it 'DataMapper::Model should respond to raise_on_save_failure' do
+      DataMapper::Model.should respond_to(:raise_on_save_failure)
+    end
+
+    describe '.raise_on_save_failure' do
+      subject { DataMapper::Model.raise_on_save_failure }
+
+      it { should be_false }
+    end
+
+    it 'DataMapper::Model should respond to raise_on_save_failure=' do
+      DataMapper::Model.should respond_to(:raise_on_save_failure=)
+    end
+
+    describe '.raise_on_save_failure=' do
+      after do
+        # reset to the default value
+        reset_raise_on_save_failure(DataMapper::Model)
+      end
+
+      subject { DataMapper::Model.raise_on_save_failure = @value }
+
+      describe 'with a true value' do
+        before do
+          @value = true
+        end
+
+        it { should be_true }
+
+        it 'should set raise_on_save_failure' do
+          method(:subject).should change {
+            DataMapper::Model.raise_on_save_failure
+          }.from(false).to(true)
+        end
+      end
+
+      describe 'with a false value' do
+        before do
+          @value = false
+        end
+
+        it { should be_false }
+
+        it 'should set raise_on_save_failure' do
+          method(:subject).should_not change {
+            DataMapper::Model.raise_on_save_failure
+          }
+        end
+      end
+    end
+
+    it 'A model should respond to raise_on_save_failure' do
+      @article_model.should respond_to(:raise_on_save_failure)
+    end
+
+    describe '#raise_on_save_failure' do
+      after do
+        # reset to the default value
+        reset_raise_on_save_failure(DataMapper::Model)
+        reset_raise_on_save_failure(@article_model)
+      end
+
+      subject { @article_model.raise_on_save_failure }
+
+      describe 'when DataMapper::Model.raise_on_save_failure has not been set' do
+        it { should be_false }
+      end
+
+      describe 'when DataMapper::Model.raise_on_save_failure has been set to true' do
+        before do
+          DataMapper::Model.raise_on_save_failure = true
+        end
+
+        it { should be_true }
+      end
+
+      describe 'when model.raise_on_save_failure has been set to true' do
+        before do
+          @article_model.raise_on_save_failure = true
+        end
+
+        it { should be_true }
+      end
+    end
+
+    it 'A model should respond to raise_on_save_failure=' do
+      @article_model.should respond_to(:raise_on_save_failure=)
+    end
+
+    describe '#raise_on_save_failure=' do
+      after do
+        # reset to the default value
+        reset_raise_on_save_failure(@article_model)
+      end
+
+      subject { @article_model.raise_on_save_failure = @value }
+
+      describe 'with a true value' do
+        before do
+          @value = true
+        end
+
+        it { should be_true }
+
+        it 'should set raise_on_save_failure' do
+          method(:subject).should change {
+            @article_model.raise_on_save_failure
+          }.from(false).to(true)
+        end
+      end
+
+      describe 'with a false value' do
+        before do
+          @value = false
+        end
+
+        it { should be_false }
+
+        it 'should set raise_on_save_failure' do
+          method(:subject).should_not change {
+            @article_model.raise_on_save_failure
+          }
+        end
+      end
+    end
   end
 end
