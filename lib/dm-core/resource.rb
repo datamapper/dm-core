@@ -1095,7 +1095,7 @@ module DataMapper
     # @api private
     def assert_update_clean_only(method)
       if dirty?
-        raise UpdateConflictError, "#{model}##{method} cannot be called on a dirty resource"
+        raise UpdateConflictError, "#{model}##{method} cannot be called on a #{new? ? 'new' : 'dirty'} resource"
       end
     end
 

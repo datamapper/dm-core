@@ -1150,6 +1150,21 @@ share_examples_for 'A public Resource' do
         end
       end
 
+      describe 'on a new resource' do
+        before :all do
+          rescue_if @skip do
+            @user = @user.model.new(@user.attributes)
+            @user.age = 99
+          end
+        end
+
+        it 'should raise an exception' do
+          lambda {
+            @user.__send__(method, :admin => true)
+          }.should raise_error(DataMapper::UpdateConflictError, "#{@user.model}##{method} cannot be called on a new resource")
+        end
+      end
+
       describe 'on a dirty resource' do
         before :all do
           rescue_if @skip do
