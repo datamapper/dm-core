@@ -352,8 +352,12 @@ module DataMapper
     def at(offset)
       if loaded? || partially_loaded?(offset)
         super
-      elsif offset >= 0
+      elsif offset == 0
+        first
+      elsif offset > 0
         first(:offset => offset)
+      elsif offset == -1
+        last
       else
         last(:offset => offset.abs - 1)
       end
