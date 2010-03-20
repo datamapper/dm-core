@@ -1,3 +1,6 @@
+require 'dm-core/type'
+require 'dm-core/types/text'
+
 module DataMapper
   module Types
     class Object < Type

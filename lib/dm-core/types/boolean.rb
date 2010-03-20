@@ -1,3 +1,5 @@
+require 'dm-core/type'
+
 module DataMapper
   module Types
     class Boolean < Type
