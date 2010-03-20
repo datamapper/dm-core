@@ -1,4 +1,5 @@
 require 'dm-core/support/assertions'
+require 'dm-core/support/local_object_space'
 
 # Mainly done here to support spec/unit/hook_spec without
 # needing to require dm-core to setup either extlib or AS
@@ -57,6 +58,7 @@ module DataMapper
     end
 
     module ClassMethods
+      extend DataMapper::LocalObjectSpace
       include DataMapper::Assertions
       # Inject code that executes before the target class method.
       #
@@ -277,14 +279,14 @@ module DataMapper
       # Returns ruby code that will invoke the hook. It checks the arity of the hook method
       # and passes arguments accordingly.
       def inline_call(method_info, scope)
+        DataMapper::Hook::ClassMethods.hook_scopes << method_info[:from]
         name = method_info[:name]
-
         if scope == :instance
           args = method_defined?(name) && instance_method(name).arity != 0 ? '*args' : ''
-          %(#{name}(#{args}) if self.class <= ObjectSpace._id2ref(#{method_info[:from].object_id}))
+          %(#{name}(#{args}) if self.class <= DataMapper::Hook::ClassMethods.object_by_id(#{method_info[:from].object_id}))
         else
           args = respond_to?(name) && method(name).arity != 0 ? '*args' : ''
-          %(#{name}(#{args}) if self <= ObjectSpace._id2ref(#{method_info[:from].object_id}))
+          %(#{name}(#{args}) if self <= DataMapper::Hook::ClassMethods.object_by_id(#{method_info[:from].object_id}))
         end
       end
 
