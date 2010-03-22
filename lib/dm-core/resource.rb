@@ -411,7 +411,12 @@ module DataMapper
     # @api public
     def destroy
       return true if destroyed?
-      destroy_hook
+      catch :halt do
+        before_destroy_hook
+        retval = _destroy(true)
+        after_destroy_hook
+        retval
+      end
     end
 
     # Destroy the instance, remove it from the repository, bypassing hooks
@@ -647,34 +652,76 @@ module DataMapper
 
     protected
 
-    # Method for hooking callbacks on resource creation
+    # Method for hooking callbacks before resource saving
     #
-    # @return [Boolean]
-    #   true if the create was successful, false if not
+    # @return [undefined]
     #
     # @api private
-    def create_hook
-      _create
+    def before_save_hook
+      execute_hooks_for(:before, :save)
     end
 
-    # Method for hooking callbacks on resource updates
+    # Method for hooking callbacks after resource saving
     #
-    # @return [Boolean]
-    #   true if the update was successful, false if not
+    # @return [undefined]
     #
     # @api private
-    def update_hook
-      _update
+    def after_save_hook
+      execute_hooks_for(:after, :save)
     end
 
-    # Method for hooking callbacks on resource destruction
+    # Method for hooking callbacks before resource creation
     #
-    # @return [Boolean]
-    #   true if the destroy was successful, false if not
+    # @return [undefined]
     #
     # @api private
-    def destroy_hook
-      _destroy(true)
+    def before_create_hook
+      execute_hooks_for(:before, :create)
+    end
+
+    # Method for hooking callbacks after resource creation
+    #
+    # @return [undefined]
+    #
+    # @api private
+    def after_create_hook
+      execute_hooks_for(:after, :create)
+    end
+
+    # Method for hooking callbacks before resource updating
+    #
+    # @return [undefined]
+    #
+    # @api private
+    def before_update_hook
+      execute_hooks_for(:before, :update)
+    end
+
+    # Method for hooking callbacks after resource updating
+    #
+    # @return [undefined]
+    #
+    # @api private
+    def after_update_hook
+      execute_hooks_for(:after, :update)
+    end
+
+    # Method for hooking callbacks before resource destruction
+    #
+    # @return [undefined]
+    #
+    # @api private
+    def before_destroy_hook
+      execute_hooks_for(:before, :destroy)
+    end
+
+    # Method for hooking callbacks after resource destruction
+    #
+    # @return [undefined]
+    #
+    # @api private
+    def after_destroy_hook
+      execute_hooks_for(:after, :destroy)
     end
 
     private
@@ -914,6 +961,24 @@ module DataMapper
       true
     end
 
+    # This method executes the hooks before and after resource creation
+    #
+    # @return [Boolean]
+    #
+    # @see Resource#_create
+    #
+    # @api private
+    def safe_create
+      catch :halt do
+        before_save_hook
+        before_create_hook
+        retval = _create
+        after_create_hook
+        after_save_hook
+        retval
+      end
+    end
+
     # Updates resource state
     #
     # The primary purpose of this method is to allow before :update
@@ -943,6 +1008,24 @@ module DataMapper
         add_to_identity_map
 
         true
+      end
+    end
+
+    # This method executes the hooks before and after resource updating
+    #
+    # @return [Boolean]
+    #
+    # @see Resource#_update
+    #
+    # @api private
+    def safe_update
+      catch :halt do
+        before_save_hook
+        before_update_hook
+        retval = _update
+        after_update_hook
+        after_save_hook
+        retval
       end
     end
 
@@ -980,7 +1063,7 @@ module DataMapper
 
       new_resource = new?
       if safe
-        new_resource ? create_hook : update_hook
+        new_resource ? safe_create : safe_update
       else
         new_resource ? _create : _update
       end
@@ -1082,6 +1165,20 @@ module DataMapper
 
       # check all loaded properties, and then all unloaded properties
       (loaded + not_loaded).all? { |property| property.get(self).send(operator, property.get(other)) }
+    end
+
+    # Execute all the queued up hooks for a given type and name
+    #
+    # @param [Symbol] type
+    #   the type of hook to execute (before or after)
+    # @param [Symbol] name
+    #   the name of the hook to execute
+    #
+    # @return [undefined]
+    #
+    # @api private
+    def execute_hooks_for(type, name)
+      model.hooks[name][type].each { |hook| hook.call(self) }
     end
 
     # Raises an exception if #update is performed on a dirty resource

@@ -3,39 +3,101 @@ module DataMapper
     module Hook
       Model.append_inclusions self
 
+      extend Chainable
+
       def self.included(model)
         model.send(:include, DataMapper::Hook)
         model.extend Methods
-        model.register_instance_hooks :create_hook, :update_hook, :destroy_hook
       end
 
       module Methods
-        # @api public
-        def before(target_method, *args, &block)
-          remap_target_method(target_method).each do |target_method|
-            super(target_method, *args, &block)
-          end
+        def inherited(model)
+          copy_hooks(model)
+          super
         end
 
         # @api public
-        def after(target_method, *args, &block)
-          remap_target_method(target_method).each do |target_method|
-            super(target_method, *args, &block)
-          end
+        def before(target_method, method_sym = nil, &block)
+          setup_hook(:before, target_method, method_sym, block) { super }
         end
 
-        private
+        # @api public
+        def after(target_method, method_sym = nil, &block)
+          setup_hook(:after, target_method, method_sym, block) { super }
+        end
 
         # @api private
-        def remap_target_method(target_method)
-          case target_method
-            when :create  then [ :create_hook               ]
-            when :update  then [ :update_hook               ]
-            when :save    then [ :create_hook, :update_hook ]
-            when :destroy then [ :destroy_hook              ]
-            else               [ target_method              ]
+        def hooks
+          @hooks ||= {
+            :save     => { :before => [], :after => [] },
+            :create   => { :before => [], :after => [] },
+            :update   => { :before => [], :after => [] },
+            :destroy  => { :before => [], :after => [] },
+          }
+        end
+
+      private
+
+        def setup_hook(type, name, method, proc)
+          if types = hooks[name]
+            types[type] << if proc
+              ProcCommand.new(proc)
+            else
+              MethodCommand.new(self, method)
+            end
+          else
+            yield
           end
         end
+
+        # deep copy hooks from the parent model
+        def copy_hooks(model)
+          hooks = Hash.new do |hooks, name|
+            hooks[name] = Hash.new do |types, type|
+              types[type] = self.hooks[name][type].map do |command|
+                command.copy(model)
+              end
+            end
+          end
+
+          model.instance_variable_set(:@hooks, hooks)
+        end
+
+      end
+
+      class ProcCommand
+        def initialize(proc)
+          @proc = proc.to_proc
+        end
+
+        def call(resource)
+          resource.instance_eval(&@proc)
+        end
+
+        def copy(model)
+          self
+        end
+      end
+
+      class MethodCommand
+        def initialize(model, method)
+          @model, @method = model, method.to_sym
+        end
+
+        def call(resource)
+          unbound_method.bind(resource).call
+        end
+
+        def copy(model)
+          self.class.new(model, @method)
+        end
+
+      private
+
+        def unbound_method
+          @unbound_method ||= @model.instance_method(@method)
+        end
+
       end
 
     end # module Hook
