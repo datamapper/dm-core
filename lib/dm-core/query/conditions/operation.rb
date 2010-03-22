@@ -390,7 +390,7 @@ module DataMapper
         # @return [AbstractOperation, AbstractComparison, Array]
         #   the operand that was related to self
         #
-        # @api privTE
+        # @api private
         def relate_operand(operand)
           operand.parent = self if operand.respond_to?(:parent=)
           operand
