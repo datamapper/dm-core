@@ -32,9 +32,9 @@ rescue LoadError
   require 'extlib/inflection'
   require 'extlib/mash'
   require 'extlib/string'
+  require 'extlib/class'
   require 'extlib/hash'
   require 'extlib/object'
-  require 'extlib/class'
 
   class Object
     unless respond_to?(:singleton_class)

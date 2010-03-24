@@ -2,13 +2,6 @@ require 'dm-core/support/lazy_array'
 
 # only needed for specs
 
-begin
-  require 'active_support/core_ext/class/inheritable_attributes'
-rescue LoadError
-  require 'extlib/class'
-end
-
-
 module LazyArraySpec
   module GroupMethods
     def self.extended(base)
