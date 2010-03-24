@@ -13,6 +13,9 @@ tmtags
 ## VIM
 *.swp
 
+## Rubinius
+*.rbc
+
 ## PROJECT::GENERAL
 coverage
 rdoc
