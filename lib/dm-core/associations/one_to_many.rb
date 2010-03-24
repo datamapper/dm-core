@@ -43,8 +43,8 @@ module DataMapper
           collection.relationship = self
           collection.source       = source
 
-          # make the collection empty if the source is not saved
-          collection.replace(default_for(source)) unless source.saved?
+          # make the collection empty if the source is new
+          collection.replace([]) if source.new?
 
           collection
         end
@@ -53,11 +53,15 @@ module DataMapper
         # (ex.: author)
         #
         # @api semipublic
-        def get(source, other_query = nil)
-          lazy_load(source) unless loaded?(source)
+        def get(source, query = nil)
+          lazy_load(source)
+          collection = get_collection(source)
+          query ? collection.all(query) : collection
+        end
 
-          collection = get!(source)
-          other_query.nil? ? collection : collection.all(other_query)
+        # @api private
+        def get_collection(source)
+          get!(source)
         end
 
         # Sets value of association targets (ex.: paragraphs) for given source resource
@@ -65,23 +69,13 @@ module DataMapper
         #
         # @api semipublic
         def set(source, targets)
-          lazy_load(source) unless loaded?(source)
-
+          lazy_load(source)
           get!(source).replace(targets)
         end
 
-        # @api semipublic
-        def default_for(source)
-          Array(super)
-        end
-
-        private
-
-        # @api semipublic
-        def initialize(name, target_model, source_model, options = {})
-          target_model ||= ActiveSupport::Inflector.camelize(name.to_s.singularize)
-          options        = { :min => 0, :max => source_model.n }.update(options)
-          super
+        # @api private
+        def set_collection(source, target)
+          set!(source, target)
         end
 
         # Loads association targets and sets resulting value on
@@ -94,6 +88,8 @@ module DataMapper
         #
         # @api private
         def lazy_load(source)
+          return if loaded?(source)
+
           # SEL: load all related resources in the source collection
           collection = source.collection
           if source.saved? && collection.size > 1
@@ -103,6 +99,20 @@ module DataMapper
           unless loaded?(source)
             set!(source, collection_for(source))
           end
+        end
+
+        # @api semipublic
+        def default_for(source)
+          collection_for(source).replace(Array(super))
+        end
+
+        private
+
+        # @api semipublic
+        def initialize(name, target_model, source_model, options = {})
+          target_model ||= ActiveSupport::Inflector.camelize(name.to_s.singularize)
+          options        = { :min => 0, :max => source_model.n }.update(options)
+          super
         end
 
         # Sets the association targets in the resource

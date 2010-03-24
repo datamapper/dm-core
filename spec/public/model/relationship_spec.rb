@@ -278,6 +278,7 @@ share_examples_for 'it creates a many accessor' do
         @car.save
 
         @expected = @car.__send__(@name).first
+        @expected.should_not be_nil
 
         # set the model scope to only return the first record
         @model.default_scope.update(@model.key(@repository.name).zip(@expected.key).to_hash)

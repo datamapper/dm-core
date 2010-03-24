@@ -69,36 +69,6 @@ describe DataMapper::Property do
       end
     end
 
-    describe '#get' do
-      before :all do
-        @image = Image.create(:md5hash     => '5268f0f3f452844c79843e820f998869',
-                              :title       => 'Rome at the sunset',
-                              :description => 'Just wow')
-
-        @image.should be_saved
-
-        @image = Image.first(:fields => [ :md5hash, :title ], :md5hash => @image.md5hash)
-      end
-
-      it 'triggers loading for lazy loaded properties' do
-        Image.properties[:description].get(@image)
-        Image.properties[:description].loaded?(@image).should be(true)
-      end
-
-      it 'assigns loaded value to @ivar' do
-        Image.properties[:description].get(@image)
-        @image.instance_variable_get(:@description).should == 'Just wow'
-      end
-
-      it 'sets default value for new records with nil value' do
-        Image.properties[:format].get(@image).should == 'jpeg'
-      end
-
-      it 'returns property value' do
-        Image.properties[:description].get(@image).should == 'Just wow'
-      end
-    end
-
     describe '#get!' do
       before :all do
         @image = Image.new
@@ -275,44 +245,6 @@ describe DataMapper::Property do
       end
     end
 
-    # What's going on here:
-    #
-    # we first set original value and make an assertion on it
-    # then we try to set it again, which clears original value
-    # (since original value is set, property is no longer dirty)
-    describe '#set_original_value' do
-      before :all do
-        @image = Image.create(
-          :md5hash     => '5268f0f3f452844c79843e820f998869',
-          :title       => 'Rome at the sunset',
-          :description => 'Just wow'
-        )
-
-        @property = Image.properties[:title]
-      end
-
-      describe 'when value changes' do
-        before :all do
-          @property.set_original_value(@image, 'New title')
-        end
-
-        it 'sets original value of the property' do
-          @image.original_attributes[@property].should == 'Rome at the sunset'
-        end
-      end
-
-      describe 'when value stays the same' do
-        before :all do
-          @property.set_original_value(@image, 'Rome at the sunset')
-        end
-
-        it 'only sets original value when it has changed' do
-          @property.set_original_value(@image, 'Rome at the sunset')
-          @image.original_attributes.should_not have_key(@property)
-        end
-      end
-    end
-
     describe '#set' do
       before :all do
         # keep in mind we must run these examples with a
@@ -332,11 +264,6 @@ describe DataMapper::Property do
         @property.set(@image, Addressable::URI.parse('http://test.example/'))
         # get a string that has been typecasted using #to_str
         @image.title.should == 'http://test.example/'
-      end
-
-      it 'stores original value' do
-        @property.set(@image, 'Updated value')
-        @image.original_attributes[@property].should == 'Rome at the sunset'
       end
 
       it 'sets new property value' do

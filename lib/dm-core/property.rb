@@ -510,13 +510,7 @@ module DataMapper
     #
     # @api private
     def get(resource)
-      lazy_load(resource) unless loaded?(resource) || resource.new?
-
-      if loaded?(resource)
-        get!(resource)
-      else
-        set(resource, default_for(resource))
-      end
+      get!(resource)
     end
 
     # Fetch the ivar value in the resource
@@ -530,37 +524,6 @@ module DataMapper
     # @api private
     def get!(resource)
       resource.instance_variable_get(instance_variable_name)
-    end
-
-    # Sets original value of the property on given resource.
-    # When property is set on DataMapper resource instance,
-    # original value is preserved. This makes possible to
-    # track dirty attributes and save only those really changed,
-    # and avoid extra queries to the data source in certain
-    # situations.
-    #
-    # @param [Resource] resource
-    #   model instance for which to set the original value
-    # @param [Object] new_value
-    #   the new value that will be set for the property
-    #
-    # @api private
-    def set_original_value(resource, new_value)
-      original_attributes = resource.original_attributes
-      old_value           = get!(resource)
-
-      if resource.new?
-        # always track changes to a new resource
-        original_attributes[self] = nil
-      elsif original_attributes.key?(self)
-        # stop tracking if the new value is the same as the original
-        if new_value == original_attributes[self]
-          original_attributes.delete(self)
-        end
-      elsif new_value != old_value
-        # track the changed value
-        original_attributes[self] = old_value
-      end
     end
 
     # Provides a standardized setter method for the property
@@ -577,9 +540,7 @@ module DataMapper
     #
     # @api private
     def set(resource, value)
-      new_value = typecast(value)
-      set_original_value(resource, new_value)
-      set!(resource, new_value)
+      set!(resource, typecast(value))
     end
 
     # Set the ivar value in the resource
@@ -617,6 +578,7 @@ module DataMapper
     #
     # @api private
     def lazy_load(resource)
+      return if loaded?(resource)
       resource.__send__(:lazy_load, lazy_load_properties)
     end
 

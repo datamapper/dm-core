@@ -360,7 +360,10 @@ module DataMapper
             return false
           end
 
-          each { |resource| resource.reset }
+          each do |resource|
+            resource.persisted_state = Resource::State::Immutable.new(resource)
+          end
+
           clear
 
           true
@@ -377,7 +380,7 @@ module DataMapper
           source  = self.source
 
           @intermediaries ||= if through.loaded?(source)
-            through.get!(source)
+            through.get_collection(source)
           else
             reset_intermediaries
           end
@@ -476,7 +479,7 @@ module DataMapper
           through = self.through
           source  = self.source
 
-          through.set!(source, through.collection_for(source))
+          through.set_collection(source, through.collection_for(source))
         end
 
         # @api private

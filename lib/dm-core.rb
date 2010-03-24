@@ -109,6 +109,13 @@ require 'dm-core/query/path'
 require 'dm-core/query/sort'
 require 'dm-core/repository'
 require 'dm-core/resource'
+require 'dm-core/resource/state'
+require 'dm-core/resource/state/transient'
+require 'dm-core/resource/state/immutable'
+require 'dm-core/resource/state/persisted'
+require 'dm-core/resource/state/clean'
+require 'dm-core/resource/state/deleted'
+require 'dm-core/resource/state/dirty'
 require 'dm-core/support/logger'
 require 'dm-core/support/naming_conventions'
 require 'dm-core/version'
@@ -186,6 +193,10 @@ module DataMapper
   class UpdateConflictError < PersistenceError; end
 
   class SaveFailureError < PersistenceError; end
+
+  class ImmutableError < RuntimeError; end
+
+  class ImmutableDeletedError < ImmutableError; end
 
   # Raised on attempt to operate on collection of child objects
   # when parent object is not yet saved.

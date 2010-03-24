@@ -11,7 +11,7 @@ module DataMapper
             attribute_set(name, block.call(self))
           end
           save_self
-          set_destroyed_state
+          self.persisted_state = Resource::State::Immutable.new(self)
           true
         end
 

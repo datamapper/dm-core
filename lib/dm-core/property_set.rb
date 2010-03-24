@@ -87,7 +87,8 @@ module DataMapper
 
     # @api semipublic
     def get(resource)
-      map { |property| property.get(resource) }
+      return [] if resource.nil?
+      map { |property| resource.__send__(property.name) }
     end
 
     # @api semipublic
@@ -97,7 +98,7 @@ module DataMapper
 
     # @api semipublic
     def set(resource, values)
-      zip(values) { |property, value| property.set(resource, value) }
+      zip(values) { |property, value| resource.__send__("#{property.name}=", value) }
     end
 
     # @api semipublic

@@ -510,7 +510,7 @@ module DataMapper
 
         all(query.merge(:repository => source_repository_name)).each do |resource|
           new_resource = new
-          query[:fields].each { |property| property.set(new_resource, property.get(resource)) }
+          query[:fields].each { |property| new_resource.__send__("#{property.name}=", property.get(resource)) }
           resources << new_resource if new_resource.save
         end
 
@@ -591,14 +591,15 @@ module DataMapper
         end
 
         resource.instance_variable_set(:@_repository, repository)
-        resource.instance_variable_set(:@_saved,      true)
 
         if identity_map
+          resource.persisted_state ||= Resource::State::Clean.new(resource)
+
           # defer setting the IdentityMap so second level caches can
           # record the state of the resource after loaded
           identity_map[key_values] = resource
         else
-          resource.instance_variable_set(:@_readonly, true)
+          resource.persisted_state = Resource::State::Immutable.new(resource)
         end
 
         resource

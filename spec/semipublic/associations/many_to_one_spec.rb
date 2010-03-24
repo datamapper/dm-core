@@ -22,11 +22,26 @@ describe 'Many to One Associations' do
 
     @user_model    = User
     @comment_model = Comment
+
+    @default_value          = @user_model.new(:name => 'dkubb', :age => 34, :description => 'Test')
+    @default_value_callable = @user_model.new(:name => 'jdoe',  :age => 21, :description => 'Test')
+
+    @subject_without_default       = @user_model.belongs_to(:without_default,       @user_model, :required => false, :child_key => [ :without_default_id       ])
+    @subject_with_default          = @user_model.belongs_to(:with_default,          @user_model, :required => false, :child_key => [ :with_default_id          ], :default => @default_value)
+    @subject_with_default_callable = @user_model.belongs_to(:with_default_callable, @user_model, :required => false, :child_key => [ :with_default_callable_id ], :default => lambda { |resource, relationship| @default_value_callable })
+
+    @default_value.with_default          = nil
+    @default_value.with_default_callable = nil
   end
 
   supported_by :all do
     before :all do
-      comment = @comment_model.create(:user => User.create(:name => 'dbussink', :age => 25, :description => 'Test'))
+      @default_value.save
+      @default_value_callable.save
+    end
+
+    before :all do
+      comment = @comment_model.create(:user => { :name => 'dbussink', :age => 25, :description => 'Test' })
 
       @user = @comment_model.get(*comment.key).user
     end
@@ -35,15 +50,7 @@ describe 'Many to One Associations' do
 
     describe 'acts like a subject' do
       before do
-        @subject_without_default       = @user_model.belongs_to(:without_default,       @user_model)
-        @subject_with_default          = @user_model.belongs_to(:with_default,          @user_model, :default => @user)
-        @subject_with_default_callable = @user_model.belongs_to(:with_default_callable, @user_model, :default => lambda { |resource, relationship| @user })
-
-        @subject_without_default_value       = nil
-        @subject_with_default_value          = @user
-        @subject_with_default_callable_value = @user
-
-        @resource = @user_model.new
+        @resource = @user_model.new(:name => 'A subject')
       end
 
       it_should_behave_like 'A semipublic Subject'

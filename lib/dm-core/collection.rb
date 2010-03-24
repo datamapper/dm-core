@@ -919,7 +919,10 @@ module DataMapper
           return false
         end
 
-        each { |resource| resource.reset }
+        each do |resource|
+          resource.persisted_state = Resource::State::Immutable.new(resource)
+        end
+
         clear
       else
         mark_loaded

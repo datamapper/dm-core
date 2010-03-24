@@ -15,12 +15,16 @@ module DataMapper
         # for given source
         #
         # @api semipublic
-        def get(source, other_query = nil)
-          unless loaded?(source) || valid_source?(source)
-            set(source, default_for(source))
-          end
+        def get(source, query = nil)
+          relationship.get(source, query).first
+        end
 
-          relationship.get(source, other_query).first
+        # Get the resource directly
+        #
+        # @api semipublic
+        def get!(source)
+          collection = relationship.get!(source)
+          collection.first if collection
         end
 
         # Sets and returns association target
@@ -29,6 +33,13 @@ module DataMapper
         # @api semipublic
         def set(source, target)
           relationship.set(source, [ target ].compact).first
+        end
+
+        # Sets the resource directly
+        #
+        # @api semipublic
+        def set!(source, target)
+          set(source, target)
         end
 
         # @api semipublic

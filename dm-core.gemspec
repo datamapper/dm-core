@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Dan Kubb"]
-  s.date = %q{2010-04-01}
+  s.date = %q{2010-04-06}
   s.description = %q{Faster, Better, Simpler.}
   s.email = %q{dan.kubb@gmail.com}
   s.extra_rdoc_files = [
@@ -72,6 +72,13 @@ Gem::Specification.new do |s|
      "lib/dm-core/query/sort.rb",
      "lib/dm-core/repository.rb",
      "lib/dm-core/resource.rb",
+     "lib/dm-core/resource/state.rb",
+     "lib/dm-core/resource/state/clean.rb",
+     "lib/dm-core/resource/state/deleted.rb",
+     "lib/dm-core/resource/state/dirty.rb",
+     "lib/dm-core/resource/state/immutable.rb",
+     "lib/dm-core/resource/state/persisted.rb",
+     "lib/dm-core/resource/state/transient.rb",
      "lib/dm-core/spec/adapter_shared_spec.rb",
      "lib/dm-core/spec/data_objects_adapter_shared_spec.rb",
      "lib/dm-core/spec/lib/adapter_helpers.rb",
@@ -152,9 +159,16 @@ Gem::Specification.new do |s|
      "spec/semipublic/query/conditions/operation_spec.rb",
      "spec/semipublic/query/path_spec.rb",
      "spec/semipublic/query_spec.rb",
+     "spec/semipublic/resource/state/clean_spec.rb",
+     "spec/semipublic/resource/state/deleted_spec.rb",
+     "spec/semipublic/resource/state/dirty_spec.rb",
+     "spec/semipublic/resource/state/immutable_spec.rb",
+     "spec/semipublic/resource/state/transient_spec.rb",
+     "spec/semipublic/resource/state_spec.rb",
      "spec/semipublic/resource_spec.rb",
      "spec/semipublic/shared/condition_shared_spec.rb",
      "spec/semipublic/shared/resource_shared_spec.rb",
+     "spec/semipublic/shared/resource_state_shared_spec.rb",
      "spec/semipublic/shared/subject_shared_spec.rb",
      "spec/spec.opts",
      "spec/spec_helper.rb",
@@ -226,9 +240,16 @@ Gem::Specification.new do |s|
      "spec/semipublic/query/conditions/operation_spec.rb",
      "spec/semipublic/query/path_spec.rb",
      "spec/semipublic/query_spec.rb",
+     "spec/semipublic/resource/state/clean_spec.rb",
+     "spec/semipublic/resource/state/deleted_spec.rb",
+     "spec/semipublic/resource/state/dirty_spec.rb",
+     "spec/semipublic/resource/state/immutable_spec.rb",
+     "spec/semipublic/resource/state/transient_spec.rb",
+     "spec/semipublic/resource/state_spec.rb",
      "spec/semipublic/resource_spec.rb",
      "spec/semipublic/shared/condition_shared_spec.rb",
      "spec/semipublic/shared/resource_shared_spec.rb",
+     "spec/semipublic/shared/resource_state_shared_spec.rb",
      "spec/semipublic/shared/subject_shared_spec.rb",
      "spec/spec_helper.rb",
      "spec/unit/array_spec.rb",

@@ -196,7 +196,7 @@ module DataMapper
             #{reader_visibility}
             def #{name}
               return #{instance_variable_name} if defined?(#{instance_variable_name})
-              #{instance_variable_name} = properties[#{name.inspect}].get(self)
+              #{instance_variable_name} = persisted_state.get(properties[#{name.inspect}])
             end
           RUBY
         end
@@ -225,7 +225,9 @@ module DataMapper
         class_eval <<-RUBY, __FILE__, __LINE__ + 1
           #{writer_visibility}
           def #{writer_name}(value)
-            properties[#{name.inspect}].set(self, value)
+            property = properties[#{name.inspect}]
+            self.persisted_state = persisted_state.set(property, value)
+            persisted_state.get(property)
           end
         RUBY
       end

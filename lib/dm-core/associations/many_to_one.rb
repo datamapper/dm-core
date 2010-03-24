@@ -111,16 +111,15 @@ module DataMapper
         #   Query options
         #
         # @api semipublic
-        def get(source, other_query = nil)
-          lazy_load(source) unless loaded?(source)
+        def get(source, query = nil)
+          lazy_load(source)
+          collection = get_collection(source)
+          collection.first(query) if collection
+        end
 
-          # set the default if it is not already set
-          set(source, default_for(source)) unless loaded?(source)
-
+        def get_collection(source)
           resource = get!(source)
-          if other_query.nil? || query_for(source, other_query).conditions.matches?(resource)
-            resource
-          end
+          resource.collection_for_self if resource
         end
 
         # Sets value of association target (ex.: author) for given source resource
@@ -134,14 +133,37 @@ module DataMapper
         #
         # @api semipublic
         def set(source, target)
-          target_model = self.target_model
+          target = typecast(target)
+          source_key.set(source, target_key.get(target))
+          set!(source, target)
+        end
 
-          if target.kind_of?(Hash)
-            target = target_model.new(target)
+        # @api semipublic
+        def default_for(source)
+          typecast(super)
+        end
+
+        # Loads association target and sets resulting value on
+        # given source resource
+        #
+        # @param [Resource] source
+        #   the source resource for the association
+        #
+        # @return [undefined]
+        #
+        # @api private
+        def lazy_load(source)
+          return if loaded?(source) || !valid_source?(source)
+
+          # SEL: load all related resources in the source collection
+          collection = source.collection
+          if source.saved? && collection.size > 1
+            eager_load(collection)
           end
 
-          source_key.set(source, target.nil? ? [] : target_key.get(target))
-          set!(source, target)
+          unless loaded?(source)
+            set!(source, resource_for(source))
+          end
         end
 
         private
@@ -164,29 +186,6 @@ module DataMapper
           super
         end
 
-        # Loads association target and sets resulting value on
-        # given source resource
-        #
-        # @param [Resource] source
-        #   the source resource for the association
-        #
-        # @return [undefined]
-        #
-        # @api private
-        def lazy_load(source)
-          return unless valid_source?(source)
-
-          # SEL: load all related resources in the source collection
-          collection = source.collection
-          if source.saved? && collection.size > 1
-            eager_load(collection)
-          end
-
-          unless loaded?(source)
-            set!(source, resource_for(source))
-          end
-        end
-
         # Sets the association targets in the resource
         #
         # @param [Resource] source
@@ -201,6 +200,15 @@ module DataMapper
         # @api private
         def eager_load_targets(source, targets, query)
           set(source, targets.first)
+        end
+
+        # @api private
+        def typecast(target)
+          if target.kind_of?(Hash)
+            target_model.new(target)
+          else
+            target
+          end
         end
 
         # Returns the inverse relationship class
