@@ -18,8 +18,7 @@ module DataMapper
       #
       # @api public
       def auto_migrate!(repository_name = nil)
-        auto_migrate_down!(repository_name)
-        auto_migrate_up!(repository_name)
+        repository_execute(:auto_migrate!, repository_name)
       end
 
       # @api public
