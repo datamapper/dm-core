@@ -114,6 +114,9 @@ module DataMapper
         def get(source, other_query = nil)
           lazy_load(source) unless loaded?(source)
 
+          # set the default if it is not already set
+          set(source, default_for(source)) unless loaded?(source)
+
           resource = get!(source)
           if other_query.nil? || query_for(source, other_query).conditions.matches?(resource)
             resource

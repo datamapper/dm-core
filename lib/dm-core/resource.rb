@@ -894,10 +894,12 @@ module DataMapper
     # @api private
     def _create
       # set defaults for new resource
-      properties.each do |property|
-        unless property.serial? || property.loaded?(self)
-          property.set(self, property.default_for(self))
-        end
+      (properties | relationships.values).each do |subject|
+        next if subject.respond_to?(:serial?) && subject.serial? ||
+                subject.loaded?(self)                            ||
+                !subject.default?
+
+        subject.set(self, subject.default_for(self))
       end
 
       @_repository = repository

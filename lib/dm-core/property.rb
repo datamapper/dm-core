@@ -290,6 +290,7 @@ module DataMapper
   #   see SingleTableInheritance for more on how to use <tt>Class</tt> columns.
   class Property
     include DataMapper::Assertions
+    include Subject
     extend Deprecate
     extend Equalizer
 
@@ -514,7 +515,7 @@ module DataMapper
       if loaded?(resource)
         get!(resource)
       else
-        set(resource, default? ? default_for(resource) : nil)
+        set(resource, default_for(resource))
       end
     end
 
@@ -685,38 +686,6 @@ module DataMapper
     def load(value)
       return type.load(value, self) if type.respond_to?(:load)
       typecast(value)
-    end
-
-    # Returns a default value of the
-    # property for given resource.
-    #
-    # When default value is a callable object,
-    # it is called with resource and property passed
-    # as arguments.
-    #
-    # @param [Resource] resource
-    #   the model instance for which the default is to be set
-    #
-    # @return [Object]
-    #   the default value of this property for +resource+
-    #
-    # @api semipublic
-    def default_for(resource)
-      if @default.respond_to?(:call)
-        @default.call(resource, self)
-      else
-        @default.try_dup
-      end
-    end
-
-    # Returns true if the property has a default value
-    #
-    # @return [Boolean]
-    #   true if the property has a default value
-    #
-    # @api semipublic
-    def default?
-      @options.key?(:default)
     end
 
     # Returns given value unchanged for core types and

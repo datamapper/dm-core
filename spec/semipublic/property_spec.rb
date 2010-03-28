@@ -607,4 +607,20 @@ describe DataMapper::Property do
       @model.properties[:name].options[:field].should be_nil
     end
   end
+
+  describe 'acts like a subject' do
+    before do
+      @subject_without_default       = @model.property(:without_default,       Integer)
+      @subject_with_default          = @model.property(:with_default,          Integer, :default => 1)
+      @subject_with_default_callable = @model.property(:with_default_callable, Integer, :default => lambda { |resource, property| 1 })
+
+      @subject_without_default_value       = nil
+      @subject_with_default_value          = 1
+      @subject_with_default_callable_value = 1
+
+      @resource = @model.new
+    end
+
+    it_should_behave_like 'A semipublic Subject'
+  end
 end

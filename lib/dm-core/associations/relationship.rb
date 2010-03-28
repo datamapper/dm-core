@@ -7,8 +7,9 @@ module DataMapper
     # with methods like get and set overridden.
     class Relationship
       include DataMapper::Assertions
+      include Subject
 
-      OPTIONS = [ :child_repository_name, :parent_repository_name, :child_key, :parent_key, :min, :max, :inverse, :reader_visibility, :writer_visibility ].to_set
+      OPTIONS = [ :child_repository_name, :parent_repository_name, :child_key, :parent_key, :min, :max, :inverse, :reader_visibility, :writer_visibility, :default ].to_set
 
       # Relationship name
       #
@@ -447,6 +448,7 @@ module DataMapper
         @max                    = @options[:max]
         @reader_visibility      = @options.fetch(:reader_visibility, :public)
         @writer_visibility      = @options.fetch(:writer_visibility, :public)
+        @default                = @options.fetch(:default, nil)
 
         # TODO: normalize the @query to become :conditions => AndOperation
         #  - Property/Relationship/Path should be left alone

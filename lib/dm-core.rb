@@ -66,7 +66,7 @@ require 'dm-core/support/equalizer'
 require 'dm-core/support/assertions'
 require 'dm-core/support/lazy_array'
 require 'dm-core/support/hook'
-
+require 'dm-core/support/subject'
 
 require 'dm-core/model'
 require 'dm-core/model/descendant_set'

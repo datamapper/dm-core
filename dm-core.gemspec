@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Dan Kubb"]
-  s.date = %q{2010-03-18}
+  s.date = %q{2010-03-27}
   s.description = %q{Faster, Better, Simpler.}
   s.email = %q{dan.kubb@gmail.com}
   s.extra_rdoc_files = [
@@ -82,6 +82,7 @@ Gem::Specification.new do |s|
      "lib/dm-core/support/lazy_array.rb",
      "lib/dm-core/support/logger.rb",
      "lib/dm-core/support/naming_conventions.rb",
+     "lib/dm-core/support/subject.rb",
      "lib/dm-core/transaction.rb",
      "lib/dm-core/type.rb",
      "lib/dm-core/types/boolean.rb",
@@ -137,7 +138,10 @@ Gem::Specification.new do |s|
      "spec/semipublic/adapters/sqlite3_adapter_spec.rb",
      "spec/semipublic/adapters/sqlserver_adapter_spec.rb",
      "spec/semipublic/adapters/yaml_adapter_spec.rb",
+     "spec/semipublic/associations/many_to_many_spec.rb",
      "spec/semipublic/associations/many_to_one_spec.rb",
+     "spec/semipublic/associations/one_to_many_spec.rb",
+     "spec/semipublic/associations/one_to_one_spec.rb",
      "spec/semipublic/associations/relationship_spec.rb",
      "spec/semipublic/associations_spec.rb",
      "spec/semipublic/collection_spec.rb",
@@ -150,6 +154,7 @@ Gem::Specification.new do |s|
      "spec/semipublic/resource_spec.rb",
      "spec/semipublic/shared/condition_shared_spec.rb",
      "spec/semipublic/shared/resource_shared_spec.rb",
+     "spec/semipublic/shared/subject_shared_spec.rb",
      "spec/spec.opts",
      "spec/spec_helper.rb",
      "spec/unit/array_spec.rb",
@@ -213,7 +218,10 @@ Gem::Specification.new do |s|
      "spec/semipublic/adapters/sqlite3_adapter_spec.rb",
      "spec/semipublic/adapters/sqlserver_adapter_spec.rb",
      "spec/semipublic/adapters/yaml_adapter_spec.rb",
+     "spec/semipublic/associations/many_to_many_spec.rb",
      "spec/semipublic/associations/many_to_one_spec.rb",
+     "spec/semipublic/associations/one_to_many_spec.rb",
+     "spec/semipublic/associations/one_to_one_spec.rb",
      "spec/semipublic/associations/relationship_spec.rb",
      "spec/semipublic/associations_spec.rb",
      "spec/semipublic/collection_spec.rb",
@@ -226,6 +234,7 @@ Gem::Specification.new do |s|
      "spec/semipublic/resource_spec.rb",
      "spec/semipublic/shared/condition_shared_spec.rb",
      "spec/semipublic/shared/resource_shared_spec.rb",
+     "spec/semipublic/shared/subject_shared_spec.rb",
      "spec/spec_helper.rb",
      "spec/unit/array_spec.rb",
      "spec/unit/hash_spec.rb",

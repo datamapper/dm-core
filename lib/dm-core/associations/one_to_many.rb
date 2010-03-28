@@ -44,7 +44,7 @@ module DataMapper
           collection.source       = source
 
           # make the collection empty if the source is not saved
-          collection.replace([]) unless source.saved?
+          collection.replace(default_for(source)) unless source.saved?
 
           collection
         end
@@ -68,6 +68,11 @@ module DataMapper
           lazy_load(source) unless loaded?(source)
 
           get!(source).replace(targets)
+        end
+
+        # @api semipublic
+        def default_for(source)
+          Array(super)
         end
 
         private

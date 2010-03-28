@@ -32,5 +32,21 @@ describe 'Many to One Associations' do
     end
 
     it_should_behave_like 'A semipublic Resource'
+
+    describe 'acts like a subject' do
+      before do
+        @subject_without_default       = @user_model.belongs_to(:without_default,       @user_model)
+        @subject_with_default          = @user_model.belongs_to(:with_default,          @user_model, :default => @user)
+        @subject_with_default_callable = @user_model.belongs_to(:with_default_callable, @user_model, :default => lambda { |resource, relationship| @user })
+
+        @subject_without_default_value       = nil
+        @subject_with_default_value          = @user
+        @subject_with_default_callable_value = @user
+
+        @resource = @user_model.new
+      end
+
+      it_should_behave_like 'A semipublic Subject'
+    end
   end
 end

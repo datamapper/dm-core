@@ -6,6 +6,9 @@ module DataMapper
           superclass.send("#{visibility}_instance_methods", false).each do |method|
             undef_method method unless method.to_s == 'initialize'
           end
+
+          # remove mixed in methods
+          undef_method *DataMapper::Subject.send("#{visibility}_instance_methods", false)
         end
 
         # Loads (if necessary) and returns association target
@@ -13,7 +16,9 @@ module DataMapper
         #
         # @api semipublic
         def get(source, other_query = nil)
-          return unless loaded?(source) || valid_source?(source)
+          unless loaded?(source) || valid_source?(source)
+            set(source, default_for(source))
+          end
 
           relationship.get(source, other_query).first
         end
@@ -24,6 +29,11 @@ module DataMapper
         # @api semipublic
         def set(source, target)
           relationship.set(source, [ target ].compact).first
+        end
+
+        # @api semipublic
+        def default_for(source)
+          relationship.default_for(source).first
         end
 
         # @api public
