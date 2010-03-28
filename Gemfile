@@ -53,13 +53,13 @@ group :runtime do
   # (which probably is not going to happen anytime soon).
   #
 
-if ENV['EXTLIB']
-  gem 'extlib',        '~> 0.9.15',      :git => 'git://github.com/datamapper/extlib.git'
-else
-  gem 'activesupport', '~> 3.0.0.beta1', :git => 'git://github.com/rails/rails.git', :require => nil
-end
-  gem 'addressable',   '~> 2.1'
+  if ENV['EXTLIB']
+    gem 'extlib',        '~> 0.9.15',      :git => 'git://github.com/datamapper/extlib.git'
+  else
+    gem 'activesupport', '~> 3.0.0.beta1', :git => 'git://github.com/rails/rails.git', :require => nil
+  end
 
+  gem 'addressable',   '~> 2.1'
 end
 
 group :development do
