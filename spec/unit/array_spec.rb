@@ -36,11 +36,11 @@ describe Array do
     before :all do
       @return = @array.to_mash
     end
-  
+
     it 'should return a Mash' do
       @return.should be_kind_of(Mash)
     end
-  
+
     it 'should return expected value' do
       @return.should == { 'a' => [ 1 ], 'b' => [ 2 ], 'c' => [ 3 ] }
     end
