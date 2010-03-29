@@ -162,7 +162,7 @@ module DataMapper
     #
     # @api semipublic
     def update(attributes, collection)
-      return 0 unless collection.query.valid?
+      return 0 unless collection.query.valid? && attributes.any?
       adapter.update(attributes, collection)
     end
 
