@@ -228,13 +228,6 @@ module DataMapper
         model.instance_variable_set(:@storage_names, @storage_names.dup)
         model.instance_variable_set(:@default_order, @default_order.dup)
         model.instance_variable_set(:@descendants,   descendants.class.new(model, descendants))
-
-        # TODO: move this into dm-validations
-        if respond_to?(:validators)
-          validators.contexts.each do |context, validators|
-            model.validators.context(context).concat(validators)
-          end
-        end
       end
     end
 
