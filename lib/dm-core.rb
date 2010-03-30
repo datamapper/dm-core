@@ -111,7 +111,6 @@ require 'dm-core/repository'
 require 'dm-core/resource'
 require 'dm-core/support/logger'
 require 'dm-core/support/naming_conventions'
-require 'dm-core/transaction'                 # TODO: move to dm-more
 require 'dm-core/version'
 
 require 'dm-core/core_ext/kernel'             # TODO: do not load automatically
