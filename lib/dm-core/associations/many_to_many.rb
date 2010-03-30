@@ -302,20 +302,6 @@ module DataMapper
           )
         end
 
-        # Loads association targets and sets resulting value on
-        # given source resource
-        #
-        # @param [Resource] source
-        #   the source resource for the association
-        #
-        # @return [undefined]
-        #
-        # @api private
-        def lazy_load(source)
-          # FIXME: delegate to super once SEL is enabled
-          set!(source, collection_for(source))
-        end
-
         # Returns collection class used by this type of
         # relationship
         #
