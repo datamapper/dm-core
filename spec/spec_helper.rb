@@ -54,6 +54,7 @@ Spec::Runner.configure do |config|
 
       # skip classes and modules in the DataMapper namespace
       next if object.kind_of?(Module) &&
+              !object.name.nil?       &&
               object.name[0, 12] == 'DataMapper::'
 
       # skip when the ivar is no longer defined in the object
