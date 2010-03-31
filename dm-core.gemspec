@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Dan Kubb"]
-  s.date = %q{2010-03-27}
+  s.date = %q{2010-04-01}
   s.description = %q{Faster, Better, Simpler.}
   s.email = %q{dan.kubb@gmail.com}
   s.extra_rdoc_files = [
@@ -74,12 +74,14 @@ Gem::Specification.new do |s|
      "lib/dm-core/resource.rb",
      "lib/dm-core/spec/adapter_shared_spec.rb",
      "lib/dm-core/spec/data_objects_adapter_shared_spec.rb",
+     "lib/dm-core/spec/lib/adapter_helpers.rb",
      "lib/dm-core/support/assertions.rb",
      "lib/dm-core/support/chainable.rb",
      "lib/dm-core/support/deprecate.rb",
      "lib/dm-core/support/equalizer.rb",
      "lib/dm-core/support/hook.rb",
      "lib/dm-core/support/lazy_array.rb",
+     "lib/dm-core/support/local_object_space.rb",
      "lib/dm-core/support/logger.rb",
      "lib/dm-core/support/naming_conventions.rb",
      "lib/dm-core/support/subject.rb",
@@ -96,7 +98,6 @@ Gem::Specification.new do |s|
      "lib/dm-core/version.rb",
      "script/performance.rb",
      "script/profile.rb",
-     "spec/lib/adapter_helpers.rb",
      "spec/lib/collection_helpers.rb",
      "spec/lib/counter_adapter.rb",
      "spec/lib/pending_helpers.rb",
@@ -177,8 +178,7 @@ Gem::Specification.new do |s|
   s.rubygems_version = %q{1.3.6}
   s.summary = %q{An Object/Relational Mapper for Ruby}
   s.test_files = [
-    "spec/lib/adapter_helpers.rb",
-     "spec/lib/collection_helpers.rb",
+    "spec/lib/collection_helpers.rb",
      "spec/lib/counter_adapter.rb",
      "spec/lib/pending_helpers.rb",
      "spec/lib/rspec_immediate_feedback_formatter.rb",
