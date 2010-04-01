@@ -78,6 +78,7 @@ Gem::Specification.new do |s|
      "lib/dm-core/spec/lib/collection_helpers.rb",
      "lib/dm-core/spec/lib/counter_adapter.rb",
      "lib/dm-core/spec/lib/pending_helpers.rb",
+     "lib/dm-core/spec/lib/spec_helper.rb",
      "lib/dm-core/spec/resource_shared_spec.rb",
      "lib/dm-core/spec/sel_shared_spec.rb",
      "lib/dm-core/support/assertions.rb",
