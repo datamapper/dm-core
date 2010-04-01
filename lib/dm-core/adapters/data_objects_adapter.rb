@@ -208,14 +208,14 @@ module DataMapper
             query = nil if query.empty?
 
             # Better error message in case port is no Numeric value
-            @options[:port] = @options[:port].to_int if @options[:port]
+            port = @options[:port].nil? ? nil : @options[:port].to_int
 
             DataObjects::URI.new(
               @options[:adapter],
               @options[:user] || @options[:username],
               @options[:password],
               @options[:host],
-              @options[:port],
+              port,
               @options[:path] || @options[:database],
               query,
               @options[:fragment]
