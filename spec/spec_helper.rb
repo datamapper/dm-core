@@ -5,7 +5,9 @@ require 'addressable/uri'
 require 'spec'
 
 SPEC_ROOT = Pathname(__FILE__).dirname.expand_path
-$LOAD_PATH.unshift(SPEC_ROOT.parent + 'lib')
+LIB_ROOT  = SPEC_ROOT.parent + 'lib'
+
+$LOAD_PATH.unshift(LIB_ROOT)
 
 require 'dm-core'
 
@@ -13,13 +15,12 @@ ENV['PLUGINS'].to_s.strip.split(/\s+/).each do |plugin|
   require plugin
 end
 
+Pathname.glob((LIB_ROOT  + 'dm-core/spec/**/*.rb'  ).to_s).each { |file| require file }
 Pathname.glob((SPEC_ROOT + '{lib,*/shared}/**/*.rb').to_s).each { |file| require file }
 
 ENV['ADAPTERS'] ||= 'all'
 
 HAS_DO = DataMapper::Adapters.const_defined?('DataObjectsAdapter')
-
-require 'dm-core/spec/lib/adapter_helpers'
 
 # create sqlite3_fs directory if it doesn't exist
 temp_db_dir = SPEC_ROOT.join('db')
