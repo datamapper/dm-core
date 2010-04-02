@@ -634,7 +634,7 @@ share_examples_for 'A public Resource' do
     describe 'on an anonymous resource' do
       before do
         rescue_if @skip do
-          @user = @user.class.first(:fields => [ :description ])
+          @user = @user.model.first(:fields => [ :description ])
           @user.description.should == 'Test'
         end
       end
