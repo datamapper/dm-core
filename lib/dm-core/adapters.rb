@@ -10,7 +10,7 @@ module DataMapper
     # @api private
     def self.new(repository_name, options)
       options = normalize_options(options)
-      adapter_class(options[:adapter]).new(repository_name, options)
+      adapter_class(options.fetch(:adapter)).new(repository_name, options)
     end
 
     class << self
@@ -65,11 +65,11 @@ module DataMapper
 
         # Extract the name/value pairs from the query portion of the
         # connection uri, and set them as options directly.
-        if options[:query]
+        if options.fetch(:query)
           options.update(uri.query_values)
         end
 
-        options[:adapter] = options[:scheme]
+        options[:adapter] = options.fetch(:scheme)
 
         options
       end
