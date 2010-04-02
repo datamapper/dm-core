@@ -440,7 +440,7 @@ module DataMapper
             super
             loaded_entries.all? { |resource| create_intermediary(safe, resource) }
           else
-            if intermediary = create_intermediary(safe)
+            if loaded_entries.any? && (intermediary = create_intermediary(safe))
               inverse = via.inverse
               loaded_entries.each { |resource| inverse.set(resource, intermediary) }
             end
