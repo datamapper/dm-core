@@ -86,10 +86,8 @@ share_examples_for 'A Resource supporting Strategic Eager Loading' do
     end
 
     before :all do
-      @results = []
-
-      @user_model.all.each do |user|
-        @results << [ user, user.referrer ]
+      @results = @user_model.all.map do |user|
+        [ user, user.referrer ]
       end
 
       # some storage engines return the data in a different order
