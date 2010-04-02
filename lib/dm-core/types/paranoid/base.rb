@@ -7,7 +7,6 @@ module DataMapper
         end
 
         def paranoid_destroy
-          return false unless saved?
           model.paranoid_properties.each do |name, block|
             attribute_set(name, block.call(self))
           end
@@ -20,6 +19,7 @@ module DataMapper
 
         # @api private
         def _destroy(safe)
+          return false unless saved?
           if safe
             paranoid_destroy
           else
