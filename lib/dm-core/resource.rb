@@ -1077,13 +1077,13 @@ module DataMapper
     # @api private
     def save_parents(safe)
       run_once(true) do
-        parent_relationships.all? do |relationship|
+        parent_relationships.map do |relationship|
           parent = relationship.get!(self)
 
           if parent.__send__(:save_parents, safe) && parent.__send__(:save_self, safe)
             relationship.set(self, parent)  # set the FK values
           end
-        end
+        end.all?
       end
     end
 
@@ -1094,9 +1094,9 @@ module DataMapper
     #
     # @api private
     def save_children(safe)
-      child_collections.all? do |collection|
+      child_collections.map do |collection|
         collection.send(safe ? :save : :save!)
-      end
+      end.all?
     end
 
     # Checks if the resource has unsaved changes
