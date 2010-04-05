@@ -745,8 +745,8 @@ module DataMapper
     end
 
     # @api private
-    def assert_valid # :nodoc:
-      return if @valid
+    def assert_valid(force = false) # :nodoc:
+      return if @valid && !force
       @valid = true
 
       name            = self.name

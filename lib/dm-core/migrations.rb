@@ -1381,7 +1381,7 @@ module DataMapper
       #
       # @api public
       def auto_migrate!(repository_name = self.repository_name)
-        assert_valid
+        assert_valid(true)
         auto_migrate_down!(repository_name)
         auto_migrate_up!(repository_name)
       end
@@ -1393,7 +1393,7 @@ module DataMapper
       #
       # @api public
       def auto_upgrade!(repository_name = self.repository_name)
-        assert_valid
+        assert_valid(true)
         base_model = self.base_model
         if base_model == self
           repository(repository_name).upgrade_model_storage(self)
@@ -1410,7 +1410,7 @@ module DataMapper
       #
       # @api private
       def auto_migrate_down!(repository_name = self.repository_name)
-        assert_valid
+        assert_valid(true)
         base_model = self.base_model
         if base_model == self
           repository(repository_name).destroy_model_storage(self)
@@ -1425,7 +1425,7 @@ module DataMapper
       #
       # @api private
       def auto_migrate_up!(repository_name = self.repository_name)
-        assert_valid
+        assert_valid(true)
         base_model = self.base_model
         if base_model == self
           repository(repository_name).create_model_storage(self)
