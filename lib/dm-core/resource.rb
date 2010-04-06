@@ -92,14 +92,36 @@ module DataMapper
     # @api public
     alias_method :model, :class
 
+    # Get the persisted state for the resource
+    #
+    # @return [Resource::State]
+    #   the current persisted state for the resource
+    #
     # @api private
     def persisted_state
-      @_state
+      @_state ||= Resource::State::Transient.new(self)
     end
 
+    # Set the persisted state for the resource
+    #
+    # @param [Resource::State]
+    #   the new persisted state for the resource
+    #
+    # @return [undefined]
+    #
     # @api private
     def persisted_state=(state)
       @_state = state
+    end
+
+    # Test if the persisted state is set
+    #
+    # @return [Boolean]
+    #   true if the persisted state is set
+    #
+    # @api private
+    def persisted_state?
+      defined?(@_state) ? true : false
     end
 
     # Repository this resource belongs to in the context of this collection
@@ -739,8 +761,7 @@ module DataMapper
     #
     # @api public
     def initialize(attributes = {}, &block) # :nodoc:
-      self.persisted_state = Resource::State::Transient.new(self)
-      self.attributes      = attributes
+      self.attributes = attributes
     end
 
     # @api private
