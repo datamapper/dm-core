@@ -167,7 +167,7 @@ module DataMapper
     #
     # @api public
     def new?
-      persisted_state.instance_of?(State::Transient)
+      persisted_state.kind_of?(State::Transient)
     end
 
     # Checks if this Resource instance is saved

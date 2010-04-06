@@ -3,13 +3,13 @@ module DataMapper
     class State
 
       # a not-persisted/unmodifiable resource
-      class Immutable < Transient
+      class Immutable < State
         def get(subject, *args)
           unless subject.loaded?(resource)
             raise ImmutableError, 'Immutable resource cannot be lazy loaded'
           end
 
-          subject.get(resource, *args)
+          super
         end
 
         def set(subject, value)
@@ -23,6 +23,11 @@ module DataMapper
         def commit
           self
         end
+
+        def rollback
+          self
+        end
+
       end # class Immutable
     end # class State
   end # module Resource
