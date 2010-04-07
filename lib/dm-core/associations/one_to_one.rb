@@ -3,12 +3,12 @@ module DataMapper
     module OneToOne #:nodoc:
       class Relationship < Associations::Relationship
         %w[ public protected private ].map do |visibility|
-          superclass.send("#{visibility}_instance_methods", false).each do |method|
-            undef_method method unless method.to_s == 'initialize'
-          end
+          methods = superclass.send("#{visibility}_instance_methods", false) |
+                    DataMapper::Subject.send("#{visibility}_instance_methods", false)
 
-          # remove mixed in methods
-          undef_method *DataMapper::Subject.send("#{visibility}_instance_methods", false)
+          methods.each do |method|
+            undef_method method.to_sym unless method.to_s == 'initialize'
+          end
         end
 
         # Loads (if necessary) and returns association target
