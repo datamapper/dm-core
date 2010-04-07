@@ -7,12 +7,12 @@ module DataMapper
       while model = descendants.shift
         descendants.concat(model.descendants.to_a - [ model ])
 
-        parts         = model.name.split('::')
-        constant_name = parts.pop.to_sym
-        base          = parts.empty? ? Object : Object.full_const_get(parts.join('::'))
+        unless model.name.to_s[0] == ?#
+          parts         = model.name.split('::')
+          constant_name = parts.pop.to_sym
+          base          = parts.empty? ? Object : Object.full_const_get(parts.join('::'))
 
-        if constant_name.to_s[0] != ?# && base.const_defined?(constant_name)
-          base.send(:remove_const, constant_name)
+          base.class_eval { remove_const(constant_name) if const_defined?(constant_name) }
         end
 
         remove_ivars(model)
