@@ -3,6 +3,7 @@ module DataMapper
 
     # the state of the resource (abstract)
     class State
+      attr_reader :resource
 
       def initialize(resource)
         @resource = resource
@@ -44,8 +45,6 @@ module DataMapper
       end
 
     private
-
-      attr_reader :resource
 
       def model
         @model ||= resource.model

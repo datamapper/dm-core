@@ -178,6 +178,14 @@ describe DataMapper::Resource::State do
     end
   end
 
+  describe '#resource' do
+    subject { @state.resource }
+
+    it 'should return the resource' do
+      should equal(@resource)
+    end
+  end
+
   describe '#set' do
     subject { @state.set(@key, @value) }
 
