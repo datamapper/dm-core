@@ -62,7 +62,7 @@ shared_examples_for 'DataMapper::Query::Conditions::AbstractComparison' do
 
   describe '#==' do
     describe 'when the other AbstractComparison is equal' do
-      # artifically modify the object so #== will throw an
+      # artificially modify the object so #== will throw an
       # exception if the equal? branch is not followed when heckling
       before { @comparison.singleton_class.send(:undef_method, :slug) }
 
@@ -100,7 +100,7 @@ shared_examples_for 'DataMapper::Query::Conditions::AbstractComparison' do
 
   describe '#eql?' do
     describe 'when the other AbstractComparison is equal' do
-      # artifically modify the object so #eql? will throw an
+      # artificially modify the object so #eql? will throw an
       # exception if the equal? branch is not followed when heckling
       before { @comparison.singleton_class.send(:undef_method, :slug) }
 
