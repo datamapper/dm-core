@@ -85,17 +85,11 @@ module DataMapper
         end
 
         def call(resource)
-          unbound_method.bind(resource).call
+          resource.__send__(@method)
         end
 
         def copy(model)
           self.class.new(model, @method)
-        end
-
-      private
-
-        def unbound_method
-          @unbound_method ||= @model.instance_method(@method)
         end
 
       end
