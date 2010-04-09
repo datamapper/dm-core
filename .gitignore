@@ -17,6 +17,7 @@ tmtags
 *.rbc
 
 ## PROJECT::GENERAL
+*.gem
 coverage
 rdoc
 pkg

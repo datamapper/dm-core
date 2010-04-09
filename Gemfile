@@ -1,5 +1,7 @@
 source 'http://rubygems.org'
 
+datamapper = 'git://github.com/datamapper'
+
 group :runtime do
 
   # We bundle both AS and extlib while extlib compatibility needs to be kept around.
@@ -40,7 +42,7 @@ group :runtime do
   # It was mentioned above that all this is not *strictly* necessary, and this is true.
   # Currently dm-core does the following as the first require when checking for AS
   #
-  #   require 'active_support/core_ext/object/singleton_class'
+  #   require 'active_support/core_ext/kernel/singleton_class'
   #
   # Because this method is not present in activesupport <= 3.0.0.beta, dm-core's feature
   # detection will actually do the "right thing" and fall back to extlib. However, since
@@ -54,24 +56,42 @@ group :runtime do
   #
 
   if ENV['EXTLIB']
-    gem 'extlib',        '~> 0.9.15',      :git => 'git://github.com/datamapper/extlib.git'
+    gem 'extlib',        '~> 0.9.15',      :git => "#{datamapper}/extlib.git"
   else
-    gem 'activesupport', '~> 3.0.0.beta2', :git => 'git://github.com/rails/rails.git', :require => nil
+    gem 'activesupport', '~> 3.0.0.beta3', :git => 'git://github.com/rails/rails.git', :require => nil
   end
 
   gem 'addressable', '~> 2.1'
 end
 
 group :development do
-  gem 'rake',         '~> 0.8.7'
-  gem 'rspec',        '~> 1.3'
-  gem 'yard',         '~> 0.5'
-  gem 'rcov',         '~> 0.9.7'
-  gem 'jeweler',      '~> 1.4'
-  gem 'data_objects', '~> 0.10.1'
-  gem 'do_sqlite3',   '~> 0.10.1'
-  gem 'do_mysql',     '~> 0.10.1'
-  gem 'do_postgres',  '~> 0.10.1'
+
+  gem 'rake',                 '~> 0.8.7'
+  gem 'rspec',                '~> 1.3'
+  gem 'yard',                 '~> 0.5'
+  gem 'rcov',                 '~> 0.9.7'
+  gem 'jeweler',              '~> 1.4'
+
+  gem 'dm-core',              '~> 0.10.3', :path => File.dirname(__FILE__) # Make ourself available to the adapters
+
+  gem 'dm-migrations',        '~> 0.10.3', :git => "#{datamapper}/dm-migrations.git"
+
+  gem 'data_objects',         '~> 0.10.2', :git => "#{datamapper}/do.git"
+  gem 'do_sqlite3',           '~> 0.10.2', :git => "#{datamapper}/do.git"
+  gem 'do_mysql',             '~> 0.10.2', :git => "#{datamapper}/do.git"
+  gem 'do_postgres',          '~> 0.10.2', :git => "#{datamapper}/do.git"
+  gem 'do_oracle',            '~> 0.10.2', :git => "#{datamapper}/do.git"
+  gem 'do_sqlserver',         '~> 0.10.2', :git => "#{datamapper}/do.git"
+
+  gem 'dm-do-adapter',        '~> 0.10.3', :git => "#{datamapper}/dm-do-adapter.git"
+  gem 'dm-sqlite-adapter',    '~> 0.10.3', :git => "#{datamapper}/dm-sqlite-adapter.git"
+  gem 'dm-postgres-adapter',  '~> 0.10.3', :git => "#{datamapper}/dm-postgres-adapter.git"
+  gem 'dm-mysql-adapter',     '~> 0.10.3', :git => "#{datamapper}/dm-mysql-adapter.git"
+  gem 'dm-oracle-adapter',    '~> 0.10.3', :git => "#{datamapper}/dm-oracle-adapter.git"
+  gem 'dm-sqlserver-adapter', '~> 0.10.3', :git => "#{datamapper}/dm-sqlserver-adapter.git"
+
+  gem 'dm-yaml-adapter',      '~> 0.10.3', :git => "#{datamapper}/dm-yaml-adapter.git"
+
 end
 
 group :quality do

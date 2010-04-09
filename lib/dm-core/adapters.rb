@@ -13,6 +13,34 @@ module DataMapper
       adapter_class(options.fetch(:adapter)).new(repository_name, options)
     end
 
+    # The path used to require the in memory adapter
+    #
+    # Set this if you want to register your own adapter
+    # to be used when you specify an 'in_memory' connection
+    # during
+    #
+    # @see DataMapper.setup
+    #
+    # @param [String] path
+    #   the path used to require the desired in memory adapter
+    #
+    # @api semipublic
+    def self.in_memory_adapter_path=(path)
+      @in_memory_adapter_path = path
+    end
+
+    # The path used to require the in memory adapter
+    #
+    # @see DataMapper.setup
+    #
+    # @return [String]
+    #   the path used to require the desired in memory adapter
+    #
+    # @api semipublic
+    def self.in_memory_adapter_path
+      @in_memory_adapter_path ||= 'dm-core/adapters/in_memory_adapter'
+    end
+
     class << self
       private
 
@@ -97,8 +125,9 @@ module DataMapper
       #
       # @api private
       def adapter_class(name)
-        class_name = (ActiveSupport::Inflector.camelize(name) << 'Adapter').to_sym
-        load_adapter(name) unless const_defined?(class_name)
+        adapter_name = normalize_adapter_name(name)
+        class_name = (ActiveSupport::Inflector.camelize(adapter_name) << 'Adapter').to_sym
+        load_adapter(adapter_name) unless const_defined?(class_name)
         const_get(class_name)
       end
 
@@ -112,17 +141,53 @@ module DataMapper
       #
       # @api private
       def load_adapter(name)
-        name = name.to_sym
-
-        lib  = "#{name}_adapter"
-        file = DataMapper.root / 'lib' / 'dm-core' / 'adapters' / "#{lib}.rb"
-
-        if file.file?
-          require file
-        else
-          require lib
-        end
+        require "dm-#{name}-adapter"
+      rescue LoadError
+        require in_memory_adapter?(name) ? in_memory_adapter_path : legacy_path(name)
       end
+
+      # Returns wether or not the given adapter name is considered an in memory adapter
+      #
+      # @param [String, Symbol] name
+      #   the name of the adapter
+      #
+      # @return [Boolean]
+      #   true if the adapter is considered to be an in memory adapter
+      #
+      # @api private
+      def in_memory_adapter?(name)
+        name.to_s == 'in_memory'
+      end
+
+      # Returns the fallback filename that would be used to require the named adapter
+      #
+      # The fallback format is "#{name}_adapter" and will be phased out in favor of
+      # the properly 'namespaced' "dm-#{name}-adapter" format.
+      #
+      # @param [String, Symbol] name
+      #   the name of the adapter to require
+      #
+      # @return [String]
+      #   the filename that gets required for the adapter identified by name
+      #
+      # @api private
+      def legacy_path(name)
+        "#{name}_adapter"
+      end
+
+      # Adjust the adapter name to match the name used in the gem providing the adapter
+      #
+      # @param [String, Symbol] name
+      #   the name of the adapter
+      #
+      # @return [String]
+      #   the normalized adapter name
+      #
+      # @api private
+      def normalize_adapter_name(name)
+        (original = name.to_s) == 'sqlite3' ? 'sqlite' : original
+      end
+
     end
 
     extendable do

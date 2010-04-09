@@ -97,7 +97,6 @@ require 'dm-core/associations/one_to_one'
 require 'dm-core/associations/many_to_one'
 require 'dm-core/associations/many_to_many'
 require 'dm-core/identity_map'
-require 'dm-core/migrations'                  # TODO: move to dm-more
 require 'dm-core/property'
 require 'dm-core/property_set'
 require 'dm-core/query'

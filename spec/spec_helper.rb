@@ -20,8 +20,6 @@ Pathname.glob((SPEC_ROOT + '{lib,*/shared}/**/*.rb').to_s).each { |file| require
 
 ENV['ADAPTERS'] ||= 'all'
 
-HAS_DO = DataMapper::Adapters.const_defined?('DataObjectsAdapter')
-
 # create sqlite3_fs directory if it doesn't exist
 temp_db_dir = SPEC_ROOT.join('db')
 temp_db_dir.mkpath
@@ -32,7 +30,6 @@ adapters  = ENV['ADAPTERS'].split(' ').map { |adapter_name| adapter_name.strip.d
 adapters  = DataMapper::Spec::AdapterHelpers.primary_adapters.keys if adapters.include?('all')
 
 DataMapper::Spec::AdapterHelpers.setup_adapters(adapters)
-
 
 logger = DataMapper::Logger.new(DataMapper.root / 'log' / 'dm.log', :debug)
 logger.auto_flush = true

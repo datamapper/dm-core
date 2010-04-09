@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Dan Kubb"]
-  s.date = %q{2010-04-06}
+  s.date = %q{2010-04-09}
   s.description = %q{Faster, Better, Simpler.}
   s.email = %q{dan.kubb@gmail.com}
   s.extra_rdoc_files = [
@@ -29,14 +29,7 @@ Gem::Specification.new do |s|
      "lib/dm-core.rb",
      "lib/dm-core/adapters.rb",
      "lib/dm-core/adapters/abstract_adapter.rb",
-     "lib/dm-core/adapters/data_objects_adapter.rb",
      "lib/dm-core/adapters/in_memory_adapter.rb",
-     "lib/dm-core/adapters/mysql_adapter.rb",
-     "lib/dm-core/adapters/oracle_adapter.rb",
-     "lib/dm-core/adapters/postgres_adapter.rb",
-     "lib/dm-core/adapters/sqlite3_adapter.rb",
-     "lib/dm-core/adapters/sqlserver_adapter.rb",
-     "lib/dm-core/adapters/yaml_adapter.rb",
      "lib/dm-core/associations/many_to_many.rb",
      "lib/dm-core/associations/many_to_one.rb",
      "lib/dm-core/associations/one_to_many.rb",
@@ -53,7 +46,6 @@ Gem::Specification.new do |s|
      "lib/dm-core/core_ext/symbol.rb",
      "lib/dm-core/core_ext/try_dup.rb",
      "lib/dm-core/identity_map.rb",
-     "lib/dm-core/migrations.rb",
      "lib/dm-core/model.rb",
      "lib/dm-core/model/descendant_set.rb",
      "lib/dm-core/model/hook.rb",
@@ -80,7 +72,6 @@ Gem::Specification.new do |s|
      "lib/dm-core/resource/state/persisted.rb",
      "lib/dm-core/resource/state/transient.rb",
      "lib/dm-core/spec/adapter_shared_spec.rb",
-     "lib/dm-core/spec/data_objects_adapter_shared_spec.rb",
      "lib/dm-core/spec/lib/adapter_helpers.rb",
      "lib/dm-core/spec/lib/collection_helpers.rb",
      "lib/dm-core/spec/lib/counter_adapter.rb",
@@ -119,7 +110,6 @@ Gem::Specification.new do |s|
      "spec/public/associations/one_to_one_spec.rb",
      "spec/public/associations/one_to_one_with_boolean_cpk_spec.rb",
      "spec/public/collection_spec.rb",
-     "spec/public/migrations_spec.rb",
      "spec/public/model/hook_spec.rb",
      "spec/public/model/property_spec.rb",
      "spec/public/model/relationship_spec.rb",
@@ -140,12 +130,6 @@ Gem::Specification.new do |s|
      "spec/rcov.opts",
      "spec/semipublic/adapters/abstract_adapter_spec.rb",
      "spec/semipublic/adapters/in_memory_adapter_spec.rb",
-     "spec/semipublic/adapters/mysql_adapter_spec.rb",
-     "spec/semipublic/adapters/oracle_adapter_spec.rb",
-     "spec/semipublic/adapters/postgres_adapter_spec.rb",
-     "spec/semipublic/adapters/sqlite3_adapter_spec.rb",
-     "spec/semipublic/adapters/sqlserver_adapter_spec.rb",
-     "spec/semipublic/adapters/yaml_adapter_spec.rb",
      "spec/semipublic/associations/many_to_many_spec.rb",
      "spec/semipublic/associations/many_to_one_spec.rb",
      "spec/semipublic/associations/one_to_many_spec.rb",
@@ -201,7 +185,6 @@ Gem::Specification.new do |s|
      "spec/public/associations/one_to_one_spec.rb",
      "spec/public/associations/one_to_one_with_boolean_cpk_spec.rb",
      "spec/public/collection_spec.rb",
-     "spec/public/migrations_spec.rb",
      "spec/public/model/hook_spec.rb",
      "spec/public/model/property_spec.rb",
      "spec/public/model/relationship_spec.rb",
@@ -221,12 +204,6 @@ Gem::Specification.new do |s|
      "spec/public/types/discriminator_spec.rb",
      "spec/semipublic/adapters/abstract_adapter_spec.rb",
      "spec/semipublic/adapters/in_memory_adapter_spec.rb",
-     "spec/semipublic/adapters/mysql_adapter_spec.rb",
-     "spec/semipublic/adapters/oracle_adapter_spec.rb",
-     "spec/semipublic/adapters/postgres_adapter_spec.rb",
-     "spec/semipublic/adapters/sqlite3_adapter_spec.rb",
-     "spec/semipublic/adapters/sqlserver_adapter_spec.rb",
-     "spec/semipublic/adapters/yaml_adapter_spec.rb",
      "spec/semipublic/associations/many_to_many_spec.rb",
      "spec/semipublic/associations/many_to_one_spec.rb",
      "spec/semipublic/associations/one_to_many_spec.rb",
