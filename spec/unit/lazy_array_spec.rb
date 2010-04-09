@@ -52,13 +52,13 @@ module LazyArraySpec
 
     def should_return_true
       it 'should return true' do
-        action.should be_true
+        action.should be(true)
       end
     end
 
     def should_return_false
       it 'should return false' do
-        action.should be_false
+        action.should be(false)
       end
     end
 
@@ -149,7 +149,7 @@ end
     subject { @lazy_array }
 
     it 'should be an Enumerable' do
-      (Enumerable === subject).should be_true
+      (Enumerable === subject).should be(true)
     end
 
     describe 'when frozen', state do
@@ -1946,7 +1946,7 @@ end
       end
 
       it 'should delegate to the Array' do
-        subject.lazy_spec.should be_true
+        subject.lazy_spec.should be(true)
       end
     end
 

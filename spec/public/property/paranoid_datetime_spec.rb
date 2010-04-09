@@ -30,7 +30,7 @@ describe DataMapper::Property, 'ParanoidDateTime type' do
           @resource = @model.new
         end
 
-        it { should be_false }
+        it { should be(false) }
 
         it 'should not delete the resource from the datastore' do
           method(:subject).should_not change { @model.with_deleted.size }.from(0)
@@ -50,7 +50,7 @@ describe DataMapper::Property, 'ParanoidDateTime type' do
           @resource = @model.create
         end
 
-        it { should be_true }
+        it { should be(true) }
 
         it 'should not delete the resource from the datastore' do
           method(:subject).should_not change { @model.with_deleted.size }.from(1)
@@ -74,7 +74,7 @@ describe DataMapper::Property, 'ParanoidDateTime type' do
           @resource = @model.new
         end
 
-        it { should be_false }
+        it { should be(false) }
 
         it 'should not delete the resource from the datastore' do
           method(:subject).should_not change { @model.with_deleted.size }.from(0)
@@ -94,7 +94,7 @@ describe DataMapper::Property, 'ParanoidDateTime type' do
           @resource = @model.create
         end
 
-        it { should be_true }
+        it { should be(true) }
 
         it 'should delete the resource from the datastore' do
           method(:subject).should change { @model.with_deleted.size }.from(1).to(0)

@@ -91,7 +91,7 @@ describe DataMapper::Resource do
       subject { @user.raise_on_save_failure }
 
       describe 'when model.raise_on_save_failure has not been set' do
-        it { should be_false }
+        it { should be(false) }
       end
 
       describe 'when model.raise_on_save_failure has been set to true' do
@@ -99,7 +99,7 @@ describe DataMapper::Resource do
           @user_model.raise_on_save_failure = true
         end
 
-        it { should be_true }
+        it { should be(true) }
       end
 
       describe 'when resource.raise_on_save_failure has been set to true' do
@@ -107,7 +107,7 @@ describe DataMapper::Resource do
           @user.raise_on_save_failure = true
         end
 
-        it { should be_true }
+        it { should be(true) }
       end
     end
 
@@ -128,7 +128,7 @@ describe DataMapper::Resource do
           @value = true
         end
 
-        it { should be_true }
+        it { should be(true) }
 
         it 'should set raise_on_save_failure' do
           method(:subject).should change {
@@ -142,7 +142,7 @@ describe DataMapper::Resource do
           @value = false
         end
 
-        it { should be_false }
+        it { should be(false) }
 
         it 'should set raise_on_save_failure' do
           method(:subject).should_not change {
@@ -162,7 +162,7 @@ describe DataMapper::Resource do
           end
 
           describe 'and it is a savable resource' do
-            it { should be_true }
+            it { should be(true) }
           end
 
           describe 'and it is an invalid resource' do

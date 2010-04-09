@@ -56,7 +56,7 @@ describe DataMapper::Property, 'Object type' do
     describe 'with a valid primitive' do
       subject { @property.valid?('lang' => 'en_CA') }
 
-      it { should be_true }
+      it { should be(true) }
     end
 
     describe 'with nil and property is not required' do
@@ -66,19 +66,19 @@ describe DataMapper::Property, 'Object type' do
 
       subject { @property.valid?(nil) }
 
-      it { should be_true }
+      it { should be(true) }
     end
 
     describe 'with nil and property is required' do
       subject { @property.valid?(nil) }
 
-      it { should be_false }
+      it { should be(false) }
     end
 
     describe 'with nil and property is required, but validity is negated' do
       subject { @property.valid?(nil, true) }
 
-      it { should be_true }
+      it { should be(true) }
     end
   end
 

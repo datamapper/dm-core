@@ -186,7 +186,7 @@ describe DataMapper::Migrations do
             end
 
             it 'should return true' do
-              @response.should be_true
+              @response.should be(true)
             end
 
             it "should create a #{statement} column" do
@@ -234,7 +234,7 @@ describe DataMapper::Migrations do
             end
 
             it 'should return true' do
-              @response.should be_true
+              @response.should be(true)
             end
 
             it "should create a #{statement} column" do
@@ -266,7 +266,7 @@ describe DataMapper::Migrations do
             end
 
             it 'should return true' do
-              @response.should be_true
+              @response.should be(true)
             end
 
             it "should create a #{statement} column" do
@@ -329,7 +329,7 @@ describe DataMapper::Migrations do
             end
 
             it 'should return true' do
-              @response.should be_true
+              @response.should be(true)
             end
 
             it "should create a #{statement} column" do
@@ -368,7 +368,7 @@ describe DataMapper::Migrations do
             end
 
             it 'should return true' do
-              @response.should be_true
+              @response.should be(true)
             end
 
             it "should create a #{statement} column" do
@@ -409,7 +409,7 @@ describe DataMapper::Migrations do
             end
 
             it 'should return true' do
-              @response.should be_true
+              @response.should be(true)
             end
 
             it "should create a #{statement} column" do
@@ -476,7 +476,7 @@ describe DataMapper::Migrations do
             end
 
             it 'should return true' do
-              @response.should be_true
+              @response.should be(true)
             end
 
             it "should create a #{statement} column" do

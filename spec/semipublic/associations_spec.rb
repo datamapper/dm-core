@@ -171,7 +171,7 @@ describe DataMapper::Associations do
     end
 
     it 'should return a Relationship that is required' do
-      @relationship.required?.should be_true
+      @relationship.required?.should be(true)
     end
   end
 end

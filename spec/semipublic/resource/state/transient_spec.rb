@@ -85,7 +85,7 @@ describe DataMapper::Resource::State::Transient do
       end
 
       it 'should return value' do
-        should be_false
+        should be(false)
       end
 
       it 'should be idempotent' do

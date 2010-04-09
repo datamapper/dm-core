@@ -68,31 +68,31 @@ shared_examples_for 'DataMapper::Query::Conditions::AbstractComparison' do
 
       subject { @comparison == @comparison }
 
-      it { should be_true }
+      it { should be(true) }
     end
 
     describe 'when the other AbstractComparison is the same class' do
       subject { @comparison == DataMapper::Query::Conditions::Comparison.new(@slug, @property, @value) }
 
-      it { should be_true }
+      it { should be(true) }
     end
 
     describe 'when the other AbstractComparison is a different class' do
       subject { @comparison == DataMapper::Query::Conditions::Comparison.new(:other, @property, @value) }
 
-      it { should be_false }
+      it { should be(false) }
     end
 
     describe 'when the other AbstractComparison is the same class, with different property' do
       subject { @comparison == DataMapper::Query::Conditions::Comparison.new(@slug, @other_property, @value) }
 
-      it { should be_false }
+      it { should be(false) }
     end
 
     describe 'when the other AbstractComparison is the same class, with different value' do
       subject { @comparison == DataMapper::Query::Conditions::Comparison.new(@slug, @property, @other_value) }
 
-      it { should be_false }
+      it { should be(false) }
     end
   end
 
@@ -106,31 +106,31 @@ shared_examples_for 'DataMapper::Query::Conditions::AbstractComparison' do
 
       subject { @comparison.eql?(@comparison) }
 
-      it { should be_true }
+      it { should be(true) }
     end
 
     describe 'when the other AbstractComparison is the same class' do
       subject { @comparison.eql?(DataMapper::Query::Conditions::Comparison.new(@slug, @property, @value)) }
 
-      it { should be_true }
+      it { should be(true) }
     end
 
     describe 'when the other AbstractComparison is a different class' do
       subject { @comparison.eql?(DataMapper::Query::Conditions::Comparison.new(:other, @property, @value)) }
 
-      it { should be_false }
+      it { should be(false) }
     end
 
     describe 'when the other AbstractComparison is the same class, with different property' do
       subject { @comparison.eql?(DataMapper::Query::Conditions::Comparison.new(@slug, @other_property, @value)) }
 
-      it { should be_false }
+      it { should be(false) }
     end
 
     describe 'when the other AbstractComparison is the same class, with different value' do
       subject { @comparison.eql?(DataMapper::Query::Conditions::Comparison.new(@slug, @property, @other_value)) }
 
-      it { should be_false }
+      it { should be(false) }
     end
   end
 
@@ -214,7 +214,7 @@ shared_examples_for 'DataMapper::Query::Conditions::AbstractComparison' do
   describe '#property?' do
     subject { @comparison.property? }
 
-    it { should be_true }
+    it { should be(true) }
   end
 
   it { should respond_to(:slug) }
@@ -239,7 +239,7 @@ shared_examples_for 'DataMapper::Query::Conditions::AbstractComparison' do
     subject { @comparison.valid? }
 
     describe 'when the value is valid for the subject' do
-      it { should be_true }
+      it { should be(true) }
     end
 
     describe 'when the value is not valid for the subject' do
@@ -247,7 +247,7 @@ shared_examples_for 'DataMapper::Query::Conditions::AbstractComparison' do
         @comparison = DataMapper::Query::Conditions::Comparison.new(@slug, @property, nil)
       end
 
-      it { should be_false }
+      it { should be(false) }
     end
   end
 
@@ -355,25 +355,25 @@ describe DataMapper::Query::Conditions::EqualToComparison do
           describe 'with a matching Hash' do
             subject { @comparison.matches?(@property.field => 1) }
 
-            it { should be_true }
+            it { should be(true) }
           end
 
           describe 'with a not matching Hash' do
             subject { @comparison.matches?(@property.field => 2) }
 
-            it { should be_false }
+            it { should be(false) }
           end
 
           describe 'with a matching Resource' do
             subject { @comparison.matches?(@model.new(@property => 1)) }
 
-            it { should be_true }
+            it { should be(true) }
           end
 
           describe 'with a not matching Resource' do
             subject { @comparison.matches?(@model.new(@property => 2)) }
 
-            it { should be_false }
+            it { should be(false) }
           end
         end
 
@@ -385,25 +385,25 @@ describe DataMapper::Query::Conditions::EqualToComparison do
           describe 'with a matching Hash' do
             subject { @comparison.matches?(@property.field => nil) }
 
-            it { should be_true }
+            it { should be(true) }
           end
 
           describe 'with a not matching Hash' do
             subject { @comparison.matches?(@property.field => 1) }
 
-            it { should be_false }
+            it { should be(false) }
           end
 
           describe 'with a matching Resource' do
             subject { @comparison.matches?(@model.new(@property => nil)) }
 
-            it { should be_true }
+            it { should be(true) }
           end
 
           describe 'with a not matching Resource' do
             subject { @comparison.matches?(@model.new(@property => 1)) }
 
-            it { should be_false }
+            it { should be(false) }
           end
         end
       end
@@ -420,25 +420,25 @@ describe DataMapper::Query::Conditions::EqualToComparison do
           describe 'with a matching Hash' do
             subject { @comparison.matches?({ @relationship.field => nil }) }
 
-            it { should be_true }
+            it { should be(true) }
           end
 
           describe 'with a not matching Hash' do
             subject { @comparison.matches?({ @relationship.field => {} }) }
 
-            it { pending { should be_false } }
+            it { pending { should be(false) } }
           end
 
           describe 'with a matching Resource' do
             subject { @comparison.matches?(@parent) }
 
-            it { should be_true }
+            it { should be(true) }
           end
 
           describe 'with a not matching Resource' do
             subject { @comparison.matches?(@child) }
 
-            it { should be_false }
+            it { should be(false) }
           end
         end
 
@@ -453,25 +453,25 @@ describe DataMapper::Query::Conditions::EqualToComparison do
           describe 'with a matching Hash' do
             subject { @comparison.matches?({ @relationship.field => @parent.attributes(:field) }) }
 
-            it { should be_true }
+            it { should be(true) }
           end
 
           describe 'with a not matching Hash' do
             subject { @comparison.matches?({ @relationship.field => @child.attributes(:field) }) }
 
-            it { pending { should be_false } }
+            it { pending { should be(false) } }
           end
 
           describe 'with a matching Resource' do
             subject { @comparison.matches?(@child) }
 
-            it { pending { should be_true } }
+            it { pending { should be(true) } }
           end
 
           describe 'with a not matching Resource' do
             subject { @comparison.matches?(@parent) }
 
-            it { pending { should be_false } }
+            it { pending { should be(false) } }
           end
         end
 
@@ -488,25 +488,25 @@ describe DataMapper::Query::Conditions::EqualToComparison do
           describe 'with a matching Hash' do
             subject { @comparison.matches?({ @relationship.field => @parent.attributes(:field) }) }
 
-            it { should be_true }
+            it { should be(true) }
           end
 
           describe 'with a not matching Hash' do
             subject { @comparison.matches?({ @relationship.field => @child.attributes(:field) }) }
 
-            it { pending { should be_false } }
+            it { pending { should be(false) } }
           end
 
           describe 'with a matching Resource' do
             subject { @comparison.matches?(@child) }
 
-            it { pending { should be_true } }
+            it { pending { should be(true) } }
           end
 
           describe 'with a not matching Resource' do
             subject { @comparison.matches?(@parent) }
 
-            it { pending { should be_false } }
+            it { pending { should be(false) } }
           end
         end
 
@@ -521,25 +521,25 @@ describe DataMapper::Query::Conditions::EqualToComparison do
           describe 'with a matching Hash' do
             subject { @comparison.matches?({ @relationship.field => @parent.attributes(:field) }) }
 
-            it { pending { should be_true } }
+            it { pending { should be(true) } }
           end
 
           describe 'with a not matching Hash' do
             subject { @comparison.matches?({ @relationship.field => @child.attributes(:field) }) }
 
-            it { should be_false }
+            it { should be(false) }
           end
 
           describe 'with a matching Resource' do
             subject { @comparison.matches?(@child) }
 
-            it { should be_true }
+            it { should be(true) }
           end
 
           describe 'with a not matching Resource' do
             subject { @comparison.matches?(@parent) }
 
-            it { should be_false }
+            it { should be(false) }
           end
         end
       end
@@ -551,7 +551,7 @@ describe DataMapper::Query::Conditions::EqualToComparison do
   describe '#relationship?' do
     subject { @comparison.relationship? }
 
-    it { should be_false }
+    it { should be(false) }
   end
 
   it { should respond_to(:to_s) }
@@ -657,25 +657,25 @@ describe DataMapper::Query::Conditions::InclusionComparison do
           describe 'with a matching Hash' do
             subject { @comparison.matches?(@property.field => 1) }
 
-            it { should be_true }
+            it { should be(true) }
           end
 
           describe 'with a not matching Hash' do
             subject { @comparison.matches?(@property.field => 2) }
 
-            it { should be_false }
+            it { should be(false) }
           end
 
           describe 'with a matching Resource' do
             subject { @comparison.matches?(@model.new(@property => 1)) }
 
-            it { should be_true }
+            it { should be(true) }
           end
 
           describe 'with a not matching Resource' do
             subject { @comparison.matches?(@model.new(@property => 2)) }
 
-            it { should be_false }
+            it { should be(false) }
           end
         end
 
@@ -688,25 +688,25 @@ describe DataMapper::Query::Conditions::InclusionComparison do
           describe 'with a matching Hash' do
             subject { @comparison.matches?(@property.field => 1) }
 
-            it { should be_true }
+            it { should be(true) }
           end
 
           describe 'with a not matching Hash' do
             subject { @comparison.matches?(@property.field => 2) }
 
-            it { should be_false }
+            it { should be(false) }
           end
 
           describe 'with a matching Resource' do
             subject { @comparison.matches?(@model.new(@property => 1)) }
 
-            it { should be_true }
+            it { should be(true) }
           end
 
           describe 'with a not matching Resource' do
             subject { @comparison.matches?(@model.new(@property => 2)) }
 
-            it { should be_false }
+            it { should be(false) }
           end
         end
 
@@ -719,25 +719,25 @@ describe DataMapper::Query::Conditions::InclusionComparison do
           describe 'with a matching Hash' do
             subject { @comparison.matches?(@property.field => 1) }
 
-            it { should be_true }
+            it { should be(true) }
           end
 
           describe 'with a not matching Hash' do
             subject { @comparison.matches?(@property.field => 0) }
 
-            it { should be_false }
+            it { should be(false) }
           end
 
           describe 'with a matching Resource' do
             subject { @comparison.matches?(@model.new(@property => 1)) }
 
-            it { should be_true }
+            it { should be(true) }
           end
 
           describe 'with a not matching Resource' do
             subject { @comparison.matches?(@model.new(@property => 0)) }
 
-            it { should be_false }
+            it { should be(false) }
           end
         end
 
@@ -750,25 +750,25 @@ describe DataMapper::Query::Conditions::InclusionComparison do
           describe 'with a matching Hash' do
             subject { @comparison.matches?(@property.field => 1) }
 
-            it { should be_true }
+            it { should be(true) }
           end
 
           describe 'with a not matching Hash' do
             subject { @comparison.matches?(@property.field => 2) }
 
-            it { should be_false }
+            it { should be(false) }
           end
 
           describe 'with a matching Resource' do
             subject { @comparison.matches?(@model.new(@property => 1)) }
 
-            it { should be_true }
+            it { should be(true) }
           end
 
           describe 'with a not matching Resource' do
             subject { @comparison.matches?(@model.new(@property => 2)) }
 
-            it { should be_false }
+            it { should be(false) }
           end
         end
       end
@@ -785,25 +785,25 @@ describe DataMapper::Query::Conditions::InclusionComparison do
           describe 'with a matching Hash' do
             subject { @comparison.matches?({ @relationship.field => @parent.attributes(:field) }) }
 
-            it { pending { should be_true } }
+            it { pending { should be(true) } }
           end
 
           describe 'with a not matching Hash' do
             subject { @comparison.matches?({ @relationship.field => @child.attributes(:field) }) }
 
-            it { should be_false }
+            it { should be(false) }
           end
 
           describe 'with a matching Resource' do
             subject { @comparison.matches?(@child) }
 
-            it { should be_true }
+            it { should be(true) }
           end
 
           describe 'with a not matching Resource' do
             subject { @comparison.matches?(@parent) }
 
-            it { should be_false }
+            it { should be(false) }
           end
         end
 
@@ -820,25 +820,25 @@ describe DataMapper::Query::Conditions::InclusionComparison do
           describe 'with a matching Hash' do
             subject { @comparison.matches?({ @relationship.field => @parent.attributes(:field) }) }
 
-            it { should be_true }
+            it { should be(true) }
           end
 
           describe 'with a not matching Hash' do
             subject { @comparison.matches?({ @relationship.field => @child.attributes(:field) }) }
 
-            it { pending { should be_false } }
+            it { pending { should be(false) } }
           end
 
           describe 'with a matching Resource' do
             subject { @comparison.matches?(@child) }
 
-            it { pending { should be_true } }
+            it { pending { should be(true) } }
           end
 
           describe 'with a not matching Resource' do
             subject { @comparison.matches?(@parent) }
 
-            it { pending { should be_false } }
+            it { pending { should be(false) } }
           end
         end
 
@@ -853,25 +853,25 @@ describe DataMapper::Query::Conditions::InclusionComparison do
           describe 'with a matching Hash' do
             subject { @comparison.matches?({ @relationship.field => @parent.attributes(:field) }) }
 
-            it { pending { should be_true } }
+            it { pending { should be(true) } }
           end
 
           describe 'with a not matching Hash' do
             subject { @comparison.matches?({ @relationship.field => @child.attributes(:field) }) }
 
-            it { should be_false }
+            it { should be(false) }
           end
 
           describe 'with a matching Resource' do
             subject { @comparison.matches?(@child) }
 
-            it { should be_true }
+            it { should be(true) }
           end
 
           describe 'with a not matching Resource' do
             subject { @comparison.matches?(@parent) }
 
-            it { should be_false }
+            it { should be(false) }
           end
         end
 
@@ -886,25 +886,25 @@ describe DataMapper::Query::Conditions::InclusionComparison do
           describe 'with a matching Hash' do
             subject { @comparison.matches?({ @relationship.field => @parent.attributes(:field) }) }
 
-            it { pending { should be_true } }
+            it { pending { should be(true) } }
           end
 
           describe 'with a not matching Hash' do
             subject { @comparison.matches?({ @relationship.field => @child.attributes(:field) }) }
 
-            it { should be_false }
+            it { should be(false) }
           end
 
           describe 'with a matching Resource' do
             subject { @comparison.matches?(@child) }
 
-            it { should be_true }
+            it { should be(true) }
           end
 
           describe 'with a not matching Resource' do
             subject { @comparison.matches?(@parent) }
 
-            it { should be_false }
+            it { should be(false) }
           end
         end
 
@@ -919,25 +919,25 @@ describe DataMapper::Query::Conditions::InclusionComparison do
           describe 'with a matching Hash' do
             subject { @comparison.matches?({ @relationship.field => @parent.attributes(:field) }) }
 
-            it { pending { should be_true } }
+            it { pending { should be(true) } }
           end
 
           describe 'with a not matching Hash' do
             subject { @comparison.matches?({ @relationship.field => @child.attributes(:field) }) }
 
-            it { should be_false }
+            it { should be(false) }
           end
 
           describe 'with a matching Resource' do
             subject { @comparison.matches?(@child) }
 
-            it { should be_true }
+            it { should be(true) }
           end
 
           describe 'with a not matching Resource' do
             subject { @comparison.matches?(@parent) }
 
-            it { should be_false }
+            it { should be(false) }
           end
         end
 
@@ -954,25 +954,25 @@ describe DataMapper::Query::Conditions::InclusionComparison do
           describe 'with a matching Hash' do
             subject { @comparison.matches?({ @relationship.field => @parent.attributes(:field) }) }
 
-            it { should be_true }
+            it { should be(true) }
           end
 
           describe 'with a not matching Hash' do
             subject { @comparison.matches?({ @relationship.field => @child.attributes(:field) }) }
 
-            it { pending { should be_false } }
+            it { pending { should be(false) } }
           end
 
           describe 'with a matching Resource' do
             subject { @comparison.matches?(@child) }
 
-            it { pending { should be_true } }
+            it { pending { should be(true) } }
           end
 
           describe 'with a not matching Resource' do
             subject { @comparison.matches?(@parent) }
 
-            it { pending { should be_false } }
+            it { pending { should be(false) } }
           end
         end
 
@@ -987,25 +987,25 @@ describe DataMapper::Query::Conditions::InclusionComparison do
           describe 'with a matching Hash' do
             subject { @comparison.matches?({ @relationship.field => @parent.attributes(:field) }) }
 
-            it { pending { should be_true } }
+            it { pending { should be(true) } }
           end
 
           describe 'with a not matching Hash' do
             subject { @comparison.matches?({ @relationship.field => @child.attributes(:field) }) }
 
-            it { should be_false }
+            it { should be(false) }
           end
 
           describe 'with a matching Resource' do
             subject { @comparison.matches?(@child) }
 
-            it { should be_true }
+            it { should be(true) }
           end
 
           describe 'with a not matching Resource' do
             subject { @comparison.matches?(@parent) }
 
-            it { should be_false }
+            it { should be(false) }
           end
         end
       end
@@ -1017,7 +1017,7 @@ describe DataMapper::Query::Conditions::InclusionComparison do
   describe '#relationship?' do
     subject { @comparison.relationship? }
 
-    it { should be_false }
+    it { should be(false) }
   end
 
   it { should respond_to(:to_s) }
@@ -1035,7 +1035,7 @@ describe DataMapper::Query::Conditions::InclusionComparison do
 
     describe 'with a Property subject' do
       describe 'with a valid Array value' do
-        it { should be_true }
+        it { should be(true) }
       end
 
       describe 'with a valid Array value that needs typecasting' do
@@ -1044,7 +1044,7 @@ describe DataMapper::Query::Conditions::InclusionComparison do
           @comparison = DataMapper::Query::Conditions::Comparison.new(@slug, @property, @value)
         end
 
-        it { should be_true }
+        it { should be(true) }
       end
 
       describe 'with an invalid Array value' do
@@ -1053,7 +1053,7 @@ describe DataMapper::Query::Conditions::InclusionComparison do
           @comparison = DataMapper::Query::Conditions::Comparison.new(@slug, @property, @value)
         end
 
-        it { should be_false }
+        it { should be(false) }
       end
 
       describe 'with an empty Array value' do
@@ -1062,7 +1062,7 @@ describe DataMapper::Query::Conditions::InclusionComparison do
           @comparison = DataMapper::Query::Conditions::Comparison.new(@slug, @property, @value)
         end
 
-        it { should be_false }
+        it { should be(false) }
       end
 
       describe 'with a valid Range value' do
@@ -1071,7 +1071,7 @@ describe DataMapper::Query::Conditions::InclusionComparison do
           @comparison = DataMapper::Query::Conditions::Comparison.new(@slug, @property, @value)
         end
 
-        it { should be_true }
+        it { should be(true) }
       end
 
       describe 'with a valid Range value that needs typecasting' do
@@ -1080,7 +1080,7 @@ describe DataMapper::Query::Conditions::InclusionComparison do
           @comparison = DataMapper::Query::Conditions::Comparison.new(@slug, @property, @value)
         end
 
-        it { should be_true }
+        it { should be(true) }
       end
 
       describe 'with an invalid Range value' do
@@ -1089,7 +1089,7 @@ describe DataMapper::Query::Conditions::InclusionComparison do
           @comparison = DataMapper::Query::Conditions::Comparison.new(@slug, @property, @value)
         end
 
-        it { should be_false }
+        it { should be(false) }
       end
 
       describe 'with an empty Range value' do
@@ -1098,7 +1098,7 @@ describe DataMapper::Query::Conditions::InclusionComparison do
           @comparison = DataMapper::Query::Conditions::Comparison.new(@slug, @property, @value)
         end
 
-        it { should be_false }
+        it { should be(false) }
       end
     end
 
@@ -1109,7 +1109,7 @@ describe DataMapper::Query::Conditions::InclusionComparison do
           @comparison = DataMapper::Query::Conditions::Comparison.new(@slug, @relationship, @value)
         end
 
-        it { should be_true }
+        it { should be(true) }
       end
 
       describe 'with an invalid Array value' do
@@ -1118,7 +1118,7 @@ describe DataMapper::Query::Conditions::InclusionComparison do
           @comparison = DataMapper::Query::Conditions::Comparison.new(@slug, @relationship, @value)
         end
 
-        it { should be_false }
+        it { should be(false) }
       end
 
       describe 'with an empty Array value' do
@@ -1127,7 +1127,7 @@ describe DataMapper::Query::Conditions::InclusionComparison do
           @comparison = DataMapper::Query::Conditions::Comparison.new(@slug, @relationship, @value)
         end
 
-        it { should be_false }
+        it { should be(false) }
       end
 
       describe 'with a valid Collection' do
@@ -1136,7 +1136,7 @@ describe DataMapper::Query::Conditions::InclusionComparison do
           @comparison = DataMapper::Query::Conditions::Comparison.new(@slug, @relationship, @value)
         end
 
-        it { should be_true }
+        it { should be(true) }
       end
     end
   end
@@ -1256,37 +1256,37 @@ describe DataMapper::Query::Conditions::RegexpComparison do
       describe 'with a matching Hash' do
         subject { @comparison.matches?(@property.field => 'Title') }
 
-        it { should be_true }
+        it { should be(true) }
       end
 
       describe 'with a not matching Hash' do
         subject { @comparison.matches?(@property.field => 'Other') }
 
-        it { should be_false }
+        it { should be(false) }
       end
 
       describe 'with a matching Resource' do
         subject { @comparison.matches?(@model.new(@property => 'Title')) }
 
-        it { should be_true }
+        it { should be(true) }
       end
 
       describe 'with a not matching Resource' do
         subject { @comparison.matches?(@model.new(@property => 'Other')) }
 
-        it { should be_false }
+        it { should be(false) }
       end
 
       describe 'with a not matching nil field' do
         subject { @comparison.matches?(@property.field => nil) }
 
-        it { should be_false }
+        it { should be(false) }
       end
 
       describe 'with a not matching nil attribute' do
         subject { @comparison.matches?(@model.new(@property => nil)) }
 
-        it { should be_false }
+        it { should be(false) }
       end
     end
   end
@@ -1296,7 +1296,7 @@ describe DataMapper::Query::Conditions::RegexpComparison do
   describe '#relationship?' do
     subject { @comparison.relationship? }
 
-    it { should be_false }
+    it { should be(false) }
   end
 
   it { should respond_to(:to_s) }
@@ -1338,37 +1338,37 @@ describe DataMapper::Query::Conditions::LikeComparison do
       describe 'with a matching Hash' do
         subject { @comparison.matches?(@property.field => 'Title') }
 
-        it { should be_true }
+        it { should be(true) }
       end
 
       describe 'with a not matching Hash' do
         subject { @comparison.matches?(@property.field => 'Other Title') }
 
-        it { should be_false }
+        it { should be(false) }
       end
 
       describe 'with a matching Resource' do
         subject { @comparison.matches?(@model.new(@property => 'Title')) }
 
-        it { should be_true }
+        it { should be(true) }
       end
 
       describe 'with a not matching Resource' do
         subject { @comparison.matches?(@model.new(@property => 'Other Title')) }
 
-        it { should be_false }
+        it { should be(false) }
       end
 
       describe 'with a not matching nil field' do
         subject { @comparison.matches?(@property.field => nil) }
 
-        it { should be_false }
+        it { should be(false) }
       end
 
       describe 'with a not matching nil attribute' do
         subject { @comparison.matches?(@model.new(@property => nil)) }
 
-        it { should be_false }
+        it { should be(false) }
       end
     end
   end
@@ -1378,7 +1378,7 @@ describe DataMapper::Query::Conditions::LikeComparison do
   describe '#relationship?' do
     subject { @comparison.relationship? }
 
-    it { should be_false }
+    it { should be(false) }
   end
 
   it { should respond_to(:to_s) }
@@ -1420,37 +1420,37 @@ describe DataMapper::Query::Conditions::GreaterThanComparison do
       describe 'with a matching Hash' do
         subject { @comparison.matches?(@property.field => 2) }
 
-        it { should be_true }
+        it { should be(true) }
       end
 
       describe 'with a not matching Hash' do
         subject { @comparison.matches?(@property.field => 1) }
 
-        it { should be_false }
+        it { should be(false) }
       end
 
       describe 'with a matching Resource' do
         subject { @comparison.matches?(@model.new(@property => 2)) }
 
-        it { should be_true }
+        it { should be(true) }
       end
 
       describe 'with a not matching Resource' do
         subject { @comparison.matches?(@model.new(@property => 1)) }
 
-        it { should be_false }
+        it { should be(false) }
       end
 
       describe 'with a not matching nil field' do
         subject { @comparison.matches?(@property.field => nil) }
 
-        it { should be_false }
+        it { should be(false) }
       end
 
       describe 'with a not matching nil attribute' do
         subject { @comparison.matches?(@model.new(@property => nil)) }
 
-        it { should be_false }
+        it { should be(false) }
       end
     end
   end
@@ -1460,7 +1460,7 @@ describe DataMapper::Query::Conditions::GreaterThanComparison do
   describe '#relationship?' do
     subject { @comparison.relationship? }
 
-    it { should be_false }
+    it { should be(false) }
   end
 
   it { should respond_to(:to_s) }
@@ -1502,37 +1502,37 @@ describe DataMapper::Query::Conditions::LessThanComparison do
       describe 'with a matching Hash' do
         subject { @comparison.matches?(@property.field => 0) }
 
-        it { should be_true }
+        it { should be(true) }
       end
 
       describe 'with a not matching Hash' do
         subject { @comparison.matches?(@property.field => 1) }
 
-        it { should be_false }
+        it { should be(false) }
       end
 
       describe 'with a matching Resource' do
         subject { @comparison.matches?(@model.new(@property => 0)) }
 
-        it { should be_true }
+        it { should be(true) }
       end
 
       describe 'with a not matching Resource' do
         subject { @comparison.matches?(@model.new(@property => 1)) }
 
-        it { should be_false }
+        it { should be(false) }
       end
 
       describe 'with a not matching nil field' do
         subject { @comparison.matches?(@property.field => nil) }
 
-        it { should be_false }
+        it { should be(false) }
       end
 
       describe 'with a not matching nil attribute' do
         subject { @comparison.matches?(@model.new(@property => nil)) }
 
-        it { should be_false }
+        it { should be(false) }
       end
     end
   end
@@ -1542,7 +1542,7 @@ describe DataMapper::Query::Conditions::LessThanComparison do
   describe '#relationship?' do
     subject { @comparison.relationship? }
 
-    it { should be_false }
+    it { should be(false) }
   end
 
   it { should respond_to(:to_s) }
@@ -1584,37 +1584,37 @@ describe DataMapper::Query::Conditions::GreaterThanOrEqualToComparison do
       describe 'with a matching Hash' do
         subject { @comparison.matches?(@property.field => 1) }
 
-        it { should be_true }
+        it { should be(true) }
       end
 
       describe 'with a not matching Hash' do
         subject { @comparison.matches?(@property.field => 0) }
 
-        it { should be_false }
+        it { should be(false) }
       end
 
       describe 'with a matching Resource' do
         subject { @comparison.matches?(@model.new(@property => 1)) }
 
-        it { should be_true }
+        it { should be(true) }
       end
 
       describe 'with a not matching Resource' do
         subject { @comparison.matches?(@model.new(@property => 0)) }
 
-        it { should be_false }
+        it { should be(false) }
       end
 
       describe 'with a not matching nil field' do
         subject { @comparison.matches?(@property.field => nil) }
 
-        it { should be_false }
+        it { should be(false) }
       end
 
       describe 'with a not matching nil attribute' do
         subject { @comparison.matches?(@model.new(@property => nil)) }
 
-        it { should be_false }
+        it { should be(false) }
       end
     end
   end
@@ -1624,7 +1624,7 @@ describe DataMapper::Query::Conditions::GreaterThanOrEqualToComparison do
   describe '#relationship?' do
     subject { @comparison.relationship? }
 
-    it { should be_false }
+    it { should be(false) }
   end
 
   it { should respond_to(:to_s) }
@@ -1666,37 +1666,37 @@ describe DataMapper::Query::Conditions::LessThanOrEqualToComparison do
       describe 'with a matching Hash' do
         subject { @comparison.matches?(@property.field => 1) }
 
-        it { should be_true }
+        it { should be(true) }
       end
 
       describe 'with a not matching Hash' do
         subject { @comparison.matches?(@property.field => 2) }
 
-        it { should be_false }
+        it { should be(false) }
       end
 
       describe 'with a matching Resource' do
         subject { @comparison.matches?(@model.new(@property => 1)) }
 
-        it { should be_true }
+        it { should be(true) }
       end
 
       describe 'with a not matching Resource' do
         subject { @comparison.matches?(@model.new(@property => 2)) }
 
-        it { should be_false }
+        it { should be(false) }
       end
 
       describe 'with a not matching nil field' do
         subject { @comparison.matches?(@property.field => nil) }
 
-        it { should be_false }
+        it { should be(false) }
       end
 
       describe 'with a not matching nil attribute' do
         subject { @comparison.matches?(@model.new(@property => nil)) }
 
-        it { should be_false }
+        it { should be(false) }
       end
     end
   end
@@ -1706,7 +1706,7 @@ describe DataMapper::Query::Conditions::LessThanOrEqualToComparison do
   describe '#relationship?' do
     subject { @comparison.relationship? }
 
-    it { should be_false }
+    it { should be(false) }
   end
 
   it { should respond_to(:to_s) }

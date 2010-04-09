@@ -110,12 +110,12 @@ share_examples_for 'it creates a one mutator' do
       end
 
       it 'should persist the Resource' do
-        @car.save.should be_true
+        @car.save.should be(true)
         @car.model.get(*@car.key).__send__(@name).should == @expected
       end
 
       it 'should persist the associated Resource' do
-        @car.save.should be_true
+        @car.save.should be(true)
         @expected.should be_saved
         @expected.model.get(*@expected.key).car.should == @car
       end
@@ -150,12 +150,12 @@ share_examples_for 'it creates a one mutator' do
       end
 
       it 'should persist the Resource' do
-        @car.save.should be_true
+        @car.save.should be(true)
         @car.model.get(*@car.key).__send__(@name).should == @return
       end
 
       it 'should persist the associated Resource' do
-        @car.save.should be_true
+        @car.save.should be(true)
         @return.should be_saved
         @return.model.get(*@return.key).car.should == @car
       end
@@ -177,7 +177,7 @@ share_examples_for 'it creates a one mutator' do
       end
 
       it 'should persist as nil' do
-        @car.save.should be_true
+        @car.save.should be(true)
         @car.model.get(*@car.key).__send__(@name).should be_nil
       end
     end
@@ -209,12 +209,12 @@ share_examples_for 'it creates a one mutator' do
       end
 
       it 'should persist the Resource' do
-        @car.save.should be_true
+        @car.save.should be(true)
         @car.model.get(*@car.key).__send__(@name).should == @expected
       end
 
       it 'should persist the associated Resource' do
-        @car.save.should be_true
+        @car.save.should be(true)
         @expected.should be_saved
         @expected.model.get(*@expected.key).car.should == @car
       end
@@ -226,7 +226,7 @@ share_examples_for 'it creates a many accessor' do
   describe 'accessor' do
     describe 'when there is no child resource and the source is saved' do
       before :all do
-        @car.save.should be_true
+        @car.save.should be(true)
         @return = @car.__send__(@name)
       end
 
@@ -322,12 +322,12 @@ share_examples_for 'it creates a many mutator' do
       end
 
       it 'should persist the Collection' do
-        @car.save.should be_true
+        @car.save.should be(true)
         @car.model.get(*@car.key).__send__(@name).should == @expected
       end
 
       it 'should persist the associated Resource' do
-        @car.save.should be_true
+        @car.save.should be(true)
         @expected.each { |resource| resource.should be_saved }
         @expected.each { |resource| resource.model.get(*resource.key).car.should == @car }
       end
@@ -357,12 +357,12 @@ share_examples_for 'it creates a many mutator' do
       end
 
       it 'should persist the Collection' do
-        @car.save.should be_true
+        @car.save.should be(true)
         @car.model.get(*@car.key).__send__(@name).should == @return
       end
 
       it 'should persist the associated Resource' do
-        @car.save.should be_true
+        @car.save.should be(true)
         @return.each { |resource| resource.should be_saved }
         @return.each { |resource| resource.model.get(*resource.key).car.should == @car }
       end
@@ -384,7 +384,7 @@ share_examples_for 'it creates a many mutator' do
       end
 
       it 'should persist as an empty Collection' do
-        @car.save.should be_true
+        @car.save.should be(true)
         @car.model.get(*@car.key).__send__(@name).should be_empty
       end
     end
@@ -414,12 +414,12 @@ share_examples_for 'it creates a many mutator' do
       end
 
       it 'should persist the Resource' do
-        @car.save.should be_true
+        @car.save.should be(true)
         @car.model.get(*@car.key).__send__(@name).should == @expected
       end
 
       it 'should persist the associated Resource' do
-        @car.save.should be_true
+        @car.save.should be(true)
         @expected.each { |resource| resource.should be_saved }
         @expected.each { |resource| resource.model.get(*resource.key).car.should == @car }
       end
@@ -989,7 +989,7 @@ describe DataMapper::Associations do
       it 'should save the child as a parent' do
         lambda {
           @company.owner = @employee
-          @company.save.should be_true
+          @company.save.should be(true)
         }.should_not raise_error
       end
     end

@@ -527,13 +527,13 @@ describe DataMapper::Property do
 
       [ true, 'true', 'TRUE', '1', 1, 't', 'T' ].each do |value|
         it "returns true when value is #{value.inspect}" do
-          @property.typecast(value).should be_true
+          @property.typecast(value).should be(true)
         end
       end
 
       [ false, 'false', 'FALSE', '0', 0, 'f', 'F' ].each do |value|
         it "returns false when value is #{value.inspect}" do
-          @property.typecast(value).should be_false
+          @property.typecast(value).should be(false)
         end
       end
 
@@ -548,25 +548,25 @@ describe DataMapper::Property do
   describe '#valid?' do
     describe 'when provided a valid value' do
       it 'should return true' do
-        @model.properties[:name].valid?('Dan Kubb').should be_true
+        @model.properties[:name].valid?('Dan Kubb').should be(true)
       end
     end
 
     describe 'when provide an invalid value' do
       it 'should return false' do
-        @model.properties[:name].valid?(1).should be_false
+        @model.properties[:name].valid?(1).should be(false)
       end
     end
 
     describe 'when provide a nil value when required' do
       it 'should return false' do
-        @model.properties[:id].valid?(nil).should be_false
+        @model.properties[:id].valid?(nil).should be(false)
       end
     end
 
     describe 'when provide a nil value when not required' do
       it 'should return false' do
-        @model.properties[:alias].valid?(nil).should be_true
+        @model.properties[:alias].valid?(nil).should be(true)
       end
     end
 
@@ -577,13 +577,13 @@ describe DataMapper::Property do
 
       [ true, false ].each do |value|
         it "returns true when value is #{value.inspect}" do
-          @property.valid?(value).should be_true
+          @property.valid?(value).should be(true)
         end
       end
 
       [ 'true', 'TRUE', '1', 1, 't', 'T', 'false', 'FALSE', '0', 0, 'f', 'F' ].each do |value|
         it "returns false for #{value.inspect}" do
-          @property.valid?(value).should be_false
+          @property.valid?(value).should be(false)
         end
       end
     end

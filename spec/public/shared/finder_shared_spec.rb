@@ -1325,7 +1325,7 @@ share_examples_for 'Finder Interface' do
         @article.previous = @new
         @new.previous     = @other
 
-        @article.save.should be_true
+        @article.save.should be(true)
       end
 
       describe 'with no arguments' do
@@ -1387,7 +1387,7 @@ share_examples_for 'Finder Interface' do
         @article.revisions << @new
         @new.revisions     << @other
 
-        @article.save.should be_true
+        @article.save.should be(true)
       end
 
       describe 'with no arguments' do

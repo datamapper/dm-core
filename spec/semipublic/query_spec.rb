@@ -1342,7 +1342,7 @@ describe DataMapper::Query do
         @return = @query == @query
       end
 
-      it { @return.should be_true }
+      it { @return.should be(true) }
     end
 
     describe 'when other is equivalent' do
@@ -1350,7 +1350,7 @@ describe DataMapper::Query do
         @return = @query == @query.dup
       end
 
-      it { @return.should be_true }
+      it { @return.should be(true) }
     end
 
     DataMapper::Query::OPTIONS.each do |name|
@@ -1359,7 +1359,7 @@ describe DataMapper::Query do
           @return = @query == @query.merge(name => @other_options[name])
         end
 
-        it { @return.should be_false }
+        it { @return.should be(false) }
       end
     end
 
@@ -1382,7 +1382,7 @@ describe DataMapper::Query do
         @return = @query == @other
       end
 
-      it { @return.should be_true }
+      it { @return.should be(true) }
     end
 
     describe 'when other is a different type of object that can be compared, and is not equivalent' do
@@ -1404,7 +1404,7 @@ describe DataMapper::Query do
         @return = @query == @other
       end
 
-      it { @return.should be_false }
+      it { @return.should be(false) }
     end
 
     describe 'when other is a different type of object that cannot be compared' do
@@ -1412,7 +1412,7 @@ describe DataMapper::Query do
         @return = @query == 'invalid'
       end
 
-      it { @return.should be_false }
+      it { @return.should be(false) }
     end
   end
 
@@ -1825,7 +1825,7 @@ describe DataMapper::Query do
         @return = @query.eql?(@query)
       end
 
-      it { @return.should be_true }
+      it { @return.should be(true) }
     end
 
     describe 'when other is eql' do
@@ -1833,7 +1833,7 @@ describe DataMapper::Query do
         @return = @query.eql?(@query.dup)
       end
 
-      it { @return.should be_true }
+      it { @return.should be(true) }
     end
 
     DataMapper::Query::OPTIONS.each do |name|
@@ -1842,7 +1842,7 @@ describe DataMapper::Query do
           @return = @query.eql?(@query.merge(name => @other_options[name]))
         end
 
-        it { @return.should be_false }
+        it { @return.should be(false) }
       end
     end
 
@@ -1865,7 +1865,7 @@ describe DataMapper::Query do
         @return = @query.eql?(@other)
       end
 
-      it { @return.should be_false }
+      it { @return.should be(false) }
     end
   end
 

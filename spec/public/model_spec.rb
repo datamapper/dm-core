@@ -163,7 +163,7 @@ describe DataMapper::Model do
     describe '.raise_on_save_failure' do
       subject { DataMapper::Model.raise_on_save_failure }
 
-      it { should be_false }
+      it { should be(false) }
     end
 
     it 'DataMapper::Model should respond to raise_on_save_failure=' do
@@ -183,7 +183,7 @@ describe DataMapper::Model do
           @value = true
         end
 
-        it { should be_true }
+        it { should be(true) }
 
         it 'should set raise_on_save_failure' do
           method(:subject).should change {
@@ -197,7 +197,7 @@ describe DataMapper::Model do
           @value = false
         end
 
-        it { should be_false }
+        it { should be(false) }
 
         it 'should set raise_on_save_failure' do
           method(:subject).should_not change {
@@ -221,7 +221,7 @@ describe DataMapper::Model do
       subject { @article_model.raise_on_save_failure }
 
       describe 'when DataMapper::Model.raise_on_save_failure has not been set' do
-        it { should be_false }
+        it { should be(false) }
       end
 
       describe 'when DataMapper::Model.raise_on_save_failure has been set to true' do
@@ -229,7 +229,7 @@ describe DataMapper::Model do
           DataMapper::Model.raise_on_save_failure = true
         end
 
-        it { should be_true }
+        it { should be(true) }
       end
 
       describe 'when model.raise_on_save_failure has been set to true' do
@@ -237,7 +237,7 @@ describe DataMapper::Model do
           @article_model.raise_on_save_failure = true
         end
 
-        it { should be_true }
+        it { should be(true) }
       end
     end
 
@@ -258,7 +258,7 @@ describe DataMapper::Model do
           @value = true
         end
 
-        it { should be_true }
+        it { should be(true) }
 
         it 'should set raise_on_save_failure' do
           method(:subject).should change {
@@ -272,7 +272,7 @@ describe DataMapper::Model do
           @value = false
         end
 
-        it { should be_false }
+        it { should be(false) }
 
         it 'should set raise_on_save_failure' do
           method(:subject).should_not change {

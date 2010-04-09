@@ -47,7 +47,7 @@ share_examples_for 'Resource::State::Persisted#get' do
         # set the parent relationship
         @resource.attributes = { @key => @resource }
         @resource.should be_dirty
-        @resource.save.should be_true
+        @resource.save.should be(true)
 
         @resource = @model.first(@model.key.zip(@resource.key).to_hash.merge(:fields => @model.key))
         @state    = @state.class.new(@resource)

@@ -9,19 +9,19 @@ share_examples_for 'A semipublic Resource' do
 
   describe '#attribute_dirty?' do
     describe 'on a non-dirty record' do
-      it { @user.attribute_dirty?(:age).should be_false }
+      it { @user.attribute_dirty?(:age).should be(false) }
     end
 
     describe 'on a dirty record' do
       before { @user.age = 100 }
 
-      it { @user.attribute_dirty?(:age).should be_true }
+      it { @user.attribute_dirty?(:age).should be(true) }
     end
 
     describe 'on a new record' do
       before { @user = @user_model.new }
 
-      it { @user.attribute_dirty?(:age).should be_false }
+      it { @user.attribute_dirty?(:age).should be(false) }
     end
   end
 

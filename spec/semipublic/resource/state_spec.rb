@@ -35,7 +35,7 @@ describe DataMapper::Resource::State do
         @other = DataMapper::Resource::State.new(@resource)
       end
 
-      it { should be_true }
+      it { should be(true) }
 
       it 'should be symmetric' do
         should == (@other == @state)
@@ -47,7 +47,7 @@ describe DataMapper::Resource::State do
         @other = DataMapper::Resource::State.new(@model.new)
       end
 
-      it { should be_false }
+      it { should be(false) }
 
       it 'should be symmetric' do
         should == (@other == @state)
@@ -60,7 +60,7 @@ describe DataMapper::Resource::State do
       end
 
       it 'should be true for a subclass' do
-        should be_true
+        should be(true)
       end
 
       it 'should be symmetric' do
@@ -73,7 +73,7 @@ describe DataMapper::Resource::State do
         @other = DataMapper::Resource::State::Clean.new(@model.new)
       end
 
-      it { should be_false }
+      it { should be(false) }
 
       it 'should be symmetric' do
         should == (@other == @state)
@@ -99,7 +99,7 @@ describe DataMapper::Resource::State do
         @other = DataMapper::Resource::State.new(@resource)
       end
 
-      it { should be_true }
+      it { should be(true) }
 
       it 'should be symmetric' do
         should == @other.eql?(@state)
@@ -111,7 +111,7 @@ describe DataMapper::Resource::State do
         @other = DataMapper::Resource::State.new(@model.new)
       end
 
-      it { should be_false }
+      it { should be(false) }
 
       it 'should be symmetric' do
         should == @other.eql?(@state)
@@ -123,7 +123,7 @@ describe DataMapper::Resource::State do
         @other = DataMapper::Resource::State::Clean.new(@resource)
       end
 
-      it { should be_false }
+      it { should be(false) }
 
       it 'should be symmetric' do
         should == @other.eql?(@state)
@@ -135,7 +135,7 @@ describe DataMapper::Resource::State do
         @other = DataMapper::Resource::State::Clean.new(@model.new)
       end
 
-      it { should be_false }
+      it { should be(false) }
 
       it 'should be symmetric' do
         should == @other.eql?(@state)

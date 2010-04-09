@@ -51,13 +51,13 @@ share_examples_for 'A public Collection' do
   describe '#blank?' do
     describe 'when the collection is empty' do
       it 'should be true' do
-        @articles.clear.blank?.should be_true
+        @articles.clear.blank?.should be(true)
       end
     end
 
     describe 'when the collection is not empty' do
       it 'should be false' do
-        @articles.blank?.should be_false
+        @articles.blank?.should be(false)
       end
     end
   end
@@ -67,7 +67,7 @@ share_examples_for 'A public Collection' do
   describe '#clean?' do
     describe 'with all clean resources in the collection' do
       it 'should return true' do
-        @articles.clean?.should be_true
+        @articles.clean?.should be(true)
       end
     end
 
@@ -77,7 +77,7 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should return true' do
-        @articles.clean?.should be_false
+        @articles.clean?.should be(false)
       end
     end
   end
@@ -422,7 +422,7 @@ share_examples_for 'A public Collection' do
         end
 
         it 'should return true' do
-          @return.should be_true
+          @return.should be(true)
         end
 
         it 'should remove the Resources from the datasource' do
@@ -443,7 +443,7 @@ share_examples_for 'A public Collection' do
         end
 
         it 'should return true' do
-          @return.should be_true
+          @return.should be(true)
         end
 
         it 'should remove the Resources from the datasource' do
@@ -466,7 +466,7 @@ share_examples_for 'A public Collection' do
   describe '#dirty?' do
     describe 'with all clean resources in the collection' do
       it 'should return false' do
-        @articles.dirty?.should be_false
+        @articles.dirty?.should be(false)
       end
     end
 
@@ -476,7 +476,7 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should return true' do
-        @articles.dirty?.should be_true
+        @articles.dirty?.should be(true)
       end
     end
   end
@@ -874,7 +874,7 @@ share_examples_for 'A public Collection' do
 
       [ :id, :content, :title ].each do |attribute|
         it "should have query field #{attribute.inspect} loaded" do
-          @collection.each { |resource| resource.attribute_loaded?(attribute).should be_true }
+          @collection.each { |resource| resource.attribute_loaded?(attribute).should be(true) }
         end
       end
     end
@@ -906,7 +906,7 @@ share_examples_for 'A public Collection' do
 
       [ :id, :content, :title ].each do |attribute|
         it "should have query field #{attribute.inspect} loaded" do
-          @collection.each { |resource| resource.attribute_loaded?(attribute).should be_true }
+          @collection.each { |resource| resource.attribute_loaded?(attribute).should be(true) }
         end
       end
     end
@@ -1004,7 +1004,7 @@ share_examples_for 'A public Collection' do
         end
 
         it 'should return true' do
-          @return.should be_true
+          @return.should be(true)
         end
 
         it 'should save each Resource' do
@@ -1021,7 +1021,7 @@ share_examples_for 'A public Collection' do
         end
 
         it 'should return true' do
-          @return.should be_true
+          @return.should be(true)
         end
       end
     end
@@ -1584,7 +1584,7 @@ share_examples_for 'A public Collection' do
         end
 
         it 'should return true' do
-          @return.should be_true
+          @return.should be(true)
         end
 
         it 'should update attributes of all Resources' do
@@ -1609,7 +1609,7 @@ share_examples_for 'A public Collection' do
         end
 
         it 'should return true' do
-          @return.should be_true
+          @return.should be(true)
         end
 
         it 'should update attributes of all Resources' do
@@ -1632,7 +1632,7 @@ share_examples_for 'A public Collection' do
         end
 
         it 'should return false' do
-          @return.should be_false
+          @return.should be(false)
         end
       end
 
@@ -1650,7 +1650,7 @@ share_examples_for 'A public Collection' do
         end
 
         it 'should return true' do
-          @return.should be_true
+          @return.should be(true)
         end
 
         it 'should bypass validation' do

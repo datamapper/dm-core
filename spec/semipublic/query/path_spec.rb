@@ -116,7 +116,7 @@ describe DataMapper::Query::Path do
       end
 
       it 'should return true' do
-        @return.should be_true
+        @return.should be(true)
       end
     end
 
@@ -130,7 +130,7 @@ describe DataMapper::Query::Path do
       end
 
       it 'should return false' do
-        @return.should be_false
+        @return.should be(false)
       end
     end
 
@@ -144,7 +144,7 @@ describe DataMapper::Query::Path do
       end
 
       it 'should return false' do
-        @return.should be_false
+        @return.should be(false)
       end
     end
 
@@ -156,7 +156,7 @@ describe DataMapper::Query::Path do
       end
 
       it 'should return false' do
-        @return.should be_false
+        @return.should be(false)
       end
     end
 
@@ -168,7 +168,7 @@ describe DataMapper::Query::Path do
       end
 
       it 'should return false' do
-        @return.should be_false
+        @return.should be(false)
       end
     end
 
@@ -180,7 +180,7 @@ describe DataMapper::Query::Path do
       end
 
       it 'should return true' do
-        @return.should be_true
+        @return.should be(true)
       end
     end
   end
@@ -196,7 +196,7 @@ describe DataMapper::Query::Path do
       end
 
       it 'should return true' do
-        @return.should be_true
+        @return.should be(true)
       end
     end
 
@@ -210,7 +210,7 @@ describe DataMapper::Query::Path do
       end
 
       it 'should return false' do
-        @return.should be_false
+        @return.should be(false)
       end
     end
 
@@ -222,7 +222,7 @@ describe DataMapper::Query::Path do
       end
 
       it 'should return false' do
-        @return.should be_false
+        @return.should be(false)
       end
     end
 
@@ -234,7 +234,7 @@ describe DataMapper::Query::Path do
       end
 
       it 'should return false' do
-        @return.should be_false
+        @return.should be(false)
       end
     end
 
@@ -246,7 +246,7 @@ describe DataMapper::Query::Path do
       end
 
       it 'should return true' do
-        @return.should be_true
+        @return.should be(true)
       end
     end
   end
@@ -308,7 +308,7 @@ describe DataMapper::Query::Path do
       end
 
       it 'should return true' do
-        @return.should be_true
+        @return.should be(true)
       end
     end
 
@@ -320,7 +320,7 @@ describe DataMapper::Query::Path do
       end
 
       it 'should return true' do
-        @return.should be_true
+        @return.should be(true)
       end
     end
 
@@ -330,7 +330,7 @@ describe DataMapper::Query::Path do
       end
 
       it 'should return true' do
-        @return.should be_true
+        @return.should be(true)
       end
     end
 
@@ -340,7 +340,7 @@ describe DataMapper::Query::Path do
       end
 
       it 'should return true' do
-        @return.should be_true
+        @return.should be(true)
       end
     end
 
@@ -350,7 +350,7 @@ describe DataMapper::Query::Path do
       end
 
       it 'should return false' do
-        @return.should be_false
+        @return.should be(false)
       end
     end
   end

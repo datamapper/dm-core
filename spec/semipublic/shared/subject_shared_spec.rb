@@ -3,13 +3,13 @@ share_examples_for 'A semipublic Subject' do
     describe 'with a default' do
       subject { @subject_with_default.default? }
 
-      it { should be_true }
+      it { should be(true) }
     end
 
     describe 'without a default' do
       subject { @subject_without_default.default? }
 
-      it { should be_false }
+      it { should be(false) }
     end
   end
 
@@ -26,7 +26,7 @@ share_examples_for 'A semipublic Subject' do
       end
 
       it 'should persist the value' do
-        @resource.save.should be_true
+        @resource.save.should be(true)
         @resource = @resource.model.get!(*@resource.key)
         @resource.without_default.should == subject
       end
@@ -48,7 +48,7 @@ share_examples_for 'A semipublic Subject' do
       end
 
       it 'should persist the value' do
-        @resource.save.should be_true
+        @resource.save.should be(true)
         @resource = @resource.model.get!(*@resource.key)
         @resource.with_default.should == subject
       end
@@ -70,7 +70,7 @@ share_examples_for 'A semipublic Subject' do
       end
 
       it 'should persist the value' do
-        @resource.save.should be_true
+        @resource.save.should be(true)
         @resource = @resource.model.get!(*@resource.key)
         @resource.with_default_callable.should == subject
       end

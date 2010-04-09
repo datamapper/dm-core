@@ -36,7 +36,7 @@ share_examples_for 'A public Resource' do
         end
 
         it 'should return true' do
-          @return.should be_true
+          @return.should be(true)
         end
       end
 
@@ -47,7 +47,7 @@ share_examples_for 'A public Resource' do
         end
 
         it 'should return false' do
-          @return.should be_false
+          @return.should be(false)
         end
       end
 
@@ -60,7 +60,7 @@ share_examples_for 'A public Resource' do
         end
 
         it 'should return true' do
-          @return.should be_true
+          @return.should be(true)
         end
       end
 
@@ -73,7 +73,7 @@ share_examples_for 'A public Resource' do
         end
 
         it 'should return true' do
-          @return.should be_true
+          @return.should be(true)
         end
       end
 
@@ -87,7 +87,7 @@ share_examples_for 'A public Resource' do
         end
 
         it 'should return false' do
-          @return.should be_false
+          @return.should be(false)
         end
       end
 
@@ -100,7 +100,7 @@ share_examples_for 'A public Resource' do
         end
 
         it 'should return true' do
-          @return.should be_true
+          @return.should be(true)
         end
       end
 
@@ -114,7 +114,7 @@ share_examples_for 'A public Resource' do
           end
 
           it 'should return true' do
-            @return.should be_true
+            @return.should be(true)
           end
         end
       end
@@ -259,7 +259,7 @@ share_examples_for 'A public Resource' do
         end
 
         it 'should successfully remove a resource' do
-          @return.should be_true
+          @return.should be(true)
         end
 
         it 'should mark the destroyed resource as readonly' do
@@ -267,7 +267,7 @@ share_examples_for 'A public Resource' do
         end
 
         it "should return true when calling #{method} on a destroyed resource" do
-          @resource.__send__(method).should be_true
+          @resource.__send__(method).should be(true)
         end
 
         it 'should remove resource from persistent storage' do
@@ -367,7 +367,7 @@ share_examples_for 'A public Resource' do
 
       it 'should not raise an exception' do
         lambda {
-          @user.dirty?.should be_true
+          @user.dirty?.should be(true)
         }.should_not raise_error(SystemStackError)
       end
     end
@@ -381,7 +381,7 @@ share_examples_for 'A public Resource' do
 
       it 'should not raise an exception' do
         lambda {
-          @user.dirty?.should be_true
+          @user.dirty?.should be(true)
         }.should_not raise_error(SystemStackError)
       end
     end
@@ -390,13 +390,13 @@ share_examples_for 'A public Resource' do
       before :all do
         rescue_if @skip do
           @user.children = [ @user.parent = @user_model.new(:name => 'Parent', :comment => @comment) ]
-          @user.save.should be_true
+          @user.save.should be(true)
         end
       end
 
       it 'should not raise an exception' do
         lambda {
-          @user.dirty?.should be_true
+          @user.dirty?.should be(true)
         }.should_not raise_error(SystemStackError)
       end
     end
@@ -412,7 +412,7 @@ share_examples_for 'A public Resource' do
       end
 
       it 'should return true' do
-        @return.should be_true
+        @return.should be(true)
       end
     end
 
@@ -423,7 +423,7 @@ share_examples_for 'A public Resource' do
       end
 
       it 'should return false' do
-        @return.should be_false
+        @return.should be(false)
       end
     end
 
@@ -436,7 +436,7 @@ share_examples_for 'A public Resource' do
       end
 
       it 'should return false' do
-        @return.should be_false
+        @return.should be(false)
       end
     end
 
@@ -447,7 +447,7 @@ share_examples_for 'A public Resource' do
       end
 
       it 'should return false' do
-        @return.should be_false
+        @return.should be(false)
       end
     end
 
@@ -460,7 +460,7 @@ share_examples_for 'A public Resource' do
       end
 
       it 'should return true' do
-        @return.should be_true
+        @return.should be(true)
       end
     end
 
@@ -474,7 +474,7 @@ share_examples_for 'A public Resource' do
       end
 
       it 'should return false' do
-        @return.should be_false
+        @return.should be(false)
       end
     end
 
@@ -487,7 +487,7 @@ share_examples_for 'A public Resource' do
       end
 
       it 'should return true' do
-        @return.should be_true
+        @return.should be(true)
       end
     end
 
@@ -501,7 +501,7 @@ share_examples_for 'A public Resource' do
         end
 
         it 'should return true' do
-          @return.should be_true
+          @return.should be(true)
         end
       end
     end
@@ -662,7 +662,7 @@ share_examples_for 'A public Resource' do
       end
 
       it 'should return false' do
-        @user.readonly?.should be_false
+        @user.readonly?.should be(false)
       end
     end
 
@@ -674,19 +674,19 @@ share_examples_for 'A public Resource' do
       end
 
       it 'should return false' do
-        @user.readonly?.should be_false
+        @user.readonly?.should be(false)
       end
     end
 
     describe 'on a destroyed resource' do
       before :all do
         rescue_if @skip do
-          @user.destroy.should be_true
+          @user.destroy.should be(true)
         end
       end
 
       it 'should return true' do
-        @user.readonly?.should be_true
+        @user.readonly?.should be(true)
       end
     end
 
@@ -699,7 +699,7 @@ share_examples_for 'A public Resource' do
       end
 
       it 'should return true' do
-        @user.readonly?.should be_true
+        @user.readonly?.should be(true)
       end
     end
   end
@@ -726,7 +726,7 @@ share_examples_for 'A public Resource' do
         end
 
         it 'should return false' do
-          @return.should be_false
+          @return.should be(false)
         end
 
         it 'should call save hook expected number of times' do
@@ -742,7 +742,7 @@ share_examples_for 'A public Resource' do
         end
 
         it 'should return true even when resource is not dirty' do
-          @return.should be_true
+          @return.should be(true)
         end
 
         it 'should call save hook expected number of times' do
@@ -759,7 +759,7 @@ share_examples_for 'A public Resource' do
         end
 
         it 'should save a resource succesfully when dirty' do
-          @return.should be_true
+          @return.should be(true)
         end
 
         it 'should actually store the changes to persistent storage' do
@@ -779,7 +779,7 @@ share_examples_for 'A public Resource' do
         end
 
         it 'should not save an invalid resource' do
-          @user.__send__(method).should be_false
+          @user.__send__(method).should be(false)
         end
 
         it 'should call save hook expected number of times' do
@@ -799,13 +799,13 @@ share_examples_for 'A public Resource' do
 
         it 'should save resource' do
           pending_if !@user.respond_to?(:comments) do
-            @return.should be_true
+            @return.should be(true)
           end
         end
 
         it 'should save the first resource created through new' do
           pending_if !@user.respond_to?(:comments) do
-            @first_comment.new?.should be_false
+            @first_comment.new?.should be(false)
           end
         end
 
@@ -817,7 +817,7 @@ share_examples_for 'A public Resource' do
 
         it 'should save the second resource created through the constructor' do
           pending "Changing a belongs_to parent should add the resource to the correct association" do
-            @second_comment.new?.should be_false
+            @second_comment.new?.should be(false)
           end
         end
 
@@ -850,7 +850,7 @@ share_examples_for 'A public Resource' do
 
         it 'should return true' do
           pending_if !@user.respond_to?(:comments) do
-            @return.should be_true
+            @return.should be(true)
           end
         end
 
@@ -879,7 +879,7 @@ share_examples_for 'A public Resource' do
 
         it 'should not raise an exception when saving the resource' do
           pending do
-            lambda { @first_comment.send(method).should be_false }.should_not raise_error
+            lambda { @first_comment.send(method).should be(false) }.should_not raise_error
           end
         end
       end
@@ -897,7 +897,7 @@ share_examples_for 'A public Resource' do
         end
 
         it 'should succesfully save the resource' do
-          @return.should be_true
+          @return.should be(true)
         end
 
         it 'should not have a dirty dependency' do
@@ -954,7 +954,7 @@ share_examples_for 'A public Resource' do
         end
 
         it 'should save a resource succesfully when dirty' do
-          @return.should be_true
+          @return.should be(true)
         end
 
         it 'should actually store the changes to persistent storage' do
@@ -980,7 +980,7 @@ share_examples_for 'A public Resource' do
         end
 
         it 'should return true' do
-          @response.should be_true
+          @response.should be(true)
         end
 
         it 'should save the child' do
@@ -1031,7 +1031,7 @@ share_examples_for 'A public Resource' do
 
         it 'should not raise an exception' do
           lambda {
-            @user.__send__(method).should be_true
+            @user.__send__(method).should be(true)
           }.should_not raise_error(SystemStackError)
         end
       end
@@ -1045,7 +1045,7 @@ share_examples_for 'A public Resource' do
 
         it 'should not raise an exception' do
           lambda {
-            @user.__send__(method).should be_true
+            @user.__send__(method).should be(true)
           }.should_not raise_error(SystemStackError)
         end
       end
@@ -1059,7 +1059,7 @@ share_examples_for 'A public Resource' do
 
         it 'should not raise an exception' do
           lambda {
-            @user.__send__(method).should be_true
+            @user.__send__(method).should be(true)
           }.should_not raise_error(SystemStackError)
         end
       end
@@ -1099,7 +1099,7 @@ share_examples_for 'A public Resource' do
         end
 
         it 'should return true' do
-          @return.should be_true
+          @return.should be(true)
         end
 
         it 'should update attributes of Resource' do
@@ -1121,7 +1121,7 @@ share_examples_for 'A public Resource' do
         end
 
         it 'should return true' do
-          @return.should be_true
+          @return.should be(true)
         end
 
         it 'should update attributes of Resource' do
@@ -1142,7 +1142,7 @@ share_examples_for 'A public Resource' do
         end
 
         it 'should return false' do
-          @return.should be_false
+          @return.should be(false)
         end
 
         it 'should not persist the changes' do

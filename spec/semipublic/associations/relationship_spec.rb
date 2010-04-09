@@ -166,7 +166,7 @@ describe DataMapper::Associations::Relationship do
         end
 
         it 'should return true' do
-          @relationship.valid?(@resource).should be_true
+          @relationship.valid?(@resource).should be(true)
         end
       end
 
@@ -176,7 +176,7 @@ describe DataMapper::Associations::Relationship do
         end
 
         it 'should return false' do
-          @relationship.valid?(@resource).should be_false
+          @relationship.valid?(@resource).should be(false)
         end
       end
 
@@ -186,7 +186,7 @@ describe DataMapper::Associations::Relationship do
         end
 
         it 'should return false' do
-          @relationship.valid?(@resource).should be_false
+          @relationship.valid?(@resource).should be(false)
         end
       end
     end
