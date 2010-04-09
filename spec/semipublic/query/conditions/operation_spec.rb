@@ -105,7 +105,7 @@ shared_examples_for 'DataMapper::Query::Conditions::AbstractOperation' do
 
   describe '#==' do
     describe 'when the other AbstractOperation is equal' do
-      # artificially modify the object so #eql? will throw an
+      # artificially modify the object so #== will throw an
       # exception if the equal? branch is not followed when heckling
       before { @operation.singleton_class.send(:undef_method, :slug) }
 
