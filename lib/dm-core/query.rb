@@ -106,7 +106,7 @@ module DataMapper
       elsif source.kind_of?(Enumerable)
         key        = model.key(repository.name)
         conditions = Query.target_conditions(source, key, key)
-        Query.new(repository, model, :conditions => conditions)
+        repository.new_query(model, :conditions => conditions)
       else
         raise ArgumentError, "+source+ must respond to #query or be an Enumerable, but was #{source.class}"
       end

@@ -670,7 +670,7 @@ module DataMapper
     #
     # @api semipublic
     def query
-      Query.new(repository, model, :fields => fields, :conditions => conditions)
+      repository.new_query(model, :fields => fields, :conditions => conditions)
     end
 
     protected

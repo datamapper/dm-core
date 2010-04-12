@@ -740,7 +740,7 @@ module DataMapper
         if self.query.repository == repository
           query
         else
-          Query.new(repository, self, query.options)
+          repository.new_query(self, query.options)
         end
       end
     end

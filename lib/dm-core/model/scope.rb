@@ -27,7 +27,7 @@ module DataMapper
       #
       # @api private
       def query
-        Query.new(repository, self, current_scope).freeze
+        repository.new_query(self, current_scope).freeze
       end
 
       # @api private
@@ -61,7 +61,7 @@ module DataMapper
       # @api private
       def with_exclusive_scope(query)
         query = if query.kind_of?(Hash)
-          Query.new(repository, self, query)
+          repository.new_query(self, query)
         else
           query.dup
         end

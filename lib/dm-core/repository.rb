@@ -117,6 +117,20 @@ module DataMapper
       end
     end
 
+    # Create a Query or subclass instance for this repository.
+    #
+    # @param [Model] model
+    #   the Model to retrieve results from
+    # @param [Hash] options
+    #   the conditions and scope
+    #
+    # @return [Query]
+    #
+    # @api semipublic
+    def new_query(model, options = {})
+      adapter.new_query(self, model, options)
+    end
+
     # Create one or more resource instances in this repository.
     #
     #   TODO: create example

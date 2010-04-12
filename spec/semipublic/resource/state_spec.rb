@@ -157,15 +157,17 @@ describe DataMapper::Resource::State do
     end
 
     describe 'with a Relationship subject' do
-      before do
-        # set the association
-        @resource.parent = @resource
+      supported_by :all do
+        before do
+          # set the association
+          @resource.parent = @resource
 
-        @key = @model.relationships[:parent]
-      end
+          @key = @model.relationships[:parent]
+        end
 
-      it 'should return the association' do
-        should == @resource
+        it 'should return the association' do
+          should == @resource
+        end
       end
     end
   end
@@ -205,17 +207,19 @@ describe DataMapper::Resource::State do
     end
 
     describe 'with a Relationship subject' do
-      before do
-        @key   = @model.relationships[:parent]
-        @value = @resource
-      end
+      supported_by :all do
+        before do
+          @key   = @model.relationships[:parent]
+          @value = @resource
+        end
 
-      it 'should return a state object' do
-        should be_kind_of(DataMapper::Resource::State)
-      end
+        it 'should return a state object' do
+          should be_kind_of(DataMapper::Resource::State)
+        end
 
-      it 'should change the object relationship' do
-        method(:subject).should change(@resource, :parent).from(nil).to(@resource)
+        it 'should change the object relationship' do
+          method(:subject).should change(@resource, :parent).from(nil).to(@resource)
+        end
       end
     end
   end

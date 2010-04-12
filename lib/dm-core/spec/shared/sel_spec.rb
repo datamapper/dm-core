@@ -28,6 +28,7 @@ share_examples_for 'A Collection supporting Strategic Eager Loading' do
 
       @adapter = DataMapper::Repository.adapters[@adapter.name] = CounterAdapter.new(@adapter)
       @repository.instance_variable_set(:@adapter, @adapter)
+      @articles.instance_variable_get(:@query).instance_variable_set(:@repository, @repository)
     end
 
     before :all do

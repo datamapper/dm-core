@@ -1103,40 +1103,42 @@ describe DataMapper::Query::Conditions::InclusionComparison do
     end
 
     describe 'with a Relationship subject' do
-      describe 'with a valid Array value' do
-        before do
-          @value      = [ @model.new(:id => 1) ]
-          @comparison = DataMapper::Query::Conditions::Comparison.new(@slug, @relationship, @value)
+      supported_by :all do
+        describe 'with a valid Array value' do
+          before do
+            @value      = [ @model.new(:id => 1) ]
+            @comparison = DataMapper::Query::Conditions::Comparison.new(@slug, @relationship, @value)
+          end
+
+          it { should be(true) }
         end
 
-        it { should be(true) }
-      end
+        describe 'with an invalid Array value' do
+          before do
+            @value      = [ @model.new ]
+            @comparison = DataMapper::Query::Conditions::Comparison.new(@slug, @relationship, @value)
+          end
 
-      describe 'with an invalid Array value' do
-        before do
-          @value      = [ @model.new ]
-          @comparison = DataMapper::Query::Conditions::Comparison.new(@slug, @relationship, @value)
+          it { should be(false) }
         end
 
-        it { should be(false) }
-      end
+        describe 'with an empty Array value' do
+          before do
+            @value      = []
+            @comparison = DataMapper::Query::Conditions::Comparison.new(@slug, @relationship, @value)
+          end
 
-      describe 'with an empty Array value' do
-        before do
-          @value      = []
-          @comparison = DataMapper::Query::Conditions::Comparison.new(@slug, @relationship, @value)
+          it { should be(false) }
         end
 
-        it { should be(false) }
-      end
+        describe 'with a valid Collection' do
+          before do
+            @value      = @model.all
+            @comparison = DataMapper::Query::Conditions::Comparison.new(@slug, @relationship, @value)
+          end
 
-      describe 'with a valid Collection' do
-        before do
-          @value      = @model.all
-          @comparison = DataMapper::Query::Conditions::Comparison.new(@slug, @relationship, @value)
+          it { should be(true) }
         end
-
-        it { should be(true) }
       end
     end
   end

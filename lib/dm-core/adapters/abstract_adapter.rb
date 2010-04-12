@@ -142,6 +142,26 @@ module DataMapper
         raise NotImplementedError, "#{self.class}#delete not implemented"
       end
 
+      # Create a Query object or subclass.
+      #
+      # Alter this method if you'd like to return an adapter specific Query subclass.
+      #
+      # @param [Repository] repository
+      #   the Repository to retrieve results from
+      # @param [Model] model
+      #   the Model to retrieve results from
+      # @param [Hash] options
+      #   the conditions and scope
+      #
+      # @return [Query]
+      #
+      # @api semipublic
+      #--
+      # TODO: DataObjects::Connection.create_command style magic (Adapter)::Query?
+      def new_query(repository, model, options = {})
+        Query.new(repository, model, options)
+      end
+
       protected
 
       # Set the serial value of the Resource
