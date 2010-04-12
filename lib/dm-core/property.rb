@@ -42,7 +42,7 @@ module DataMapper
   # * Text (limit of 65k characters by default)
   # * Float
   # * Integer
-  # * BigDecimal
+  # * Decimal
   # * DateTime
   # * Date
   # * Time
@@ -723,6 +723,9 @@ module DataMapper
       if TrueClass == type
         warn "#{type} is deprecated, use Boolean instead at #{caller_method}"
         type = Types::Boolean
+      elsif BigDecimal == type
+        warn "#{type} is deprecated, use Decimal instead at #{caller_method}"
+        type = Types::Decimal
       elsif Integer == type && options.delete(:serial)
         warn "#{type} with explicit :serial option is deprecated, use Serial instead (#{caller_method})"
         type = Types::Serial
@@ -731,7 +734,7 @@ module DataMapper
           warn ":size option is deprecated, use #{type} with :length instead (#{caller_method})"
           length = options.delete(:size)
           options[:length] = length unless options.key?(:length)
-        elsif Numeric > type
+        elsif Numeric > type || type == Types::Decimal
           warn ":size option is deprecated, specify :min and :max instead (#{caller_method})"
         end
       elsif options.key?(:nullable)

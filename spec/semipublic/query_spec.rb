@@ -19,7 +19,7 @@ describe DataMapper::Query do
 
       property :name,     String,   :key => true
       property :password, Password
-      property :balance,  BigDecimal
+      property :balance,  Decimal
 
       belongs_to :referrer, self, :required => false
       has n, :referrals, self, :inverse => :referrer
@@ -688,7 +688,7 @@ describe DataMapper::Query do
           end
         end
 
-        describe 'with a Float for a BigDecimal property' do
+        describe 'with a Float for a Decimal property' do
           before :all do
             @options[:conditions] = { :balance => 50.5 }
             @return = DataMapper::Query.new(@repository, @model, @options.freeze)

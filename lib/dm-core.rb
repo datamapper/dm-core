@@ -81,6 +81,7 @@ require 'dm-core/collection'
 
 require 'dm-core/type'
 require 'dm-core/types/boolean'
+require 'dm-core/types/decimal'
 require 'dm-core/types/discriminator'
 require 'dm-core/types/text'
 require 'dm-core/types/paranoid/base'

@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Dan Kubb"]
-  s.date = %q{2010-04-09}
+  s.date = %q{2010-04-12}
   s.description = %q{Faster, Better, Simpler.}
   s.email = %q{dan.kubb@gmail.com}
   s.extra_rdoc_files = [
@@ -91,6 +91,7 @@ Gem::Specification.new do |s|
      "lib/dm-core/support/subject.rb",
      "lib/dm-core/type.rb",
      "lib/dm-core/types/boolean.rb",
+     "lib/dm-core/types/decimal.rb",
      "lib/dm-core/types/discriminator.rb",
      "lib/dm-core/types/object.rb",
      "lib/dm-core/types/paranoid/base.rb",

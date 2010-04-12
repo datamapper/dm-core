@@ -89,7 +89,7 @@ describe DataMapper::Property do
         property :id,         Serial
         property :name,       String
         property :rating,     Float
-        property :rate,       BigDecimal
+        property :rate,       Decimal
         property :type,       Class
         property :alias,      String
         property :active,     Boolean
@@ -160,7 +160,7 @@ describe DataMapper::Property do
       end
     end
 
-    describe 'when type primitive is a String' do
+    describe 'when type is a String' do
       before :all do
         @property = @model.properties[:name]
       end
@@ -171,7 +171,7 @@ describe DataMapper::Property do
       end
     end
 
-    describe 'when type primitive is a Float' do
+    describe 'when type is a Float' do
       before :all do
         @property = @model.properties[:rating]
       end
@@ -244,7 +244,7 @@ describe DataMapper::Property do
       end
     end
 
-    describe 'when type primitive is a Integer' do
+    describe 'when type is a Integer' do
       before :all do
         @property = @model.properties[:id]
       end
@@ -317,7 +317,7 @@ describe DataMapper::Property do
       end
     end
 
-    describe 'when type primitive is a BigDecimal' do
+    describe 'when type is a Decimal' do
       before :all do
         @property = @model.properties[:rate]
       end
@@ -390,7 +390,7 @@ describe DataMapper::Property do
       end
     end
 
-    describe 'when type primitive is a DateTime' do
+    describe 'when type is a DateTime' do
       before :all do
         @property = @model.properties[:created_at]
       end
@@ -427,7 +427,7 @@ describe DataMapper::Property do
       end
     end
 
-    describe 'when type primitive is a Date' do
+    describe 'when type is a Date' do
       before :all do
         @property = @model.properties[:created_on]
       end
@@ -461,7 +461,7 @@ describe DataMapper::Property do
       end
     end
 
-    describe 'when type primitive is a Time' do
+    describe 'when type is a Time' do
       before :all do
         @property = @model.properties[:deleted_at]
       end
@@ -502,7 +502,7 @@ describe DataMapper::Property do
       end
     end
 
-    describe 'when type primitive is a Class' do
+    describe 'when type is a Class' do
       before :all do
         @property = @model.properties[:type]
       end
@@ -520,7 +520,7 @@ describe DataMapper::Property do
       end
     end
 
-    describe 'when type primitive is a Boolean' do
+    describe 'when type is a Boolean' do
       before :all do
         @property = @model.properties[:active]
       end
