@@ -9,14 +9,18 @@ describe DataMapper::Resource::State::Immutable do
       property :name,   String
       property :active, Boolean, :default => true
       property :coding, Boolean, :default => true
+
+      belongs_to :parent, self, :required => false
     end
 
     @model = Author
   end
 
   before do
-    @resource = @model.create(:name => 'Dan Kubb')
-    @resource = @model.first(@model.key.zip(@resource.key).to_hash.merge(:fields => [ :name ]))
+    @parent  = @model.create(:name => 'John Doe')
+
+    @resource = @model.create(:name => 'Dan Kubb', :parent => @parent)
+    @resource = @model.first(@model.key.zip(@resource.key).to_hash.merge(:fields => [ :name, :parent_id ]))
 
     @state = @resource.persisted_state
     @state.should be_kind_of(DataMapper::Resource::State::Immutable)
@@ -46,13 +50,23 @@ describe DataMapper::Resource::State::Immutable do
     subject { @state.get(@key) }
 
     supported_by :all do
-      describe 'with an unloaded subject' do
+      describe 'with an unloaded property' do
         before do
           @key = @model.properties[:id]
         end
 
         it 'should raise an exception' do
           method(:subject).should raise_error(DataMapper::ImmutableError, 'Immutable resource cannot be lazy loaded')
+        end
+      end
+
+      describe 'with an unloaded relationship' do
+        before do
+          @key = @model.relationships[:parent]
+        end
+
+        it 'should return value' do
+          should == @parent
         end
       end
 
