@@ -568,9 +568,9 @@ module DataMapper
     # @api semipublic
     def original_attributes
       if persisted_state.respond_to?(:original_attributes)
-        persisted_state.original_attributes
+        persisted_state.original_attributes.dup.freeze
       else
-        {}
+        {}.freeze
       end
     end
 
@@ -845,7 +845,6 @@ module DataMapper
     def reset_key
       properties.key.zip(key) do |property, value|
         property.set!(self, value)
-        original_attributes.delete(property)
       end
     end
 
@@ -860,7 +859,6 @@ module DataMapper
       (model_properties - model_properties.key | relationships.values).each do |subject|
         next unless subject.loaded?(self)
         remove_instance_variable(subject.instance_variable_name)
-        original_attributes.delete(subject)
       end
     end
 
