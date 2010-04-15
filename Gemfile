@@ -20,7 +20,7 @@ group :runtime do
   #
   # To run the specs using AS, leave this Gemfile as it is and just run
   #
-  #   bundle install --without qality
+  #   bundle install --without quality
   #   ADAPTERS=sqlite3 bundle exec rake spec # or whatever adapter
   #
   # To run the specs using extlib, comment out the: gem 'activesupport' line and run
