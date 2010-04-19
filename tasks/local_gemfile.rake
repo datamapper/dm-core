@@ -1,5 +1,5 @@
-desc "Support bundling from local source code (allows BUNDLE_GEMFILE=Gemfile.local bundle exec foo)"
-task :create_local_gemfile do |t|
+desc "Support bundling from local source code (allows BUNDLE_GEMFILE=Gemfile.local bundle foo)"
+task :local_gemfile do |t|
 
   root              = Pathname(__FILE__).dirname.parent
   datamapper        = root.parent
