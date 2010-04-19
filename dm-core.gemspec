@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Dan Kubb"]
-  s.date = %q{2010-04-12}
+  s.date = %q{2010-04-20}
   s.description = %q{Faster, Better, Simpler.}
   s.email = %q{dan.kubb@gmail.com}
   s.extra_rdoc_files = [
@@ -111,7 +111,6 @@ Gem::Specification.new do |s|
      "spec/public/associations/one_to_one_spec.rb",
      "spec/public/associations/one_to_one_with_boolean_cpk_spec.rb",
      "spec/public/collection_spec.rb",
-     "spec/public/migrations_spec.rb",
      "spec/public/model/hook_spec.rb",
      "spec/public/model/property_spec.rb",
      "spec/public/model/relationship_spec.rb",
@@ -188,7 +187,6 @@ Gem::Specification.new do |s|
      "spec/public/associations/one_to_one_spec.rb",
      "spec/public/associations/one_to_one_with_boolean_cpk_spec.rb",
      "spec/public/collection_spec.rb",
-     "spec/public/migrations_spec.rb",
      "spec/public/model/hook_spec.rb",
      "spec/public/model/property_spec.rb",
      "spec/public/model/relationship_spec.rb",
