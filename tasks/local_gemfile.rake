@@ -3,16 +3,14 @@ task :local_gemfile do |t|
 
   root              = Pathname(__FILE__).dirname.parent
   datamapper        = root.parent
-  excluded_adapters = ENV['EXCLUDED_ADAPTERS'].to_s.split(',')
 
-  source_regex     = /datamapper = 'git:\/\/github.com\/datamapper'/
-  gem_source_regex = /:git => \"#\{datamapper\}\/(.+?)(?:\.git)?\"/
+  source_regex     = /DATAMAPPER = 'git:\/\/github.com\/datamapper'/
+  gem_source_regex = /:git => \"#\{DATAMAPPER\}\/(.+?)(?:\.git)?\"/
 
   root.join('Gemfile.local').open('w') do |f|
     root.join('Gemfile').open.each do |line|
-      line.sub!(source_regex,     "datamapper = '#{datamapper}'")
-      line.sub!(gem_source_regex, ':path => "#{datamapper}/\1"')
-      line = "##{line}" if excluded_adapters.any? { |name| line.include?(name) }
+      line.sub!(source_regex,     "DATAMAPPER = '#{datamapper}'")
+      line.sub!(gem_source_regex, ':path => "#{DATAMAPPER}/\1"')
       f.puts line
     end
   end

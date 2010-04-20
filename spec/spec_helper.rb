@@ -18,16 +18,16 @@ plugins.each { |plugin| require plugin }
 Pathname.glob((LIB_ROOT  + 'dm-core/spec/**/*.rb'  ).to_s).each { |file| require file }
 Pathname.glob((SPEC_ROOT + '{lib,*/shared}/**/*.rb').to_s).each { |file| require file }
 
-ENV['ADAPTERS'] ||= 'all'
-
 # create sqlite3_fs directory if it doesn't exist
 temp_db_dir = SPEC_ROOT.join('db')
 temp_db_dir.mkpath
 
 DataMapper::Spec::AdapterHelpers.temp_db_dir = temp_db_dir
 
-adapters  = ENV['ADAPTERS'].split(' ').map { |adapter_name| adapter_name.strip.downcase }.uniq
-adapters  = DataMapper::Spec::AdapterHelpers.primary_adapters.keys if adapters.include?('all')
+adapters = ENV['ADAPTER'] || ENV['ADAPTERS'] || 'in_memory'
+adapters = adapters.gsub(',',' ').split(' ')
+adapters = adapters.map { |adapter_name| adapter_name.strip.downcase }.uniq
+adapters = DataMapper::Spec::AdapterHelpers.primary_adapters.keys if adapters.include?('all')
 
 DataMapper::Spec::AdapterHelpers.setup_adapters(adapters)
 

@@ -1,102 +1,144 @@
+# If you're working on more than one datamapper gem at a time, then it's
+# recommended to create a local Gemfile and use this instead of the git
+# sources. This will make sure that you are  developing against your
+# other local datamapper sources that you currently work on. Gemfile.local
+# will behave identically to the standard Gemfile apart from the fact that
+# it fetches the gems from local paths. This means that you can use the
+# same environment variables, like ADAPTER when running bundle commands.
+# Gemfile.local is added to .gitignore, so you don't need to worry about
+# accidentally checking local development paths into git.
+#
+#   bundle exec rake local_gemfile
+#
+# will give you a Gemfile.local file that points to your local clones of
+# the various datamapper gems. It's assumed that all datamapper repo clones
+# reside in the same directory. You can use the Gemfile.local like so for
+# running any bundle command:
+#
+#   BUNDLE_GEMFILE=Gemfile.local bundle foo
+#
+# Specify which adapter(s) should be part of the bundle by setting an ENV var.
+# This also works when using the Gemfile.local
+#
+#   bundle foo                        # dm-sqlite-adapter
+#   ADAPTER=mysql bundle foo          # dm-mysql-adapter
+#   ADAPTERS=sqlite,mysql bundle foo  # dm-sqlite-adapter and dm-mysql-adapter
+#
+# You can also use the ADAPTER(S) variable when using the Gemfile.local and
+# running specs against selected adapters.
+#
+# For easily working with adapters supported on your machine, it's recommended
+# that you first install all adapters that you are planning to use / work on
+# by doing something like
+#
+#   ADAPTERS=sqlite,mysql,postgres bundle install
+#
+# This will clone the various repositories and make them available to bundler.
+# Once you have them installed you can easily switch between adapters for the
+# various development tasks. Running something like
+#
+#   ADAPTERS=mysql bundle exec rake spec
+#
+# will make sure that the dm-mysql-adapter is part of the bundle, and will be used
+# when running the specs.
+#
+# Specify which plugin(s) should be part of the bundle by setting an ENV var.
+# This also works when using the Gemfile.local
+#
+#   bundle foo                                 # dm-migrations
+#   PLUGINS=dm-validations bundle foo          # dm-migrations and dm-validations
+#   PLUGINS=dm-validations,dm-types bundle foo # dm-migrations, dm-validations and dm-types
+#
+# Of course you can combine the PLUGINS env var with the ADAPTERS env var to test out
+# certain combinations of adapter/plugin combinations.
+#
+# To speed up running specs and other tasks, it's recommended to run
+#
+#   bundle lock
+#
+# after running 'bundle install' for the first time. This will make 'bundle exec' run
+# a lot faster compared to the unlocked version. With an unlocked bundle you would
+# typically just run 'bundle install' from time to time to fetch the latest sources from
+# upstream. When you locked your bundle, you need to run
+#
+#   bundle install --relock
+#
+# to make sure to fetch the latest updates and then lock the bundle again. Gemfile.lock
+# is added to the .gitignore file, so you don't need to worry about accidentally checking
+# it into version control.
+
 source 'http://rubygems.org'
 
-datamapper = 'git://github.com/datamapper'
+DATAMAPPER = 'git://github.com/datamapper'
 
-group :runtime do
 
-  # We bundle both AS and extlib while extlib compatibility needs to be kept around.
-  # require 'dm-core' will ensure that only one is activated at any time though.
-  # This is done by trying to require AS components and fallback to requiring
-  # extlib in case a LoadError was rescued when requiring AS code.
-  #
-  # Due to bundle exec activating all groups in the Gemfile, it's recommended to run
-  #
-  #   bundle install --without quality
-  #
-  # to have a development environment that is able to run the specs. The problem is that
-  # metric_fu activates active_support=2.2.3 if we comment out the gem 'activesupport'
-  # declaration - have a look below for why we would want to do that (and a bit later, for
-  # why that's actually not *strictly* necessary, but recommended)
-  #
-  # To run the specs using AS, leave this Gemfile as it is and just run
-  #
-  #   bundle install --without quality
-  #   ADAPTERS=sqlite3 bundle exec rake spec # or whatever adapter
-  #
-  # To run the specs using extlib, comment out the: gem 'activesupport' line and run
-  #
-  #  bundle install --without quality
-  #  ADAPTERS=sqlite3 bundle exec rake spec # or whatever adapter
-  #
-  # If you want to run the quality tasks as provided by metric_fu and related gems,
-  # you have to run
-  #
-  #   bundle install
-  #   bundle exec rake metrics:all
-  #
-  # Switch back to a bundle without quality gems before trying to run the specs again
-  #
-  #   bundle install --without quality
-  #   ADAPTERS=sqlite3 bundle exec rake spec # or whatever adapter
-  #
-  # It was mentioned above that all this is not *strictly* necessary, and this is true.
-  # Currently dm-core does the following as the first require when checking for AS
-  #
-  #   require 'active_support/core_ext/kernel/singleton_class'
-  #
-  # Because this method is not present in activesupport <= 3.0.0.beta, dm-core's feature
-  # detection will actually do the "right thing" and fall back to extlib. However, since
-  # this is not the case for all dm-more gems as well, the safest thing to do is to respect
-  # the more tedious workflow for now, as it will at least be guaranteed to work the same
-  # for both dm-core and dm-more.
-  #
-  # Note that this won't be an issue anymore once we dropped support for extlib completely,
-  # or bundler folks decide to support something like "bundle exec --without=foo rake spec"
-  # (which probably is not going to happen anytime soon).
-  #
+group :runtime do # Runtime dependencies (as in the gemspec)
 
   if ENV['EXTLIB']
-    gem 'extlib',        '~> 0.9.15',      :git => "#{datamapper}/extlib.git"
+    gem 'extlib',        '~> 0.9.15',      :git => "#{DATAMAPPER}/extlib.git"
   else
     gem 'activesupport', '~> 3.0.0.beta3', :git => 'git://github.com/rails/rails.git', :require => nil
   end
 
-  gem 'addressable', '~> 2.1'
-end
-
-group :development do
-
-  gem 'rake',                 '~> 0.8.7'
-  gem 'rspec',                '~> 1.3'
-  gem 'yard',                 '~> 0.5'
-  gem 'rcov',                 '~> 0.9.7'
-  gem 'jeweler',              '~> 1.4'
-
-  gem 'dm-core',              '~> 0.10.3', :path => File.dirname(__FILE__) # Make ourself available to the adapters
-
-  gem 'dm-migrations',        '~> 0.10.3', :git => "#{datamapper}/dm-migrations.git"
-
-  gem 'data_objects',         '~> 0.10.2', :git => "#{datamapper}/do.git"
-  gem 'do_sqlite3',           '~> 0.10.2', :git => "#{datamapper}/do.git"
-  gem 'do_mysql',             '~> 0.10.2', :git => "#{datamapper}/do.git"
-  gem 'do_postgres',          '~> 0.10.2', :git => "#{datamapper}/do.git"
-  gem 'do_oracle',            '~> 0.10.2', :git => "#{datamapper}/do.git"
-  gem 'do_sqlserver',         '~> 0.10.2', :git => "#{datamapper}/do.git"
-
-  gem 'dm-do-adapter',        '~> 0.10.3', :git => "#{datamapper}/dm-do-adapter.git"
-  gem 'dm-sqlite-adapter',    '~> 0.10.3', :git => "#{datamapper}/dm-sqlite-adapter.git"
-  gem 'dm-postgres-adapter',  '~> 0.10.3', :git => "#{datamapper}/dm-postgres-adapter.git"
-  gem 'dm-mysql-adapter',     '~> 0.10.3', :git => "#{datamapper}/dm-mysql-adapter.git"
-  gem 'dm-oracle-adapter',    '~> 0.10.3', :git => "#{datamapper}/dm-oracle-adapter.git"
-  gem 'dm-sqlserver-adapter', '~> 0.10.3', :git => "#{datamapper}/dm-sqlserver-adapter.git"
-
-  gem 'dm-yaml-adapter',      '~> 0.10.3', :git => "#{datamapper}/dm-yaml-adapter.git"
+  gem 'addressable',     '~> 2.1'
 
 end
 
-group :quality do
-  gem 'yardstick', '~> 0.1'
-  gem 'metric_fu', '~> 1.3'
-  gem 'reek',      '~> 1.2.7'
-  gem 'roodi',     '~> 2.1'
+group(:development) do # Development dependencies (as in the gemspec)
+
+  gem 'rake',           '~> 0.8.7'
+  gem 'rspec',          '~> 1.3'
+  gem 'yard',           '~> 0.5'
+  gem 'rcov',           '~> 0.9.7'
+  gem 'jeweler',        '~> 1.4'
+
+end
+
+group :quality do # These gems contain rake tasks that check the quality of the source code
+
+  gem 'yardstick',      '~> 0.1'
+  gem 'metric_fu',      '~> 1.3'
+  gem 'reek',           '~> 1.2.7'
+  gem 'roodi',          '~> 2.1'
+
+end
+
+group :datamapper do # We need this because we want to pin these dependencies to their git master sources
+
+  DM_VERSION = '~> 0.10.3'
+
+  gem 'dm-core', DM_VERSION, :path => File.dirname(__FILE__) # Make ourself available to the adapters
+
+  adapters = ENV['ADAPTER'] || ENV['ADAPTERS']
+  adapters = adapters.to_s.gsub(',',' ').split(' ') - ['in_memory']
+
+  unless adapters.empty?
+
+    DO_VERSION     = '~> 0.10.2'
+    DM_DO_ADAPTERS = %w[sqlite postgres mysql oracle sqlserver]
+
+    gem 'data_objects',  DO_VERSION, :git => "#{DATAMAPPER}/do.git"
+
+    adapters.each do |adapter|
+      if DM_DO_ADAPTERS.any? { |dm_do_adapter| dm_do_adapter =~ /#{adapter}/  }
+        adapter = 'sqlite3' if adapter == 'sqlite'
+        gem "do_#{adapter}", DO_VERSION, :git => "#{DATAMAPPER}/do.git"
+      end
+    end
+
+    gem 'dm-do-adapter', DM_VERSION, :git => "#{DATAMAPPER}/dm-do-adapter.git"
+
+    adapters.each do |adapter|
+      gem "dm-#{adapter}-adapter", DM_VERSION, :git => "#{DATAMAPPER}/dm-#{adapter}-adapter.git"
+    end
+
+  end
+
+  plugins = ENV['PLUGINS'] || ENV['PLUGIN']
+  plugins = (plugins.to_s.gsub(',',' ').split(' ') + ['dm-migrations']).uniq
+
+  plugins.each do |plugin|
+    gem plugin, DM_VERSION, :git => "#{DATAMAPPER}/#{plugin}.git"
+  end
+
 end
