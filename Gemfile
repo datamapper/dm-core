@@ -3,32 +3,33 @@
 # sources. This will make sure that you are  developing against your
 # other local datamapper sources that you currently work on. Gemfile.local
 # will behave identically to the standard Gemfile apart from the fact that
-# it fetches the gems from local paths. This means that you can use the
-# same environment variables, like ADAPTER when running bundle commands.
-# Gemfile.local is added to .gitignore, so you don't need to worry about
-# accidentally checking local development paths into git.
+# it fetches the datamapper gems from local paths. This means that you can use
+# the same environment variables, like ADAPTER(S) or PLUGIN(S) when running
+# bundle commands. Gemfile.local is added to .gitignore, so you don't need to
+# worry about accidentally checking local development paths into git.
+# In order to create a local Gemfile, all you need to do is run:
 #
 #   bundle exec rake local_gemfile
 #
-# will give you a Gemfile.local file that points to your local clones of
+# This will give you a Gemfile.local file that points to your local clones of
 # the various datamapper gems. It's assumed that all datamapper repo clones
 # reside in the same directory. You can use the Gemfile.local like so for
 # running any bundle command:
 #
 #   BUNDLE_GEMFILE=Gemfile.local bundle foo
 #
-# Specify which adapter(s) should be part of the bundle by setting an ENV var.
-# This also works when using the Gemfile.local
+# You can also specify which adapter(s) should be part of the bundle by setting
+# an environment variable. This of course also works when using the Gemfile.local
 #
 #   bundle foo                        # dm-sqlite-adapter
 #   ADAPTER=mysql bundle foo          # dm-mysql-adapter
 #   ADAPTERS=sqlite,mysql bundle foo  # dm-sqlite-adapter and dm-mysql-adapter
 #
-# You can also use the ADAPTER(S) variable when using the Gemfile.local and
-# running specs against selected adapters.
+# Of course you can also use the ADAPTER(S) variable when using the Gemfile.local
+# and running specs against selected adapters.
 #
 # For easily working with adapters supported on your machine, it's recommended
-# that you first install all adapters that you are planning to use / work on
+# that you first install all adapters that you are planning to use or work on
 # by doing something like
 #
 #   ADAPTERS=sqlite,mysql,postgres bundle install
@@ -37,22 +38,22 @@
 # Once you have them installed you can easily switch between adapters for the
 # various development tasks. Running something like
 #
-#   ADAPTERS=mysql bundle exec rake spec
+#   ADAPTER=mysql bundle exec rake spec
 #
 # will make sure that the dm-mysql-adapter is part of the bundle, and will be used
 # when running the specs.
 #
-# Specify which plugin(s) should be part of the bundle by setting an ENV var.
-# This also works when using the Gemfile.local
+# You can also specify which plugin(s) should be part of the bundle by setting
+# an environment variable. This also works when using the Gemfile.local
 #
 #   bundle foo                                 # dm-migrations
 #   PLUGINS=dm-validations bundle foo          # dm-migrations and dm-validations
 #   PLUGINS=dm-validations,dm-types bundle foo # dm-migrations, dm-validations and dm-types
 #
-# Of course you can combine the PLUGINS env var with the ADAPTERS env var to test out
-# certain combinations of adapter/plugin combinations.
+# Of course you can combine the PLUGIN(S) and ADAPTER(S) env vars to run specs
+# for certain adapter/plugin combinations.
 #
-# To speed up running specs and other tasks, it's recommended to run
+# Finally, to speed up running specs and other tasks, it's recommended to run
 #
 #   bundle lock
 #
