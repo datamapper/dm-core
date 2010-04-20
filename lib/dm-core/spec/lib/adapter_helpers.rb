@@ -85,14 +85,6 @@ module DataMapper
              puts "Could not connect to the database using #{connection_string.inspect} because: #{exception.inspect}"
           end
         end
-
-        # speed up test execution on Oracle
-        if defined?(DataMapper::Adapters::OracleAdapter)
-          DataMapper::Adapters::OracleAdapter.instance_eval do
-            auto_migrate_with :delete           # table data will be deleted instead of dropping and creating table
-            auto_migrate_reset_sequences false  # primary key sequences will not be reset
-          end
-        end
       end
 
       def supported_by(*adapters, &block)
