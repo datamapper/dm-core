@@ -18,9 +18,10 @@ begin
     gem.add_dependency 'extlib',              '~> 0.9.14'
     gem.add_dependency 'addressable',         '~> 2.1'
 
-    gem.add_development_dependency 'bundler', '~> 0.9.11'
     gem.add_development_dependency 'rspec',   '~> 1.3'
     gem.add_development_dependency 'yard',    '~> 0.5'
+    gem.add_development_dependency 'rcov',    '~> 0.9.7'
+    gem.add_development_dependency 'jeweler', '~> 1.4'
 
   end
 
