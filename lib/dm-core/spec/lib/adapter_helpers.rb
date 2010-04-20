@@ -1,5 +1,4 @@
 require 'benchmark'
-require 'dm-migrations'
 
 module DataMapper
   module Spec

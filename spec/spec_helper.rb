@@ -11,9 +11,9 @@ $LOAD_PATH.unshift(LIB_ROOT)
 
 require 'dm-core'
 
-ENV['PLUGINS'].to_s.strip.split(/\s+/).each do |plugin|
-  require plugin
-end
+plugins = ENV['PLUGINS'] || ENV['PLUGIN']
+plugins = (plugins.to_s.gsub(',',' ').split(' ') + ['dm-migrations']).uniq
+plugins.each { |plugin| require plugin }
 
 Pathname.glob((LIB_ROOT  + 'dm-core/spec/**/*.rb'  ).to_s).each { |file| require file }
 Pathname.glob((SPEC_ROOT + '{lib,*/shared}/**/*.rb').to_s).each { |file| require file }
