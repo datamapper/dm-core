@@ -340,7 +340,7 @@ module DataMapper
 
         # @api private
         def dump_property(value)
-          subject.value(value)
+          subject.dump(value)
         end
 
         # Returns a value for the comparison +subject+
@@ -699,7 +699,7 @@ module DataMapper
         # @api private
         def dump
           loaded_value = self.loaded_value
-          if subject.respond_to?(:value) && loaded_value.respond_to?(:map) && !loaded_value.kind_of?(Range)
+          if subject.respond_to?(:dump) && loaded_value.respond_to?(:map) && !loaded_value.kind_of?(Range)
             dumped_value = loaded_value.map { |value| dump_property(value) }
             dumped_value.uniq!
             dumped_value

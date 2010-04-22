@@ -621,7 +621,7 @@ module DataMapper
 
       original_attributes.each_key do |property|
         next unless property.respond_to?(:value)
-        dirty_attributes[property] = property.value(property.get!(self))
+        dirty_attributes[property] = property.dump(property.get!(self))
       end
 
       dirty_attributes

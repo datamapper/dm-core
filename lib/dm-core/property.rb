@@ -297,6 +297,7 @@ module DataMapper
     deprecate :unique,    :unique?
     deprecate :size,      :length
     deprecate :nullable?, :allow_nil?
+    deprecate :value,     :dump
 
     equalize :model, :name
 
@@ -660,12 +661,9 @@ module DataMapper
     #   the primitive value to be stored in the repository for +val+
     #
     # @api semipublic
-    def value(loaded_value)
-      if custom?
-        type.dump(loaded_value, self)
-      else
-        loaded_value
-      end
+    def dump(value)
+      return type.dump(value, self) if type.respond_to?(:dump)
+      value
     end
 
     # Test the value to see if it is a valid value for this Property
@@ -677,8 +675,8 @@ module DataMapper
     #   true if the value is valid
     #
     # @api semipulic
-    def valid?(loaded_value, negated = false)
-      dumped_value = self.value(loaded_value)
+    def valid?(value, negated = false)
+      dumped_value = dump(value)
       primitive?(dumped_value) || (dumped_value.nil? && (allow_nil? || negated))
     end
 

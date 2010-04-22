@@ -32,19 +32,19 @@ describe DataMapper::Property, 'Object type' do
 
   it { should respond_to(:value) }
 
-  describe '#value' do
+  describe '#dump' do
     describe 'with a value' do
       before do
         @value = { 'lang' => 'en_CA' }
       end
 
-      subject { @property.value(@value) }
+      subject { @property.dump(@value) }
 
       it { @property.type.load(subject, @property).should == @value }
     end
 
     describe 'with nil' do
-      subject { @property.value(nil) }
+      subject { @property.dump(nil) }
 
       it { should be_nil }
     end
