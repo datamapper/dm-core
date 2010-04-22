@@ -5,12 +5,13 @@ describe DataMapper::Resource::State::Deleted do
     class ::Author
       include DataMapper::Resource
 
-      property :id,     Serial
+      property :id,     Integer, :key => true, :default => 1
       property :name,   String
       property :active, Boolean, :default => true
       property :coding, Boolean, :default => true
 
       belongs_to :parent, self, :required => false
+      has n, :children, self, :inverse => :parent
     end
 
     @model = Author
@@ -20,6 +21,10 @@ describe DataMapper::Resource::State::Deleted do
     @resource = @model.create(:name => 'Dan Kubb')
 
     @state = DataMapper::Resource::State::Deleted.new(@resource)
+  end
+
+  after do
+    @resource.destroy
   end
 
   describe '#commit' do

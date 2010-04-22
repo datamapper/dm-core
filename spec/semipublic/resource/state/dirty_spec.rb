@@ -5,7 +5,7 @@ describe DataMapper::Resource::State::Dirty do
     class ::Author
       include DataMapper::Resource
 
-      property :id,     Serial
+      property :id,     Integer, :key => true, :default => 1
       property :name,   String
       property :active, Boolean, :default => true
       property :coding, Boolean, :default => true
@@ -23,6 +23,10 @@ describe DataMapper::Resource::State::Dirty do
 
     @state = @resource.persisted_state
     @state.should be_kind_of(DataMapper::Resource::State::Dirty)
+  end
+
+  after do
+    @resource.destroy
   end
 
   after do

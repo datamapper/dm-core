@@ -5,12 +5,13 @@ describe DataMapper::Resource::State::Clean do
     class ::Author
       include DataMapper::Resource
 
-      property :id,     Serial
+      property :id,     Integer, :key => true, :default => 1
       property :name,   String
       property :active, Boolean, :default => true
       property :coding, Boolean, :default => true
 
       belongs_to :parent, self, :required => false
+      has n, :children, self, :inverse => :parent
     end
 
     @model = Author
@@ -21,6 +22,10 @@ describe DataMapper::Resource::State::Clean do
 
     @state = @resource.persisted_state
     @state.should be_kind_of(DataMapper::Resource::State::Clean)
+  end
+
+  after do
+    @resource.destroy
   end
 
   [ :commit, :rollback ].each do |method|
