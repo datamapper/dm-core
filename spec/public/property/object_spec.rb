@@ -95,9 +95,7 @@ describe DataMapper::Property, 'Object type' do
       subject { @resource.reload.meta }
 
       it 'should load the correct value' do
-        pending_if 'Fix adapters to use different serialization methods', !@do_adapter do
-          should == { 'lang' => 'en_CA' }
-        end
+        should == { 'lang' => 'en_CA' }
       end
     end
   end

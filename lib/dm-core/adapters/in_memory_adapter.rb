@@ -23,7 +23,7 @@ module DataMapper
 
         resources.each do |resource|
           initialize_serial(resource, records.size.succ)
-          records << resource.attributes(:field)
+          records << attributes_as_fields(resource.attributes(nil))
         end
       end
 
@@ -55,7 +55,7 @@ module DataMapper
       # @api semipublic
       def update(attributes, collection)
         attributes = attributes_as_fields(attributes)
-        read(collection.query).each { |resource| resource.update(attributes) }.size
+        read(collection.query).each { |record| record.update(attributes) }.size
       end
 
       # Destroys all the records matching the given query. "DELETE" in SQL.
