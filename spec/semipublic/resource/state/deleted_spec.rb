@@ -5,10 +5,10 @@ describe DataMapper::Resource::State::Deleted do
     class ::Author
       include DataMapper::Resource
 
-      property :id,     Integer, :key => true, :default => 1
+      property :id,     HugeInteger, :key => true, :default => 1
       property :name,   String
-      property :active, Boolean, :default => true
-      property :coding, Boolean, :default => true
+      property :active, Boolean,     :default => true
+      property :coding, Boolean,     :default => true
 
       belongs_to :parent, self, :required => false
       has n, :children, self, :inverse => :parent

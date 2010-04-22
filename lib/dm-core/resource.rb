@@ -885,6 +885,9 @@ module DataMapper
     # @api private
     def eager_load(properties)
       unless properties.empty? || key.nil? || collection.nil?
+        # set an initial value to prevent recursive lazy loads
+        properties.each { |property| property.set!(self, nil) }
+
         collection.reload(:fields => properties)
       end
 

@@ -16,7 +16,7 @@ plugins = (plugins.to_s.gsub(',',' ').split(' ') + ['dm-migrations']).uniq
 plugins.each { |plugin| require plugin }
 
 Pathname.glob((LIB_ROOT  + 'dm-core/spec/**/*.rb'  ).to_s).each { |file| require file }
-Pathname.glob((SPEC_ROOT + '{lib,*/shared}/**/*.rb').to_s).each { |file| require file }
+Pathname.glob((SPEC_ROOT + '{lib,support,*/shared}/**/*.rb').to_s).each { |file| require file }
 
 # create sqlite3_fs directory if it doesn't exist
 temp_db_dir = SPEC_ROOT.join('db')

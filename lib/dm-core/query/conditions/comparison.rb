@@ -385,7 +385,7 @@ module DataMapper
         def record_value_from_hash(hash, subject, key_type)
           hash.fetch subject, case subject
             when Property
-              hash[subject.field]
+              subject.load(hash[subject.field])
             when Associations::Relationship
               subject.send(key_type).map { |property|
                 record_value_from_hash(hash, property, key_type)

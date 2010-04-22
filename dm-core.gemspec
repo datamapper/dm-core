@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Dan Kubb"]
-  s.date = %q{2010-04-20}
+  s.date = %q{2010-04-21}
   s.description = %q{Faster, Better, Simpler.}
   s.email = %q{dan.kubb@gmail.com}
   s.extra_rdoc_files = [
@@ -157,6 +157,7 @@ Gem::Specification.new do |s|
      "spec/semipublic/shared/subject_shared_spec.rb",
      "spec/spec.opts",
      "spec/spec_helper.rb",
+     "spec/support/types/huge_integer.rb",
      "spec/unit/array_spec.rb",
      "spec/unit/hash_spec.rb",
      "spec/unit/hook_spec.rb",
@@ -231,6 +232,7 @@ Gem::Specification.new do |s|
      "spec/semipublic/shared/resource_state_shared_spec.rb",
      "spec/semipublic/shared/subject_shared_spec.rb",
      "spec/spec_helper.rb",
+     "spec/support/types/huge_integer.rb",
      "spec/unit/array_spec.rb",
      "spec/unit/hash_spec.rb",
      "spec/unit/hook_spec.rb",
