@@ -1011,7 +1011,7 @@ module DataMapper
     #
     # @api private
     def _update
-      if original_attributes.all? { |property, _value| property.valid?(property.get!(self)) }
+      if dirty_attributes.all? { |property, value| property.valid?(value) }
         self.persisted_state = persisted_state.commit
       end
 
