@@ -494,6 +494,7 @@ module DataMapper
     # @api public
     def ==(other)
       return true if equal?(other)
+      return false unless kind_of?(other.class) || other.kind_of?(model)
       other.respond_to?(:repository) &&
       other.respond_to?(:key)        &&
       other.respond_to?(:clean?)     &&
