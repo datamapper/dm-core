@@ -1154,17 +1154,18 @@ module DataMapper
     #
     # @api private
     def cmp?(other, operator)
-      return false unless key.send(operator, other.key)
-      return true if repository.send(operator, other.repository) && clean? && other.clean?
+      return false unless repository.send(operator, other.repository) &&
+                          key.send(operator, other.key)
 
-      # get all the loaded and non-loaded properties that are not keys,
-      # since the key comparison was performed earlier
-      loaded, not_loaded = properties.select { |property| !property.key? }.partition do |property|
-        property.loaded?(self) && property.loaded?(other)
+      if saved? && other.saved?
+        # if dirty attributes match then they are the same resource
+        dirty_attributes == other.dirty_attributes
+      else
+        # compare properties for unsaved resources
+        properties.all? do |property|
+          __send__(property.name).send(operator, other.__send__(property.name))
+        end
       end
-
-      # check all loaded properties, and then all unloaded properties
-      (loaded + not_loaded).all? { |property| __send__(property.name).send(operator, other.__send__(property.name)) }
     end
 
     # @api private

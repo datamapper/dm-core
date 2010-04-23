@@ -113,8 +113,8 @@ share_examples_for 'A public Resource' do
             end
           end
 
-          it 'should return true' do
-            @return.should be(true)
+          it 'should return false' do
+            @return.should be(false)
           end
         end
       end
@@ -500,8 +500,8 @@ share_examples_for 'A public Resource' do
           end
         end
 
-        it 'should return true' do
-          @return.should be(true)
+        it 'should return false' do
+          @return.should be(false)
         end
       end
     end
