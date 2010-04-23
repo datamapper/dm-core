@@ -1,6 +1,16 @@
 module DataMapper
   module Spec
 
+    module Helpers
+      def reset_raise_on_save_failure(object)
+        object.instance_eval do
+          if defined?(@raise_on_save_failure)
+            remove_instance_variable(:@raise_on_save_failure)
+          end
+        end
+      end
+    end
+
     # global model cleanup
     def self.cleanup_models
       descendants = DataMapper::Model.descendants.to_a
@@ -30,8 +40,9 @@ module DataMapper
         object, ivar = node
 
         # skip "global" and non-DM objects
-        next if object.kind_of?(DataMapper::Logger)               ||
-                object.kind_of?(DataMapper::Model::DescendantSet) ||
+        next if object.kind_of?(DataMapper::Logger)                    ||
+                object.kind_of?(DataMapper::Model::DescendantSet)      ||
+                object.kind_of?(DataMapper::Adapters::AbstractAdapter) ||
                 object.class.name[0, 13] == 'DataObjects::'
 
         # skip classes and modules in the DataMapper namespace

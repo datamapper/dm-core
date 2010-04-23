@@ -108,7 +108,7 @@ share_examples_for 'A public Resource' do
         describe 'when comparing to a resource with a different repository, but the same properties' do
           before :all do
             rescue_if @skip do
-              @other = @alternate_repository.scope { @user_model.create(@user.attributes) }
+              @other = @repository.scope { @user_model.create(@user.attributes) }
               @return = @user.__send__(method, @other)
             end
           end
@@ -495,7 +495,7 @@ share_examples_for 'A public Resource' do
       describe 'when comparing to a resource with a different repository, but the same properties' do
         before :all do
           rescue_if @skip do
-            @other = @alternate_repository.scope { @user_model.create(@user.attributes) }
+            @other = @repository.scope { @user_model.create(@user.attributes) }
             @return = @user.eql?(@other)
           end
         end

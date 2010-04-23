@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Dan Kubb"]
-  s.date = %q{2010-04-27}
+  s.date = %q{2010-04-30}
   s.description = %q{Faster, Better, Simpler.}
   s.email = %q{dan.kubb@gmail.com}
   s.extra_rdoc_files = [
@@ -76,6 +76,7 @@ Gem::Specification.new do |s|
      "lib/dm-core/spec/lib/counter_adapter.rb",
      "lib/dm-core/spec/lib/pending_helpers.rb",
      "lib/dm-core/spec/lib/spec_helper.rb",
+     "lib/dm-core/spec/setup.rb",
      "lib/dm-core/spec/shared/adapter_spec.rb",
      "lib/dm-core/spec/shared/resource_spec.rb",
      "lib/dm-core/spec/shared/sel_spec.rb",

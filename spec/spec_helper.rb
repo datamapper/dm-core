@@ -1,51 +1,24 @@
 require 'pathname'
 require 'rubygems'
 
-require 'addressable/uri'
 require 'spec'
+
+require 'dm-core'
+require 'dm-core/spec/setup'
 
 SPEC_ROOT = Pathname(__FILE__).dirname.expand_path
 LIB_ROOT  = SPEC_ROOT.parent + 'lib'
 
-$LOAD_PATH.unshift(LIB_ROOT)
-
-require 'dm-core'
-
-plugins = ENV['PLUGINS'] || ENV['PLUGIN']
-plugins = (plugins.to_s.gsub(',',' ').split(' ') + ['dm-migrations']).uniq
-plugins.each { |plugin| require plugin }
-
-Pathname.glob((LIB_ROOT  + 'dm-core/spec/**/*.rb'  ).to_s).each { |file| require file }
+Pathname.glob((LIB_ROOT  + 'dm-core/spec/**/*.rb'          ).to_s).each { |file| require file }
 Pathname.glob((SPEC_ROOT + '{lib,support,*/shared}/**/*.rb').to_s).each { |file| require file }
 
-# create sqlite3_fs directory if it doesn't exist
-temp_db_dir = SPEC_ROOT.join('db')
-temp_db_dir.mkpath
-
-DataMapper::Spec::AdapterHelpers.temp_db_dir = temp_db_dir
-
-adapters = ENV['ADAPTER'] || ENV['ADAPTERS'] || 'in_memory'
-adapters = adapters.gsub(',',' ').split(' ')
-adapters = adapters.map { |adapter_name| adapter_name.strip.downcase }.uniq
-adapters = DataMapper::Spec::AdapterHelpers.primary_adapters.keys if adapters.include?('all')
-
-DataMapper::Spec::AdapterHelpers.setup_adapters(adapters)
-
-logger = DataMapper::Logger.new(DataMapper.root / 'log' / 'dm.log', :debug)
-logger.auto_flush = true
+DataMapper::Spec.setup # initialize the logger and require the adapter and any given plugins
 
 Spec::Runner.configure do |config|
 
-  config.extend(DataMapper::Spec::AdapterHelpers)
+  config.extend( DataMapper::Spec::Adapters::Helpers)
   config.include(DataMapper::Spec::PendingHelpers)
-
-  def reset_raise_on_save_failure(object)
-    object.instance_eval do
-      if defined?(@raise_on_save_failure)
-        remove_instance_variable(:@raise_on_save_failure)
-      end
-    end
-  end
+  config.include(DataMapper::Spec::Helpers)
 
   config.after :all do
     DataMapper::Spec.cleanup_models

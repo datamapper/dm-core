@@ -74,6 +74,11 @@ module DataMapper
         records_to_delete.size
       end
 
+      # TODO consider proper automigrate functionality
+      def reset
+        @records = {}
+      end
+
       private
 
       # Make a new instance of the adapter. The @records ivar is the 'data-store'
