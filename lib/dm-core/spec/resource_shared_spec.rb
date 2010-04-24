@@ -126,7 +126,7 @@ share_examples_for 'A public Resource' do
   describe '#<=>' do
     describe 'when the default order properties are equal with another resource' do
       before :all do
-        rescue_if @skip do
+        rescue_if @skip && RUBY_VERSION < '1.9.2' do
           @other = @user_model.new(:name => 'dbussink')
           @return = @user <=> @other
         end
@@ -139,7 +139,7 @@ share_examples_for 'A public Resource' do
 
     describe 'when the default order property values are sorted before another resource' do
       before :all do
-        rescue_if @skip do
+        rescue_if @skip && RUBY_VERSION < '1.9.2' do
           @other = @user_model.new(:name => 'c')
           @return = @user <=> @other
         end
@@ -152,7 +152,7 @@ share_examples_for 'A public Resource' do
 
     describe 'when the default order property values are sorted after another resource' do
       before :all do
-        rescue_if @skip do
+        rescue_if @skip && RUBY_VERSION < '1.9.2' do
           @other = @user_model.new(:name => 'e')
           @return = @user <=> @other
         end

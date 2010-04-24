@@ -763,8 +763,8 @@ module DataMapper
       end
 
       # initialize join models and target keys
-      @relationships.each_value do |relationships|
-        relationships.each_value do |relationship|
+      @relationships.values.each do |relationships|
+        relationships.values.each do |relationship|
           relationship.child_key
           relationship.through if relationship.respond_to?(:through)
           relationship.via     if relationship.respond_to?(:via)
