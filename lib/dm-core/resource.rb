@@ -512,7 +512,7 @@ module DataMapper
     def <=>(other)
       model = self.model
       unless other.kind_of?(model.base_model)
-        raise ArgumentError, "Cannot compare a #{other.model} instance with a #{model} instance"
+        raise ArgumentError, "Cannot compare a #{other.class} instance with a #{model} instance"
       end
       model.default_order(repository_name).each do |direction|
         cmp = direction.get(self) <=> direction.get(other)
