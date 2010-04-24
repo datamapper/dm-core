@@ -791,7 +791,7 @@ module DataMapper
     #
     # @api public
     def create(attributes = {})
-      _create(true, attributes)
+      _create(attributes)
     end
 
     # Create a Resource in the Collection, bypassing hooks
@@ -804,7 +804,7 @@ module DataMapper
     #
     # @api public
     def create!(attributes = {})
-      _create(false, attributes)
+      _create(attributes, false)
     end
 
     # Update every Resource in the Collection
@@ -870,7 +870,7 @@ module DataMapper
     #
     # @api public
     def save
-      _save(true)
+      _save
     end
 
     # Save every Resource in the Collection bypassing validation
@@ -1199,8 +1199,8 @@ module DataMapper
 
     # Creates a resource in the collection
     #
-    # @param [Boolean] safe
-    #   Whether to use the safe or unsafe create
+    # @param [Boolean] execute_hooks
+    #   Whether to execute hooks or not
     # @param [Hash] attributes
     #   Attributes with which to create the new resource
     #
@@ -1208,8 +1208,8 @@ module DataMapper
     #   a saved Resource
     #
     # @api private
-    def _create(safe, attributes)
-      resource = repository.scope { model.send(safe ? :create : :create!, default_attributes.merge(attributes)) }
+    def _create(attributes, execute_hooks = true)
+      resource = repository.scope { model.send(execute_hooks ? :create : :create!, default_attributes.merge(attributes)) }
       self << resource if resource.saved?
       resource
     end
@@ -1227,18 +1227,18 @@ module DataMapper
 
     # Saves a collection
     #
-    # @param [Symbol] method
-    #   The name of the Resource method to save the collection with
+    # @param [Boolean] execute_hooks
+    #   Whether to execute hooks or not
     #
     # @return [Boolean]
     #   Returns true if collection was updated
     #
     # @api private
-    def _save(safe)
+    def _save(execute_hooks = true)
       loaded_entries = self.loaded_entries
       loaded_entries.each { |resource| set_default_attributes(resource) }
       @removed.clear
-      loaded_entries.all? { |resource| resource.__send__(safe ? :save : :save!) }
+      loaded_entries.all? { |resource| resource.__send__(execute_hooks ? :save : :save!) }
     end
 
     # Returns default values to initialize new Resources in the Collection

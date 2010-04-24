@@ -267,11 +267,11 @@ module DataMapper
         end
 
         # @api private
-        def _save(safe)
+        def _save(execute_hooks = true)
           assert_source_saved 'The source must be saved before saving the collection'
 
           # update removed resources to not reference the source
-          @removed.all? { |resource| resource.destroyed? || resource.__send__(safe ? :save : :save!) } && super
+          @removed.all? { |resource| resource.destroyed? || resource.__send__(execute_hooks ? :save : :save!) } && super
         end
 
         # @api private

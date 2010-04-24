@@ -417,9 +417,9 @@ module DataMapper
     # @api public
     def save
       assert_not_destroyed(:save)
-      result = _save(true)
-      assert_save_successful(:save, result)
-      result
+      retval = _save
+      assert_save_successful(:save, retval)
+      retval
     end
 
     # Save the instance and loaded, dirty associations to the data-store, bypassing hooks
@@ -430,9 +430,9 @@ module DataMapper
     # @api public
     def save!
       assert_not_destroyed(:save!)
-      result = _save(false)
-      assert_save_successful(:save!, result)
-      result
+      retval = _save(false)
+      assert_save_successful(:save!, retval)
+      retval
     end
 
     # Destroy the instance, remove it from the repository
@@ -445,7 +445,7 @@ module DataMapper
       return true if destroyed?
       catch :halt do
         before_destroy_hook
-        retval = _destroy(true)
+        retval = _destroy
         after_destroy_hook
         retval
       end
@@ -990,7 +990,7 @@ module DataMapper
     # @see Resource#_create
     #
     # @api private
-    def safe_create
+    def create_with_hooks
       catch :halt do
         before_save_hook
         before_create_hook
@@ -1026,7 +1026,7 @@ module DataMapper
     # @see Resource#_update
     #
     # @api private
-    def safe_update
+    def update_with_hooks
       catch :halt do
         before_save_hook
         before_update_hook
@@ -1038,16 +1038,16 @@ module DataMapper
     end
 
     # @api private
-    def _destroy(safe)
+    def _destroy(execute_hooks = true)
       deleted              = persisted_state.delete
       self.persisted_state = deleted.commit
       true
     end
 
     # @api private
-    def _save(safe)
+    def _save(execute_hooks = true)
       run_once(true) do
-        save_parents(safe) && save_self(safe) && save_children(safe)
+        save_parents(execute_hooks) && save_self(execute_hooks) && save_children(execute_hooks)
       end
     end
 
@@ -1057,13 +1057,13 @@ module DataMapper
     #   true if the resource was successfully saved
     #
     # @api semipublic
-    def save_self(safe = true)
+    def save_self(execute_hooks = true)
       # short-circuit if the resource is not dirty
       return saved? unless dirty_self?
 
       new_resource = new?
-      if safe
-        new_resource ? safe_create : safe_update
+      if execute_hooks
+        new_resource ? create_with_hooks : update_with_hooks
       else
         new_resource ? _create : _update
       end
@@ -1075,12 +1075,12 @@ module DataMapper
     #   true if the parents were successfully saved
     #
     # @api private
-    def save_parents(safe)
+    def save_parents(execute_hooks)
       run_once(true) do
         parent_relationships.map do |relationship|
           parent = relationship.get!(self)
 
-          if parent.__send__(:save_parents, safe) && parent.__send__(:save_self, safe)
+          if parent.__send__(:save_parents, execute_hooks) && parent.__send__(:save_self, execute_hooks)
             relationship.set(self, parent)  # set the FK values
           end
         end.all?
@@ -1093,9 +1093,9 @@ module DataMapper
     #   true if the children were successfully saved
     #
     # @api private
-    def save_children(safe)
+    def save_children(execute_hooks)
       child_associations.map do |association|
-        association.__send__(safe ? :save : :save!)
+        association.__send__(execute_hooks ? :save : :save!)
       end.all?
     end
 
@@ -1235,9 +1235,9 @@ module DataMapper
     #   raise if the resource was not saved
     #
     # @api private
-    def assert_save_successful(method, save_result)
-      if save_result != true && raise_on_save_failure
-        raise SaveFailureError, "#{model}##{method} returned #{save_result.inspect}, #{model} was not saved"
+    def assert_save_successful(method, save_retval)
+      if save_retval != true && raise_on_save_failure
+        raise SaveFailureError, "#{model}##{method} returned #{save_retval.inspect}, #{model} was not saved"
       end
     end
 

@@ -411,27 +411,27 @@ module DataMapper
         private
 
         # @api private
-        def _create(safe, attributes)
+        def _create(attributes, execute_hooks = true)
           via = self.via
           if via.respond_to?(:resource_for)
             resource = super
-            if create_intermediary(safe, resource)
+            if create_intermediary(execute_hooks, resource)
               resource
             end
           else
-            if intermediary = create_intermediary(safe)
-              super(safe, attributes.merge(via.inverse => intermediary))
+            if intermediary = create_intermediary(execute_hooks)
+              super(attributes.merge(via.inverse => intermediary), execute_hooks)
             end
           end
         end
 
         # @api private
-        def _save(safe)
+        def _save(execute_hooks = true)
           via = self.via
 
           if @removed.any?
             # delete only intermediaries linked to the removed targets
-            return false unless intermediaries.all(via => @removed).send(safe ? :destroy : :destroy!)
+            return false unless intermediaries.all(via => @removed).send(execute_hooks ? :destroy : :destroy!)
 
             # reset the intermediaries so that it reflects the current state of the datastore
             reset_intermediaries
@@ -441,9 +441,9 @@ module DataMapper
 
           if via.respond_to?(:resource_for)
             super
-            loaded_entries.all? { |resource| create_intermediary(safe, resource) }
+            loaded_entries.all? { |resource| create_intermediary(execute_hooks, resource) }
           else
-            if loaded_entries.any? && (intermediary = create_intermediary(safe))
+            if loaded_entries.any? && (intermediary = create_intermediary(execute_hooks))
               inverse = via.inverse
               loaded_entries.each { |resource| inverse.set(resource, intermediary) }
             end
@@ -453,14 +453,14 @@ module DataMapper
         end
 
         # @api private
-        def create_intermediary(safe, resource = nil)
+        def create_intermediary(execute_hooks, resource = nil)
           intermediary_for = self.intermediary_for
 
           intermediary_resource = intermediary_for[resource]
           return intermediary_resource if intermediary_resource
 
           intermediaries = self.intermediaries
-          method         = safe ? :save : :save!
+          method         = execute_hooks ? :save : :save!
 
           return unless intermediaries.send(method)
 

@@ -468,7 +468,7 @@ module DataMapper
     #
     # @api public
     def create(attributes = {})
-      _create(true, attributes)
+      _create(attributes)
     end
 
     # Create a Resource, bypassing hooks
@@ -481,7 +481,7 @@ module DataMapper
     #
     # @api public
     def create!(attributes = {})
-      _create(false, attributes)
+      _create(attributes, false)
     end
 
     # Copy a set of records from one repository to another.
@@ -681,9 +681,9 @@ module DataMapper
     private
 
     # @api private
-    def _create(safe, attributes)
+    def _create(attributes, execute_hooks = true)
       resource = new(attributes)
-      resource.__send__(safe ? :save : :save!)
+      resource.__send__(execute_hooks ? :save : :save!)
       resource
     end
 
