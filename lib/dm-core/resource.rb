@@ -1012,10 +1012,7 @@ module DataMapper
     #
     # @api private
     def _update
-      if dirty_attributes.all? { |property, value| property.valid?(value) }
-        self.persisted_state = persisted_state.commit
-      end
-
+      self.persisted_state = persisted_state.commit if valid_attributes?
       clean?
     end
 
@@ -1172,6 +1169,14 @@ module DataMapper
     def set_default_value(subject)
       return unless persisted_state.respond_to?(:set_default_value, true)
       persisted_state.__send__(:set_default_value, subject)
+    end
+
+    # @api private
+    def valid_attributes?
+      original_attributes.each_key do |property|
+        return false if property.kind_of?(Property) && !property.valid?(property.get!(self))
+      end
+      true
     end
 
     # Execute all the queued up hooks for a given type and name
