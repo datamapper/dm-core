@@ -3,7 +3,7 @@ module DataMapper
     include DataMapper::Assertions
     extend Equalizer
 
-    equalize :name, :adapter
+    equalize :name
 
     # Get the list of adapters registered for all Repositories,
     # keyed by repository name.
