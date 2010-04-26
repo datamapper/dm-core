@@ -1382,7 +1382,7 @@ describe DataMapper::Query do
         @return = @query == @other
       end
 
-      it { @return.should be(true) }
+      it { @return.should be(false) }
     end
 
     describe 'when other is a different type of object that can be compared, and is not equivalent' do

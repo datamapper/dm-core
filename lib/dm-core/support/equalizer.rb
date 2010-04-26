@@ -30,6 +30,7 @@ module DataMapper
       class_eval <<-RUBY, __FILE__, __LINE__ + 1
         def ==(other)
           return true if equal?(other)
+          return false unless kind_of?(other.class) || other.kind_of?(self.class)
           #{respond_to.join(' && ')} &&
           #{equivalent.join(' && ')}
         end

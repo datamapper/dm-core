@@ -125,7 +125,7 @@ shared_examples_for 'DataMapper::Query::Conditions::AbstractOperation' do
 
       subject { @operation == @other }
 
-      it { should be(true) }
+      it { should be(false) }
 
       # reset the OtherOperation slug
       after { @other.class.slug(:other) }
