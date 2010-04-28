@@ -143,8 +143,8 @@ share_examples_for 'An Adapter' do
   if adapter_supports?(:read, :create)
     describe 'query matching' do
       before :all do
-        @red = Heffalump.create(:color => 'red')
-        @two = Heffalump.create(:num_spots => 2)
+        @red  = Heffalump.create(:color => 'red')
+        @two  = Heffalump.create(:num_spots => 2)
         @five = Heffalump.create(:num_spots => 5)
       end
 
@@ -193,10 +193,13 @@ share_examples_for 'An Adapter' do
           end
 
           it 'should be able to search for objects in an empty list and another OR condition (match none on the empty list)' do
-            Heffalump.all(:conditions => DataMapper::Query::Conditions::Operation.new(
-                                           :or,
-                                           DataMapper::Query::Conditions::Comparison.new(:in, Heffalump.properties[:color], []),
-                                           DataMapper::Query::Conditions::Comparison.new(:in, Heffalump.properties[:num_spots], [5]))).should == [ @five ]
+            Heffalump.all(
+              :conditions => DataMapper::Query::Conditions::Operation.new(
+                :or,
+                DataMapper::Query::Conditions::Comparison.new(:in, Heffalump.properties[:color], []),
+                DataMapper::Query::Conditions::Comparison.new(:in, Heffalump.properties[:num_spots], [5])
+              )
+            ).should == [ @five ]
           end
 
           it 'should be able to search for objects not included in an array of values' do
