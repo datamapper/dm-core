@@ -1,9 +1,6 @@
 require 'pathname'
 require 'rubygems'
-
 require 'spec'
-
-require 'dm-core'
 require 'dm-core/spec/setup'
 
 SPEC_ROOT = Pathname(__FILE__).dirname.expand_path
@@ -11,8 +8,6 @@ LIB_ROOT  = SPEC_ROOT.parent + 'lib'
 
 Pathname.glob((LIB_ROOT  + 'dm-core/spec/**/*.rb'          ).to_s).each { |file| require file }
 Pathname.glob((SPEC_ROOT + '{lib,support,*/shared}/**/*.rb').to_s).each { |file| require file }
-
-DataMapper::Spec.setup # initialize the logger and require the adapter and any given plugins
 
 Spec::Runner.configure do |config|
 

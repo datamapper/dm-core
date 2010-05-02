@@ -1,5 +1,4 @@
-require 'pathname'
-require 'active_support/inflector'
+require 'dm-core'
 
 module DataMapper
   module Spec
@@ -12,10 +11,29 @@ module DataMapper
         @root = Pathname(path)
       end
 
-      def setup(root = default_root)
-        setup_logger(root)
-        require_plugins
-        require_adapter
+      %w[setup setup! adapter].each do |action|
+        class_eval <<-RUBY, __FILE__, __LINE__ + 1
+          def #{action}(kind = :default)
+            perform_action(kind, action)
+          end
+        RUBY
+      end
+
+      def adapter_name(kind = :default)
+        spec_adapters[kind].adapter_name
+      end
+
+      def configure(root = default_root)
+        @configured = begin
+          setup_logger(root)
+          require_plugins
+          require_spec_adapter
+          true
+        end
+      end
+
+      def configured?
+        @configured
       end
 
       def setup_logger(root = default_root)
@@ -25,7 +43,7 @@ module DataMapper
         logger
       end
 
-      def require_adapter
+      def require_spec_adapter
         if ENV['ADAPTER'] == 'in_memory'
           ENV['ADAPTER_SUPPORTS'] = 'all'
           Adapters.use(Adapters::InMemoryAdapter)
@@ -40,14 +58,6 @@ module DataMapper
         plugins.each { |plugin| require plugin }
       end
 
-      def adapter(kind = :default)
-        spec_adapters[kind].adapter
-      end
-
-      def adapter_name(kind = :default)
-        spec_adapters[kind].adapter_name
-      end
-
       def spec_adapters
         @spec_adapters ||= {}
       end
@@ -56,6 +66,11 @@ module DataMapper
 
       def default_root
         Pathname(caller[1]).dirname.expand_path
+      end
+
+      def perform_action(kind, action)
+        configure unless configured?
+        spec_adapters[kind].send(action)
       end
 
     end
@@ -76,7 +91,17 @@ module DataMapper
         end
 
         def adapter
-          @adapter ||= setup
+          @adapter ||= setup!
+        end
+
+        alias :setup :adapter
+
+        def setup!
+          adapter = DataMapper.setup(name, connection_uri)
+          test_connection(adapter)
+          adapter
+        rescue Exception => e
+          puts "Could not connect to the database using '#{connection_uri}' because of: #{e.inspect}"
         end
 
         def adapter_name
@@ -119,14 +144,6 @@ module DataMapper
         end
 
       private
-
-        def setup
-          adapter = DataMapper.setup(name, connection_uri)
-          test_connection(adapter)
-          adapter
-        rescue Exception => e
-          puts "Could not connect to the database using '#{connection_uri}' because of: #{e.inspect}"
-        end
 
         def infer_adapter_name
           demodulized = ActiveSupport::Inflector.demodulize(self.class.name.chomp('Adapter'))
