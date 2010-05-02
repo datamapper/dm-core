@@ -5,27 +5,25 @@ module DataMapper
 
     class << self
 
-      attr_reader :root
+      def root
+        @root ||= default_root
+      end
 
       def root=(path)
         @root = Pathname(path)
       end
 
-      %w[setup setup! adapter].each do |action|
+      %w[setup setup! adapter adapter_name].each do |action|
         class_eval <<-RUBY, __FILE__, __LINE__ + 1
           def #{action}(kind = :default)
-            perform_action(kind, action)
+            perform_action(kind, :#{action})
           end
         RUBY
       end
 
-      def adapter_name(kind = :default)
-        spec_adapters[kind].adapter_name
-      end
-
-      def configure(root = default_root)
+      def configure
         @configured = begin
-          setup_logger(root)
+          setup_logger
           require_plugins
           require_spec_adapter
           true
@@ -36,11 +34,11 @@ module DataMapper
         @configured
       end
 
-      def setup_logger(root = default_root)
-        self.root = root
-        logger = DataMapper::Logger.new(root.join('log/dm.log'), :debug)
-        logger.auto_flush = true
-        logger
+      def setup_logger
+        if log = ENV['LOG']
+          logger = DataMapper::Logger.new(log_stream(log), :debug)
+          logger.auto_flush = true
+        end
       end
 
       def require_spec_adapter
@@ -64,13 +62,17 @@ module DataMapper
 
     private
 
-      def default_root
-        Pathname(caller[1]).dirname.expand_path
-      end
-
       def perform_action(kind, action)
         configure unless configured?
         spec_adapters[kind].send(action)
+      end
+
+      def default_root
+        Pathname(Dir.pwd).join('spec')
+      end
+
+      def log_stream(log)
+        log == 'file' ? root.join('log/dm.log') : $stdout
       end
 
     end
