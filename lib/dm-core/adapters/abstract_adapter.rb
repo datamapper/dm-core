@@ -16,16 +16,6 @@ module DataMapper
       extend DataMapper::Assertions
       extend Equalizer
 
-      # Returns true if the adapter supports transactions
-      #
-      # @return [Boolean]
-      #   true if the adapter supports transactions
-      #
-      # @api semipublic
-      def self.supports_transactions?
-        false
-      end
-
       equalize :name, :options, :resource_naming_convention, :field_naming_convention
 
       # Adapter name
