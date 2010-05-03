@@ -3,6 +3,8 @@ require 'rubygems'
 require 'spec'
 require 'dm-core/spec/setup'
 
+ENV['ADAPTER'] ||= 'in_memory'
+
 SPEC_ROOT = Pathname(__FILE__).dirname.expand_path
 LIB_ROOT  = SPEC_ROOT.parent + 'lib'
 
