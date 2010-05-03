@@ -117,6 +117,9 @@ module DataMapper
 
       # Return the adapter class constant
       #
+      # @example
+      #   DataMapper::Adapters.send(:adapter_class, 'mysql') # => DataMapper::Adapters::MysqlAdapter
+      #
       # @param [Symbol] name
       #   the name of the adapter
       #
@@ -129,6 +132,22 @@ module DataMapper
         class_name = (ActiveSupport::Inflector.camelize(adapter_name) << 'Adapter').to_sym
         load_adapter(adapter_name) unless const_defined?(class_name)
         const_get(class_name)
+      end
+
+      # Return the name of the adapter
+      #
+      # @example
+      #   DataMapper::Adapters.adapter_name('MysqlAdapter') # => 'mysql'
+      #
+      # @param [String] const_name
+      #   the adapter constant name
+      #
+      # @return [String]
+      #   the name of the adapter
+      #
+      # @api semipublic
+      def adapter_name(const_name)
+        const_name.to_s.sub('Adapter', '').downcase
       end
 
       # Require the adapter library
