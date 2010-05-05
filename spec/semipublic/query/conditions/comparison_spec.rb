@@ -343,7 +343,7 @@ describe DataMapper::Query::Conditions::EqualToComparison do
   describe '#inspect' do
     subject { @comparison.inspect }
 
-    it { should == '#<DataMapper::Query::Conditions::EqualToComparison @subject=#<DataMapper::Property @model=Blog::Article @name=:id> @dumped_value=1 @loaded_value=1>' }
+    it { should == '#<DataMapper::Query::Conditions::EqualToComparison @subject=#<DataMapper::Property::Serial @model=Blog::Article @name=:id> @dumped_value=1 @loaded_value=1>' }
   end
 
   it { should respond_to(:matches?) }
@@ -645,7 +645,7 @@ describe DataMapper::Query::Conditions::InclusionComparison do
   describe '#inspect' do
     subject { @comparison.inspect }
 
-    it { should == '#<DataMapper::Query::Conditions::InclusionComparison @subject=#<DataMapper::Property @model=Blog::Article @name=:id> @dumped_value=[1] @loaded_value=[1]>' }
+    it { should == '#<DataMapper::Query::Conditions::InclusionComparison @subject=#<DataMapper::Property::Serial @model=Blog::Article @name=:id> @dumped_value=[1] @loaded_value=[1]>' }
   end
 
   it { should respond_to(:matches?) }
@@ -1248,7 +1248,7 @@ describe DataMapper::Query::Conditions::RegexpComparison do
   describe '#inspect' do
     subject { @comparison.inspect }
 
-    it { should == '#<DataMapper::Query::Conditions::RegexpComparison @subject=#<DataMapper::Property @model=Blog::Article @name=:title> @dumped_value=/Title/ @loaded_value=/Title/>' }
+    it { should == '#<DataMapper::Query::Conditions::RegexpComparison @subject=#<DataMapper::Property::String @model=Blog::Article @name=:title> @dumped_value=/Title/ @loaded_value=/Title/>' }
   end
 
   it { should respond_to(:matches?) }
@@ -1330,7 +1330,7 @@ describe DataMapper::Query::Conditions::LikeComparison do
   describe '#inspect' do
     subject { @comparison.inspect }
 
-    it { should == '#<DataMapper::Query::Conditions::LikeComparison @subject=#<DataMapper::Property @model=Blog::Article @name=:title> @dumped_value="_it%" @loaded_value="_it%">' }
+    it { should == '#<DataMapper::Query::Conditions::LikeComparison @subject=#<DataMapper::Property::String @model=Blog::Article @name=:title> @dumped_value="_it%" @loaded_value="_it%">' }
   end
 
   it { should respond_to(:matches?) }
@@ -1412,7 +1412,7 @@ describe DataMapper::Query::Conditions::GreaterThanComparison do
   describe '#inspect' do
     subject { @comparison.inspect }
 
-    it { should == '#<DataMapper::Query::Conditions::GreaterThanComparison @subject=#<DataMapper::Property @model=Blog::Article @name=:id> @dumped_value=1 @loaded_value=1>' }
+    it { should == '#<DataMapper::Query::Conditions::GreaterThanComparison @subject=#<DataMapper::Property::Serial @model=Blog::Article @name=:id> @dumped_value=1 @loaded_value=1>' }
   end
 
   it { should respond_to(:matches?) }
@@ -1494,7 +1494,7 @@ describe DataMapper::Query::Conditions::LessThanComparison do
   describe '#inspect' do
     subject { @comparison.inspect }
 
-    it { should == '#<DataMapper::Query::Conditions::LessThanComparison @subject=#<DataMapper::Property @model=Blog::Article @name=:id> @dumped_value=1 @loaded_value=1>' }
+    it { should == '#<DataMapper::Query::Conditions::LessThanComparison @subject=#<DataMapper::Property::Serial @model=Blog::Article @name=:id> @dumped_value=1 @loaded_value=1>' }
   end
 
   it { should respond_to(:matches?) }
@@ -1576,7 +1576,7 @@ describe DataMapper::Query::Conditions::GreaterThanOrEqualToComparison do
   describe '#inspect' do
     subject { @comparison.inspect }
 
-    it { should == '#<DataMapper::Query::Conditions::GreaterThanOrEqualToComparison @subject=#<DataMapper::Property @model=Blog::Article @name=:id> @dumped_value=1 @loaded_value=1>' }
+    it { should == '#<DataMapper::Query::Conditions::GreaterThanOrEqualToComparison @subject=#<DataMapper::Property::Serial @model=Blog::Article @name=:id> @dumped_value=1 @loaded_value=1>' }
   end
 
   it { should respond_to(:matches?) }
@@ -1658,7 +1658,7 @@ describe DataMapper::Query::Conditions::LessThanOrEqualToComparison do
   describe '#inspect' do
     subject { @comparison.inspect }
 
-    it { should == '#<DataMapper::Query::Conditions::LessThanOrEqualToComparison @subject=#<DataMapper::Property @model=Blog::Article @name=:id> @dumped_value=1 @loaded_value=1>' }
+    it { should == '#<DataMapper::Query::Conditions::LessThanOrEqualToComparison @subject=#<DataMapper::Property::Serial @model=Blog::Article @name=:id> @dumped_value=1 @loaded_value=1>' }
   end
 
   it { should respond_to(:matches?) }

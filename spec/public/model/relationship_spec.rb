@@ -860,7 +860,7 @@ describe DataMapper::Associations do
     describe 'when a relationship is inherited' do
       describe 'has an inverse' do
         before :all do
-          Car.property(:type, DataMapper::Types::Discriminator)
+          Car.property(:type, DataMapper::Property::Discriminator)
 
           class ::ElectricCar < Car; end
 
@@ -884,7 +884,7 @@ describe DataMapper::Associations do
 
       describe 'does not have an inverse' do
         before :all do
-          Car.property(:type, DataMapper::Types::Discriminator)
+          Car.property(:type, DataMapper::Property::Discriminator)
 
           class ::ElectricCar < Car; end
 
@@ -910,7 +910,7 @@ describe DataMapper::Associations do
     describe "when a subclass defines it's own relationship" do
       describe 'has an inverse' do
         before :all do
-          Car.property(:type, DataMapper::Types::Discriminator)
+          Car.property(:type, DataMapper::Property::Discriminator)
 
           class ::ElectricCar < Car; end
 
@@ -934,7 +934,7 @@ describe DataMapper::Associations do
 
       describe 'does not have an inverse' do
         before :all do
-          Car.property(:type, DataMapper::Types::Discriminator)
+          Car.property(:type, DataMapper::Property::Discriminator)
 
           class ::ElectricCar < Car; end
 

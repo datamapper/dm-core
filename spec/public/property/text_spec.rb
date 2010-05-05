@@ -1,14 +1,25 @@
 require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'spec_helper'))
 
-describe DataMapper::Property, 'Text type' do
+describe DataMapper::Property::Text do
+  before :all do
+    @name  = :title
+    @type  = DataMapper::Property::Text
+    @primitive = String
+    @value = 'value'
+    @other_value = 'return value'
+    @invalid_value = 1
+  end
+
+  it_should_behave_like "A public Property"
+
   describe 'migration with an index' do
     supported_by :all do
       before do
         @model = DataMapper::Model.new do
           storage_names[:default] = 'anonymous'
 
-          property :id,   DataMapper::Types::Serial
-          property :body, DataMapper::Types::Text, :index => true
+          property :id,   DataMapper::Property::Serial
+          property :body, DataMapper::Property::Text, :index => true
         end
       end
 
@@ -26,8 +37,8 @@ describe DataMapper::Property, 'Text type' do
         @model = DataMapper::Model.new do
           storage_names[:default] = 'anonymous'
 
-          property :id,   DataMapper::Types::Serial
-          property :body, DataMapper::Types::Text, :unique_index => true
+          property :id,   DataMapper::Property::Serial
+          property :body, DataMapper::Property::Text, :unique_index => true
         end
       end
 

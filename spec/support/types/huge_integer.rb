@@ -1,8 +1,6 @@
 module DataMapper
   module Types
-    class HugeInteger < DataMapper::Type
-      primitive String
-
+    class HugeInteger < DataMapper::Property::String
       def self.load(value, property)
         value.to_i unless value.nil?
       end

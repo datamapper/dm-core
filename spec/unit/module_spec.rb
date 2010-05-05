@@ -3,25 +3,25 @@ require 'dm-core/core_ext/module'
 describe Module do
 
   before(:all) do
+    Object.send(:remove_const, :Foo) if defined?(Foo)
+    Object.send(:remove_const, :Baz) if defined?(Baz)
+    Object.send(:remove_const, :Bar) if defined?(Bar)
+
     module ::Foo
       module ModBar
         module Noo
           module Too
-            module Boo
-            end
+            module Boo; end
           end
         end
       end
 
-      class Zed
-      end
+      class Zed; end
     end
 
-    class ::Baz
-    end
+    class ::Baz; end
 
-    class ::Bar
-    end
+    class ::Bar; end
   end
 
   it "should raise NameError for a missing constant" do

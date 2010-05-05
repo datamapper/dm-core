@@ -48,7 +48,36 @@ module DataMapper
       #
       # @api public
       def property(name, type, options = {})
-        property = DataMapper::Property.new(self, name, type, options)
+        caller_method = caller[2]
+
+        if TrueClass == type
+          warn "#{type} is deprecated, use Boolean instead at #{caller_method}"
+          type = DataMapper::Property::Boolean
+        elsif BigDecimal == type
+          warn "#{type} is deprecated, use Decimal instead at #{caller_method}"
+          type = DataMapper::Property::Decimal
+        end
+
+        # if the type can be found within Property then
+        # use that class rather than the primitive
+        type_name = type.name
+        unless type_name.blank?
+          type_name = type_name.demodulize
+
+          if DataMapper::Property.const_defined?(type_name)
+            type = DataMapper::Property.find_const(type_name)
+          elsif DataMapper::Types.const_defined?(type_name)
+            type = DataMapper::Types.find_const(type_name)
+          end
+        end
+
+        unless type < DataMapper::Property || type < DataMapper::Type
+          raise ArgumentError, "+type+ was #{type.inspect}, which is not a supported type"
+        end
+
+        klass    = type < DataMapper::Property ?
+          type : DataMapper::Property.find_const(type.primitive.name.demodulize)
+        property = klass.new(self, name, options, type)
 
         repository_name = self.repository_name
         properties      = properties(repository_name)
@@ -63,7 +92,7 @@ module DataMapper
 
             # make sure the property is created within the correct repository scope
             DataMapper.repository(repository_name) do
-              properties << DataMapper::Property.new(self, name, type, options)
+              properties << klass.new(self, name, options, type)
             end
           end
         end

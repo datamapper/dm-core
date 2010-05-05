@@ -853,7 +853,7 @@ module DataMapper
             inspect = subject.inspect
 
             case subject
-              when Symbol, String
+              when Symbol, ::String
                 unless subject.to_s.include?('.') || @properties.named?(subject) || @relationships.key?(subject)
                   raise ArgumentError, "condition #{inspect} does not map to a property or relationship in #{model}"
                 end

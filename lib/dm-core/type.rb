@@ -83,6 +83,10 @@ module DataMapper
   #     JSON = Json
   #   end # module Types
   # end # module DataMapper
+
+  # TODO: this is only for the backward compatibility in case someone's subclassing from one of the deprecated types
+  module Types; end
+
   class Type
     # Until cooperation of Property and Type does not change, each must
     # have a separate list of options, because plugins (ex.: dm-validations)

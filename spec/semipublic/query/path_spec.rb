@@ -278,7 +278,7 @@ describe DataMapper::Query::Path do
       end
 
       it 'should return a Property' do
-        @path.property.should be_kind_of(DataMapper::Property)
+        @path.property.should be_kind_of(DataMapper::Property::Object)
       end
 
       it 'should return expected value' do

@@ -9,8 +9,7 @@ require 'ostruct'
 # class methods
 describe DataMapper::Query do
   before :all do
-    class ::Password < DataMapper::Type
-      primitive String
+    class ::Password < DataMapper::Property::String
       length    40
     end
 
@@ -202,7 +201,7 @@ describe DataMapper::Query do
       describe 'that is an Array containing an unknown Property' do
         it 'should raise an exception' do
           lambda {
-            DataMapper::Query.new(@repository, @model, @options.update(:fields => [ DataMapper::Property.new(@model, :unknown, String) ]))
+            DataMapper::Query.new(@repository, @model, @options.update(:fields => [ DataMapper::Property::String.new(@model, :unknown) ]))
           }.should raise_error(ArgumentError, "+options[:field]+ entry :unknown does not map to a property in #{@model}")
         end
       end
@@ -1082,7 +1081,7 @@ describe DataMapper::Query do
 
       describe 'that contains a Query::Direction with a property that is not part of the model' do
         before :all do
-          @property = DataMapper::Property.new(@model, :unknown, String)
+          @property = DataMapper::Property::String.new(@model, :unknown)
           @direction = DataMapper::Query::Direction.new(@property, :desc)
         end
 
@@ -1111,7 +1110,7 @@ describe DataMapper::Query do
 
       describe 'that contains a Property that is not part of the model' do
         before :all do
-          @property = DataMapper::Property.new(@model, :unknown, String)
+          @property = DataMapper::Property::String.new(@model, :unknown)
         end
 
         it 'should raise an exception' do
@@ -1925,10 +1924,10 @@ describe DataMapper::Query do
         #<DataMapper::Query
           @repository=:default
           @model=User
-          @fields=[#<DataMapper::Property @model=User @name=:name>, #<DataMapper::Property @model=User @name=:citizenship>, #<DataMapper::Property @model=User @name=:referrer_name>]
+          @fields=[#<DataMapper::Property::String @model=User @name=:name>, #<DataMapper::Property::String @model=User @name=:citizenship>, #<DataMapper::Property::String @model=User @name=:referrer_name>]
           @links=[]
           @conditions=nil
-          @order=[#<DataMapper::Query::Direction @target=#<DataMapper::Property @model=User @name=:name> @operator=:asc>]
+          @order=[#<DataMapper::Query::Direction @target=#<DataMapper::Property::String @model=User @name=:name> @operator=:asc>]
           @limit=3
           @offset=0
           @reload=false

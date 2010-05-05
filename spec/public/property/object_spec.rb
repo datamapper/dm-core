@@ -40,7 +40,7 @@ describe DataMapper::Property, 'Object type' do
 
       subject { @property.dump(@value) }
 
-      it { @property.type.load(subject, @property).should == @value }
+      it { @property.load(subject).should == @value }
     end
 
     describe 'with nil' do
@@ -84,10 +84,6 @@ describe DataMapper::Property, 'Object type' do
 
   describe 'persistable' do
     supported_by :all do
-      before :all do
-        @do_adapter = defined?(DataMapper::Adapters::DataObjectsAdapter) && @adapter.kind_of?(DataMapper::Adapters::DataObjectsAdapter)
-      end
-
       before :all do
         @resource = @model.create(:title => 'Test', :meta => { 'lang' => 'en_CA' })
       end

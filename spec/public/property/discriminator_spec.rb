@@ -1,6 +1,6 @@
 require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'spec_helper'))
 
-describe DataMapper::Types::Discriminator do
+describe DataMapper::Property::Discriminator do
   before :all do
     module ::Blog
       class Article

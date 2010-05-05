@@ -1,20 +1,22 @@
 require 'dm-core/core_ext/object'
 
-module HactiveSupport
-  class MemoizeConsideredUseless
-  end
-end
-
-module Foo
-  class Bar
-  end
-end
-
-class Oi
-  attr_accessor :foo
-end
-
 describe Object do
+  before :all do
+    Object.send(:remove_const, :HactiveSupport) if defined?(HactiveSupport)
+    module HactiveSupport
+      class MemoizeConsideredUseless; end
+    end
+
+    Object.send(:remove_const, :Foo) if defined?(Foo)
+    module Foo
+      class Bar; end
+    end
+
+    Object.send(:remove_const, :Oi) if defined?(Oi)
+    class Oi
+      attr_accessor :foo
+    end
+  end
 
   describe "#full_const_get" do
     it 'returns constant by FQ name in receiver namespace' do

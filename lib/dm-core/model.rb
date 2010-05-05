@@ -565,9 +565,7 @@ module DataMapper
 
               # TODO: typecasting should happen inside the Adapter
               # and all values should come back as expected objects
-              if property.custom?
-                value = property.type.load(value, property)
-              end
+              value = property.load(value)
 
               property.set!(resource, value)
             end
@@ -694,8 +692,10 @@ module DataMapper
         self
       elsif name == :Resource
         Resource
-      elsif Types.const_defined?(name)
-        Types.const_get(name)
+      elsif DataMapper::Property.const_defined?(name)
+        DataMapper::Property.const_get(name)
+      elsif DataMapper::Types.const_defined?(name)
+        DataMapper::Types.const_get(name)
       else
         super
       end

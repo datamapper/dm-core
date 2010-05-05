@@ -55,7 +55,7 @@ module DataMapper
             properties[property_name] || begin
               # create the property within the correct repository
               DataMapper.repository(repository_name) do
-                type = parent_property.send(parent_property.type == DataMapper::Types::Boolean ? :type : :primitive)
+                type = parent_property.send(parent_property.type == DataMapper::Property::Boolean ? :type : :primitive)
                 model.property(property_name, type, child_key_options(parent_property))
               end
             end
@@ -233,11 +233,11 @@ module DataMapper
             :key      => key?
           )
 
-          min = parent_property.min
-          max = parent_property.max
+          if parent_property.primitive == Integer
+            min = parent_property.min
+            max = parent_property.max
 
-          if parent_property.primitive == Integer && min && max
-            options.update(:min => min, :max => max)
+            options.update(:min => min, :max => max) if min && max
           end
 
           options
