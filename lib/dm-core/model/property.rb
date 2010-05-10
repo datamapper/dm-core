@@ -62,7 +62,7 @@ module DataMapper
         # use that class rather than the primitive
         type_name = type.name
         unless type_name.blank?
-          type_name = type_name.demodulize
+          type_name = ActiveSupport::Inflector.demodulize(type_name)
 
           if DataMapper::Property.const_defined?(type_name)
             type = DataMapper::Property.find_const(type_name)
@@ -75,8 +75,12 @@ module DataMapper
           raise ArgumentError, "+type+ was #{type.inspect}, which is not a supported type"
         end
 
-        klass    = type < DataMapper::Property ?
-          type : DataMapper::Property.find_const(type.primitive.name.demodulize)
+        klass = if type < DataMapper::Property
+          type
+        else
+          DataMapper::Property.find_const(ActiveSupport::Inflector.demodulize(type.primitive.name))
+        end
+
         property = klass.new(self, name, options, type)
 
         repository_name = self.repository_name
