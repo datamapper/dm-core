@@ -229,7 +229,8 @@ module DataMapper
             #{reader_visibility}
             def #{name}
               return #{instance_variable_name} if defined?(#{instance_variable_name})
-              #{instance_variable_name} = persisted_state.get(properties[#{name.inspect}])
+              property = properties[#{name.inspect}]
+              #{instance_variable_name} = property ? persisted_state.get(property) : nil
             end
           RUBY
         end
