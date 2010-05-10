@@ -9,8 +9,8 @@ module DataMapper
 
       # @api semipublic
       def initialize(model, name, options = {}, type = nil)
-        if options.key?(:serial)
-          warn "Integer with explicit :serial option is deprecated, use Serial instead (#{caller[2]})"
+        if options.key?(:serial) && !kind_of?(Serial)
+          warn "Integer #{name} with explicit :serial option is deprecated, use Serial instead (#{caller[2]})"
         end
         super
       end
