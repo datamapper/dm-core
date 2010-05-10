@@ -370,8 +370,8 @@ module DataMapper
 
         # Load Property options
         accepted_options.each do |property_option|
-          instance_eval <<-RUBY, __FILE__, __LINE__ + 1
-            def #{property_option}(*args)                                  # def unique(*args)
+          class_eval <<-RUBY, __FILE__, __LINE__ + 1
+            def self.#{property_option}(*args)                                  # def unique(*args)
               if args.any?                                                 #   if args.any?
                 @#{property_option} = args.first                           #     @unique = args.first
               else                                                         #   else
