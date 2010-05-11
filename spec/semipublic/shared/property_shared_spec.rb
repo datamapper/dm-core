@@ -90,27 +90,27 @@ share_examples_for 'A semipublic Property' do
   describe '#valid?' do
     describe 'when provided a valid value' do
       it 'should return true' do
-        @property.valid?(@value).should be_true
+        @property.valid?(@value).should be(true)
       end
     end
 
     describe 'when provide an invalid value' do
       it 'should return false' do
-        @property.valid?(@invalid_value).should be_false
+        @property.valid?(@invalid_value).should be(false)
       end
     end
 
     describe 'when provide a nil value when required' do
       it 'should return false' do
         @property = @type.new(@model, @name, :required => true)
-        @property.valid?(nil).should be_false
+        @property.valid?(nil).should be(false)
       end
     end
 
     describe 'when provide a nil value when not required' do
       it 'should return false' do
         @property = @type.new(@model, @name, :required => false)
-        @property.valid?(nil).should be_true
+        @property.valid?(nil).should be(true)
       end
     end
   end
