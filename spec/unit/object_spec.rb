@@ -3,17 +3,17 @@ require 'dm-core/core_ext/object'
 describe Object do
   before :all do
     Object.send(:remove_const, :HactiveSupport) if defined?(HactiveSupport)
-    module HactiveSupport
+    module ::HactiveSupport
       class MemoizeConsideredUseless; end
     end
 
     Object.send(:remove_const, :Foo) if defined?(Foo)
-    module Foo
+    module ::Foo
       class Bar; end
     end
 
     Object.send(:remove_const, :Oi) if defined?(Oi)
-    class Oi
+    class ::Oi
       attr_accessor :foo
     end
   end
