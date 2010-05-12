@@ -212,6 +212,8 @@ module DataMapper
       model.instance_variable_set(:@default_order, {})
       model.instance_variable_set(:@descendants,   descendants.class.new(model, descendants))
 
+      model.extend(Chainable)
+
       extra_extensions.each { |mod| model.extend(mod)         }
       extra_inclusions.each { |mod| model.send(:include, mod) }
     end

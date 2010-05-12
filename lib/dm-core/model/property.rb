@@ -226,11 +226,13 @@ module DataMapper
 
         unless resource_method_defined?(name)
           class_eval <<-RUBY, __FILE__, __LINE__ + 1
-            #{reader_visibility}
-            def #{name}
-              return #{instance_variable_name} if defined?(#{instance_variable_name})
-              property = properties[#{name.inspect}]
-              #{instance_variable_name} = property ? persisted_state.get(property) : nil
+            chainable do
+              #{reader_visibility}
+              def #{name}
+                return #{instance_variable_name} if defined?(#{instance_variable_name})
+                property = properties[#{name.inspect}]
+                #{instance_variable_name} = property ? persisted_state.get(property) : nil
+              end
             end
           RUBY
         end
@@ -257,11 +259,13 @@ module DataMapper
         return if resource_method_defined?(writer_name)
 
         class_eval <<-RUBY, __FILE__, __LINE__ + 1
-          #{writer_visibility}
-          def #{writer_name}(value)
-            property = properties[#{name.inspect}]
-            self.persisted_state = persisted_state.set(property, value)
-            persisted_state.get(property)
+          chainable do
+            #{writer_visibility}
+            def #{writer_name}(value)
+              property = properties[#{name.inspect}]
+              self.persisted_state = persisted_state.set(property, value)
+              persisted_state.get(property)
+            end
           end
         RUBY
       end
