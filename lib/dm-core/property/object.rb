@@ -10,7 +10,7 @@ module DataMapper
         if @type
           @type.dump(value, self)
         else
-          Marshal.dump(value)
+          [ Marshal.dump(value) ].pack('m')
         end
       end
 
@@ -22,7 +22,7 @@ module DataMapper
 
         case value
           when ::String
-            Marshal.load(value)
+            Marshal.load(value.unpack('m').first)
           when ::Object
             value
           end
