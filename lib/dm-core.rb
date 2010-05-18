@@ -35,6 +35,7 @@ rescue LoadError
   require 'extlib/class'
   require 'extlib/hash'
   require 'extlib/object'
+  require 'extlib/blank'
 
   class Object
     unless respond_to?(:singleton_class)
