@@ -550,7 +550,7 @@ module DataMapper
             record = record.dup
             field_map.each { |property, field| record[property] = record.delete(field) if record.key?(field) }
 
-            model     = discriminator && record[discriminator] || self
+            model     = discriminator && discriminator.load(record[discriminator]) || self
             model_key = model.key(repository_name)
 
             resource = if model_key.valid?(key_values = record.values_at(*model_key))
