@@ -81,17 +81,13 @@ module DataMapper
       #   cardinality that defines the association type and constraints
       # @param name [Symbol]
       #   the name that the association will be referenced by
-      # @param model [Model, #to_str]
-      #   the target model of the relationship
-      # @param opts [Hash]
-      #   an options hash
+      # @param *args [Model, Hash] model and/or options hash
       #
-      # @option :through[Symbol]  A association that this join should go through to form
+      # @option *args :through[Symbol] A association that this join should go through to form
       #   a many-to-many association
-      # @option :model[Model, String] The name of the class to associate with, if omitted
+      # @option *args :model[Model, String] The name of the class to associate with, if omitted
       #   then the association name is assumed to match the class name
-      # @option :repository[Symbol]
-      #   name of child model repository
+      # @option *args :repository[Symbol] name of child model repository
       #
       # @return [Association::Relationship] the relationship that was
       #   created to reflect either a one-to-one, one-to-many or many-to-many
@@ -148,15 +144,11 @@ module DataMapper
       #
       # @param name [Symbol]
       #   the name that the association will be referenced by
-      # @param model [Model, #to_str]
-      #   the target model of the relationship
-      # @param opts [Hash]
-      #   an options hash
+      # @param *args [Model, Hash] model and/or options hash
       #
-      # @option :model[Model, String] The name of the class to associate with, if omitted
+      # @option *args :model[Model, String] The name of the class to associate with, if omitted
       #   then the association name is assumed to match the class name
-      # @option :repository[Symbol]
-      #   name of child model repository
+      # @option *args :repository[Symbol] name of child model repository
       #
       # @return [Association::Relationship] The association created
       #   should not be accessed directly
