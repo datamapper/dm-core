@@ -98,17 +98,7 @@ describe DataMapper::Property::Discriminator do
 
   supported_by :all do
     before :all do
-      @skip = defined?(DataMapper::Adapters::YamlAdapter) && @adapter.kind_of?(DataMapper::Adapters::YamlAdapter)
-    end
-
-    before do
-      pending if @skip
-    end
-
-    before :all do
-      rescue_if 'TODO: fix YAML serialization/deserialization', @skip do
-        @announcement = @announcement_model.create(:title => 'Announcement')
-      end
+      @announcement = @announcement_model.create(:title => 'Announcement')
     end
 
     it 'should persist the type' do
