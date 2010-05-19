@@ -71,7 +71,7 @@
 source 'http://rubygems.org'
 
 DATAMAPPER = 'git://github.com/datamapper'
-
+DM_VERSION = '~> 1.0.0.rc1'
 
 group :runtime do # Runtime dependencies (as in the gemspec)
 
@@ -105,8 +105,6 @@ group :quality do # These gems contain rake tasks that check the quality of the 
 end
 
 group :datamapper do # We need this because we want to pin these dependencies to their git master sources
-
-  DM_VERSION = '~> 0.10.3'
 
   gem 'dm-core', DM_VERSION, :path => File.dirname(__FILE__) # Make ourself available to the adapters
 
