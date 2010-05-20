@@ -310,18 +310,18 @@ Gem::Specification.new do |s|
     s.specification_version = 3
 
     if Gem::Version.new(Gem::VERSION) >= Gem::Version.new('1.2.0') then
-      s.add_runtime_dependency(%q<extlib>, ["~> 0.9.14"])
+      s.add_runtime_dependency(%q<extlib>, ["~> 0.9.15"])
       s.add_runtime_dependency(%q<addressable>, ["~> 2.1"])
       s.add_development_dependency(%q<rspec>, ["~> 1.3"])
       s.add_development_dependency(%q<jeweler>, ["~> 1.4"])
     else
-      s.add_dependency(%q<extlib>, ["~> 0.9.14"])
+      s.add_dependency(%q<extlib>, ["~> 0.9.15"])
       s.add_dependency(%q<addressable>, ["~> 2.1"])
       s.add_dependency(%q<rspec>, ["~> 1.3"])
       s.add_dependency(%q<jeweler>, ["~> 1.4"])
     end
   else
-    s.add_dependency(%q<extlib>, ["~> 0.9.14"])
+    s.add_dependency(%q<extlib>, ["~> 0.9.15"])
     s.add_dependency(%q<addressable>, ["~> 2.1"])
     s.add_dependency(%q<rspec>, ["~> 1.3"])
     s.add_dependency(%q<jeweler>, ["~> 1.4"])

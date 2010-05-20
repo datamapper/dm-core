@@ -15,7 +15,7 @@ begin
 
     gem.rubyforge_project = 'datamapper'
 
-    gem.add_dependency 'extlib',              '~> 0.9.14'
+    gem.add_dependency 'extlib',              '~> 0.9.15'
     gem.add_dependency 'addressable',         '~> 2.1'
 
     gem.add_development_dependency 'rspec',   '~> 1.3'
