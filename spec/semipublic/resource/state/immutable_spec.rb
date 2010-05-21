@@ -17,13 +17,17 @@ describe DataMapper::Resource::State::Immutable do
   end
 
   before do
-    @parent  = @model.create(:name => 'John Doe')
+    @parent = @model.create(:name => 'John Doe')
 
     @resource = @model.create(:name => 'Dan Kubb', :parent => @parent)
     @resource = @model.first(@model.key.zip(@resource.key).to_hash.merge(:fields => [ :name, :parent_id ]))
 
     @state = @resource.persisted_state
     @state.should be_kind_of(DataMapper::Resource::State::Immutable)
+  end
+
+  after do
+    @model.all.destroy!
   end
 
   describe '#commit' do

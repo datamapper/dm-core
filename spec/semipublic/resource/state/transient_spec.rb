@@ -11,16 +11,24 @@ describe DataMapper::Resource::State::Transient do
       property :description, Text,    :default => lambda { |resource, property| resource.name }
       property :active,      Boolean, :default => true
       property :coding,      Boolean, :default => true
+
+      belongs_to :parent, self, :required => false
+      has n, :children, self, :inverse => :parent
     end
 
     @model = Author
   end
 
   before do
-    @resource = @model.new(:name => 'Dan Kubb', :coding => false)
+    @parent   = @model.create(:name => 'John Doe')
+    @resource = @model.new(:name => 'Dan Kubb', :coding => false, :parent => @parent)
 
     @state = @resource.persisted_state
     @state.should be_kind_of(DataMapper::Resource::State::Transient)
+  end
+
+  after do
+    @model.all.destroy!
   end
 
   describe '#commit' do
@@ -69,8 +77,10 @@ describe DataMapper::Resource::State::Transient do
     describe "##{method}" do
       subject { @state.send(method) }
 
-      it 'should be a no-op' do
-        should equal(@state)
+      supported_by :all do
+        it 'should be a no-op' do
+          should equal(@state)
+        end
       end
     end
   end

@@ -18,15 +18,13 @@ describe DataMapper::Resource::State::Dirty do
   end
 
   before do
-    @resource = @model.create(:name => 'Dan Kubb')
+    @parent = @model.create(:name => 'Jane Doe')
+
+    @resource = @model.create(:id => 2, :name => 'Dan Kubb', :parent => @parent)
     @resource.attributes = { :name => 'John Doe' }
 
     @state = @resource.persisted_state
     @state.should be_kind_of(DataMapper::Resource::State::Dirty)
-  end
-
-  after do
-    @resource.destroy
   end
 
   after do

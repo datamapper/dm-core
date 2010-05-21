@@ -25,7 +25,7 @@ describe DataMapper::Resource::State::Clean do
   end
 
   after do
-    @resource.destroy
+    @model.all.destroy!
   end
 
   [ :commit, :rollback ].each do |method|
