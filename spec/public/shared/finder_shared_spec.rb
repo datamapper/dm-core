@@ -1200,6 +1200,16 @@ share_examples_for 'Finder Interface' do
       it 'should should be the last Resource in the Collection matching the query' do
         @resource.should == @article
       end
+
+      it 'should not update the original query order' do
+        collection     = @articles.all(:order => [ :title ])
+        original_order = collection.query.order[0].dup
+        last           = collection.last(:content => 'Sample')
+
+        last.should == @resource
+
+        collection.query.order[0].should == original_order
+      end
     end
 
     describe 'with a limit specified' do

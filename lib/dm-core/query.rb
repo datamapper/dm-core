@@ -324,10 +324,10 @@ module DataMapper
     # @api semipublic
     def reverse!
       # reverse the sort order
-      @order.map! { |direction| direction.reverse! }
+      @order.map! { |direction| direction.dup.reverse! }
 
       # copy the order to the options
-      @options = @options.merge(:order => @order.map { |direction| direction.dup }).freeze
+      @options = @options.merge(:order => @order).freeze
 
       self
     end
