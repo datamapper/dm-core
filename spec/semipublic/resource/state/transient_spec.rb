@@ -43,6 +43,12 @@ describe DataMapper::Resource::State::Transient do
         method(:subject).should change(@resource, :id).from(nil)
       end
 
+      it 'should set the child key if the parent key changes' do
+        original_id = @parent.id
+        @parent.update(:id => 42).should be_true
+        method(:subject).should change(@resource, :parent_id).from(original_id).to(42)
+      end
+
       it 'should set default values' do
         method(:subject).should change { @model.properties[:active].get!(@resource) }.from(nil).to(true)
       end
@@ -57,9 +63,16 @@ describe DataMapper::Resource::State::Transient do
       end
 
       it 'should reset original attributes' do
+        original_attributes = {
+          @model.properties[:name]      => nil,
+          @model.properties[:coding]    => nil,
+          @model.properties[:parent_id] => nil,
+          @model.relationships[:parent] => nil,
+        }
+
         expect do
           @resource.persisted_state = subject
-        end.should change { @resource.original_attributes.dup }.from(@model.properties[:name] => nil, @model.properties[:coding] => nil).to({})
+        end.should change { @resource.original_attributes.dup }.from(original_attributes).to({})
       end
 
       it 'should add the resource to the identity map' do
@@ -88,50 +101,52 @@ describe DataMapper::Resource::State::Transient do
   describe '#get' do
     subject { @state.get(@key) }
 
-    describe 'with a set value' do
-      before do
-        @key = @model.properties[:coding]
-        @key.should be_loaded(@resource)
+    supported_by :all do
+      describe 'with a set value' do
+        before do
+          @key = @model.properties[:coding]
+          @key.should be_loaded(@resource)
+        end
+
+        it 'should return value' do
+          should be(false)
+        end
+
+        it 'should be idempotent' do
+          should equal(subject)
+        end
       end
 
-      it 'should return value' do
-        should be(false)
+      describe 'with an unset value and no default value' do
+        before do
+          @key = @model.properties[:age]
+          @key.should_not be_loaded(@resource)
+          @key.should_not be_default
+        end
+
+        it 'should return nil' do
+          should be_nil
+        end
+
+        it 'should be idempotent' do
+          should equal(subject)
+        end
       end
 
-      it 'should be idempotent' do
-        should equal(subject)
-      end
-    end
+      describe 'with an unset value and a default value' do
+        before do
+          @key = @model.properties[:description]
+          @key.should_not be_loaded(@resource)
+          @key.should be_default
+        end
 
-    describe 'with an unset value and no default value' do
-      before do
-        @key = @model.properties[:age]
-        @key.should_not be_loaded(@resource)
-        @key.should_not be_default
-      end
+        it 'should return the name' do
+          should == 'Dan Kubb'
+        end
 
-      it 'should return nil' do
-        should be_nil
-      end
-
-      it 'should be idempotent' do
-        should equal(subject)
-      end
-    end
-
-    describe 'with an unset value and a default value' do
-      before do
-        @key = @model.properties[:description]
-        @key.should_not be_loaded(@resource)
-        @key.should be_default
-      end
-
-      it 'should return the name' do
-        should == 'Dan Kubb'
-      end
-
-      it 'should be idempotent' do
-        should equal(subject)
+        it 'should be idempotent' do
+          should equal(subject)
+        end
       end
     end
   end

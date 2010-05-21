@@ -19,7 +19,9 @@ module DataMapper
         end
 
         def commit
+          set_child_keys
           set_default_values
+          return self unless valid_attributes?
           create_resource
           set_repository
           reset_original_attributes
@@ -62,6 +64,13 @@ module DataMapper
 
         def set_repository
           resource.instance_variable_set(:@_repository, repository)
+        end
+
+        def valid_attributes?
+          properties.all? do |property|
+            value = get(property)
+            property.serial? && value.nil? ? true : property.valid?(value)
+          end
         end
 
       end # class Transient

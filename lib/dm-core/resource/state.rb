@@ -64,6 +64,17 @@ module DataMapper
         original_attributes.clear
       end
 
+      def set_child_keys
+        relationships.each do |relationship|
+          set_child_key(relationship)
+        end
+      end
+
+      def set_child_key(relationship)
+        return unless relationship.loaded?(resource) && relationship.respond_to?(:resource_for)
+        set(relationship, get(relationship))
+      end
+
     end # class State
   end # module Resource
 end # module DataMapper

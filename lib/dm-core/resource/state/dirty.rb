@@ -17,11 +17,14 @@ module DataMapper
 
         def commit
           remove_from_identity_map
+          set_child_keys
+          return self unless valid_attributes?
           update_resource
           reset_original_attributes
           reset_resource_key
-          add_to_identity_map
           Clean.new(resource)
+        ensure
+          add_to_identity_map
         end
 
         def rollback
@@ -76,8 +79,11 @@ module DataMapper
           end
         end
 
-        def reset_original_attributes
-          original_attributes.clear
+        def valid_attributes?
+          original_attributes.each_key do |property|
+            return false if property.kind_of?(Property) && !property.valid?(property.get!(resource))
+          end
+          true
         end
 
       end # class Dirty
