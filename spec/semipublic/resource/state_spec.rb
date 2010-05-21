@@ -30,53 +30,55 @@ describe DataMapper::Resource::State do
   describe '#==' do
     subject { @state == @other }
 
-    describe 'with the same class and resource' do
-      before do
-        @other = DataMapper::Resource::State.new(@resource)
+    supported_by :all do
+      describe 'with the same class and resource' do
+        before do
+          @other = DataMapper::Resource::State.new(@resource)
+        end
+
+        it { should be(true) }
+
+        it 'should be symmetric' do
+          should == (@other == @state)
+        end
       end
 
-      it { should be(true) }
+      describe 'with the same class and different resource' do
+        before do
+          @other = DataMapper::Resource::State.new(@model.new)
+        end
 
-      it 'should be symmetric' do
-        should == (@other == @state)
-      end
-    end
+        it { should be(false) }
 
-    describe 'with the same class and different resource' do
-      before do
-        @other = DataMapper::Resource::State.new(@model.new)
-      end
-
-      it { should be(false) }
-
-      it 'should be symmetric' do
-        should == (@other == @state)
-      end
-    end
-
-    describe 'with a different class and the same resource' do
-      before do
-        @other = DataMapper::Resource::State::Clean.new(@resource)
+        it 'should be symmetric' do
+          should == (@other == @state)
+        end
       end
 
-      it 'should be true for a subclass' do
-        should be(true)
+      describe 'with a different class and the same resource' do
+        before do
+          @other = DataMapper::Resource::State::Clean.new(@resource)
+        end
+
+        it 'should be true for a subclass' do
+          should be(true)
+        end
+
+        it 'should be symmetric' do
+          should == (@other == @state)
+        end
       end
 
-      it 'should be symmetric' do
-        should == (@other == @state)
-      end
-    end
+      describe 'with a different class and different resource' do
+        before do
+          @other = DataMapper::Resource::State::Clean.new(@model.new)
+        end
 
-    describe 'with a different class and different resource' do
-      before do
-        @other = DataMapper::Resource::State::Clean.new(@model.new)
-      end
+        it { should be(false) }
 
-      it { should be(false) }
-
-      it 'should be symmetric' do
-        should == (@other == @state)
+        it 'should be symmetric' do
+          should == (@other == @state)
+        end
       end
     end
   end
@@ -94,51 +96,53 @@ describe DataMapper::Resource::State do
   describe '#eql?' do
     subject { @state.eql?(@other) }
 
-    describe 'with the same class and resource' do
-      before do
-        @other = DataMapper::Resource::State.new(@resource)
+    supported_by :all do
+      describe 'with the same class and resource' do
+        before do
+          @other = DataMapper::Resource::State.new(@resource)
+        end
+
+        it { should be(true) }
+
+        it 'should be symmetric' do
+          should == @other.eql?(@state)
+        end
       end
 
-      it { should be(true) }
+      describe 'with the same class and different resource' do
+        before do
+          @other = DataMapper::Resource::State.new(@model.new)
+        end
 
-      it 'should be symmetric' do
-        should == @other.eql?(@state)
-      end
-    end
+        it { should be(false) }
 
-    describe 'with the same class and different resource' do
-      before do
-        @other = DataMapper::Resource::State.new(@model.new)
-      end
-
-      it { should be(false) }
-
-      it 'should be symmetric' do
-        should == @other.eql?(@state)
-      end
-    end
-
-    describe 'with a different class and the same resource' do
-      before do
-        @other = DataMapper::Resource::State::Clean.new(@resource)
+        it 'should be symmetric' do
+          should == @other.eql?(@state)
+        end
       end
 
-      it { should be(false) }
+      describe 'with a different class and the same resource' do
+        before do
+          @other = DataMapper::Resource::State::Clean.new(@resource)
+        end
 
-      it 'should be symmetric' do
-        should == @other.eql?(@state)
+        it { should be(false) }
+
+        it 'should be symmetric' do
+          should == @other.eql?(@state)
+        end
       end
-    end
 
-    describe 'with a different class and different resource' do
-      before do
-        @other = DataMapper::Resource::State::Clean.new(@model.new)
-      end
+      describe 'with a different class and different resource' do
+        before do
+          @other = DataMapper::Resource::State::Clean.new(@model.new)
+        end
 
-      it { should be(false) }
+        it { should be(false) }
 
-      it 'should be symmetric' do
-        should == @other.eql?(@state)
+        it 'should be symmetric' do
+          should == @other.eql?(@state)
+        end
       end
     end
   end
@@ -175,8 +179,8 @@ describe DataMapper::Resource::State do
   describe '#hash' do
     subject { @state.hash }
 
-    it 'should be the object_id hash of the resource' do
-      should == @resource.object_id.hash
+    it 'should be the hash of the resource' do
+      should == @resource.hash
     end
   end
 

@@ -3,6 +3,10 @@ module DataMapper
 
     # the state of the resource (abstract)
     class State
+      extend Equalizer
+
+      equalize :resource
+
       attr_reader :resource
 
       def initialize(resource)
@@ -28,20 +32,6 @@ module DataMapper
 
       def rollback
         raise NotImplementedError, "#{self.class}#rollback should be implemented"
-      end
-
-      def eql?(other)
-        instance_of?(other.class) &&
-        hash == other.hash
-      end
-
-      def ==(other)
-        self.class <=> other.class &&
-        hash == other.hash
-      end
-
-      def hash
-        resource.object_id.hash
       end
 
     private
