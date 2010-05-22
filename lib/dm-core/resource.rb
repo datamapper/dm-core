@@ -755,7 +755,7 @@ module DataMapper
     #   attribute values used in the new instance
     #
     # @api public
-    def initialize(attributes = {}, &block) # :nodoc:
+    def initialize(attributes = {}) # :nodoc:
       self.attributes = attributes
     end
 
