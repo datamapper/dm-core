@@ -160,6 +160,45 @@ describe DataMapper::Model do
       @other    = @articles.create(:title => 'Other Article',  :content => 'Other')
     end
 
+    describe '#new' do
+      subject { model.new(*args) }
+
+      let(:model) { @article_model }
+
+      context 'with no arguments' do
+        let(:args) { [] }
+
+        it { should be_instance_of(model) }
+
+        its(:attributes) { should be_empty }
+      end
+
+      context 'with an empty Hash' do
+        let(:args) { [ {} ] }
+
+        it { should be_instance_of(model) }
+
+        its(:attributes) { should be_empty }
+      end
+
+      context 'with a non-empty Hash' do
+        let(:attributes) { { :title => 'A Title' } }
+        let(:args)       { [ attributes ]          }
+
+        it { should be_instance_of(model) }
+
+        its(:attributes) { should == attributes }
+      end
+
+      context 'with nil' do
+        let(:args) { [ nil ] }
+
+        it { should be_instance_of(model) }
+
+        its(:attributes) { should be_empty }
+      end
+    end
+
     it_should_behave_like 'Finder Interface'
 
     it 'DataMapper::Model should respond to raise_on_save_failure' do

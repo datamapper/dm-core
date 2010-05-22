@@ -756,7 +756,7 @@ module DataMapper
     #
     # @api public
     def initialize(attributes = {}) # :nodoc:
-      self.attributes = attributes
+      self.attributes = attributes || {}
     end
 
     # @api private
