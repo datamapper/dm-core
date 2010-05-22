@@ -24,7 +24,6 @@ module DataMapper
           return self unless valid_attributes?
           create_resource
           set_repository
-          reset_original_attributes
           add_to_identity_map
           Clean.new(resource)
         end
@@ -69,7 +68,7 @@ module DataMapper
         def valid_attributes?
           properties.all? do |property|
             value = get(property)
-            property.serial? && value.nil? ? true : property.valid?(value)
+            property.serial? && value.nil? || property.valid?(value)
           end
         end
 

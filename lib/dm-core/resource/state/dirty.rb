@@ -79,6 +79,10 @@ module DataMapper
           end
         end
 
+        def reset_original_attributes
+          original_attributes.clear
+        end
+
         def valid_attributes?
           original_attributes.each_key do |property|
             return false if property.kind_of?(Property) && !property.valid?(property.get!(resource))

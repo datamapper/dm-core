@@ -35,30 +35,46 @@ describe DataMapper::Resource::State::Dirty do
     subject { @state.commit }
 
     supported_by :all do
-      before do
-        @new_id = @resource.id = @resource.id.succ
+      context 'with valid attributes' do
+        let(:state) { @state }
+
+        before do
+          @new_id = @resource.id = @resource.id.succ
+        end
+
+        it 'should return a Clean state' do
+          should eql(DataMapper::Resource::State::Clean.new(@resource))
+        end
+
+        it 'should set the child key if the parent key changes' do
+          original_id = @parent.id
+          @parent.update(:id => 42).should be_true
+          method(:subject).should change(@resource, :parent_id).from(original_id.to_s).to('42')
+        end
+
+        it 'should update the resource' do
+          subject
+          @model.get!(*@resource.key).should == @resource
+        end
+
+        it 'should update the resource to the identity map if the key changed' do
+          identity_map = @resource.repository.identity_map(@model)
+          identity_map.should == { @resource.key => @resource }
+          subject
+          identity_map.should == { [ @new_id ] => @resource }
+        end
       end
 
-      it 'should return a Clean state' do
-        should eql(DataMapper::Resource::State::Clean.new(@resource))
-      end
+      context 'with invalid attributes' do
+        before do
+          @resource.coding = 'yes'
+        end
 
-      it 'should set the child key if the parent key changes' do
-        original_id = @parent.id
-        @parent.update(:id => 42).should be_true
-        method(:subject).should change(@resource, :parent_id).from(original_id.to_s).to('42')
-      end
+        it { should equal(@state) }
 
-      it 'should update the resource' do
-        subject
-        @model.get!(*@resource.key).should == @resource
-      end
-
-      it 'should update the resource to the identity map if the key changed' do
-        identity_map = @resource.repository.identity_map(@model)
-        identity_map.should == { @resource.key => @resource }
-        subject
-        identity_map.should == { [ @new_id ] => @resource }
+        it 'should update the resource to the identity map if the key changed' do
+          method(:subject).should_not change { @resource.repository.identity_map(@model).dup }
+        end
       end
     end
   end

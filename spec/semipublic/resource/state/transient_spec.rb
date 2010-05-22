@@ -14,6 +14,8 @@ describe DataMapper::Resource::State::Transient do
 
       belongs_to :parent, self, :required => false
       has n, :children, self, :inverse => :parent
+
+      belongs_to :with_default, self, :required => false, :default => proc { first(:name => 'John Doe') }
     end
 
     @model = Author
@@ -50,7 +52,7 @@ describe DataMapper::Resource::State::Transient do
       end
 
       it 'should set default values' do
-        method(:subject).should change { @model.properties[:active].get!(@resource) }.from(nil).to(true)
+        method(:subject).should change { @model.relationships[:with_default].get!(@resource) }.from(nil).to(@parent)
       end
 
       it 'should not set default values when they are already set' do
@@ -80,7 +82,7 @@ describe DataMapper::Resource::State::Transient do
           identity_map = repository.identity_map(@model)
           identity_map.should be_empty
           subject
-          identity_map.should == { @resource.key => @resource }
+          identity_map.should == { @parent.key => @parent, @resource.key => @resource }
         end
       end
     end

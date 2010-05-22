@@ -60,10 +60,6 @@ module DataMapper
         identity_map[resource.key] = resource
       end
 
-      def reset_original_attributes
-        original_attributes.clear
-      end
-
       def set_child_keys
         relationships.each do |relationship|
           set_child_key(relationship)
