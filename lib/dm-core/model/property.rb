@@ -222,7 +222,6 @@ module DataMapper
         name                   = property.name.to_s
         reader_visibility      = property.reader_visibility
         instance_variable_name = property.instance_variable_name
-        primitive              = property.primitive
 
         unless method_defined?(name)
           class_eval <<-RUBY, __FILE__, __LINE__ + 1
@@ -239,10 +238,12 @@ module DataMapper
 
         boolean_reader_name = "#{name}?"
 
-        if primitive == TrueClass && !method_defined?(boolean_reader_name)
+        if property.kind_of?(DataMapper::Property::Boolean) && !method_defined?(boolean_reader_name)
           class_eval <<-RUBY, __FILE__, __LINE__ + 1
             #{reader_visibility}
-            alias #{boolean_reader_name} #{name}
+            def #{boolean_reader_name}
+              #{name}
+            end
           RUBY
         end
       end
