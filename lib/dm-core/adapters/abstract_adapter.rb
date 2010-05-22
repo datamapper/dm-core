@@ -18,6 +18,22 @@ module DataMapper
 
       equalize :name, :options, :resource_naming_convention, :field_naming_convention
 
+      # @api semipublic
+      def self.descendants
+        @descendants ||= Set.new
+      end
+
+      # @api private
+      def self.inherited(subclass)
+        add_descendant(subclass)
+      end
+
+      # @api private
+      def self.add_descendant(subclass)
+        descendants << subclass
+        superclass.add_descendant(subclass) if superclass.respond_to?(:add_descendant)
+      end
+
       # Adapter name
       #
       # @example
