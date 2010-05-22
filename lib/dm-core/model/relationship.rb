@@ -328,7 +328,7 @@ module DataMapper
         name        = relationship.name
         reader_name = name.to_s
 
-        return if resource_method_defined?(reader_name)
+        return if method_defined?(reader_name)
 
         reader_visibility = relationship.reader_visibility
 
@@ -355,7 +355,7 @@ module DataMapper
         name        = relationship.name
         writer_name = "#{name}="
 
-        return if resource_method_defined?(writer_name)
+        return if method_defined?(writer_name)
 
         writer_visibility = relationship.writer_visibility
 

@@ -668,16 +668,6 @@ module DataMapper
       [ repository ].to_set + @properties.keys.map { |repository_name| DataMapper.repository(repository_name) }
     end
 
-    # @api private
-    def model_method_defined?(method)
-      model_methods.include?(method.to_s)
-    end
-
-    # @api private
-    def resource_method_defined?(method)
-      resource_methods.include?(method.to_s)
-    end
-
     private
 
     # @api private
@@ -772,28 +762,6 @@ module DataMapper
           relationship.via     if relationship.respond_to?(:via)
         end
       end
-    end
-
-    # @api private
-    def model_methods
-      @model_methods ||= ancestor_instance_methods { |mod| mod.singleton_class }
-    end
-
-    # @api private
-    def resource_methods
-      @resource_methods ||= ancestor_instance_methods { |mod| mod }
-    end
-
-    # @api private
-    def ancestor_instance_methods
-      methods = Set.new
-
-      ancestors.each do |mod|
-        next unless mod <= DataMapper::Resource
-        methods.merge(yield(mod).instance_methods(false).map { |method| method.to_s })
-      end
-
-      methods
     end
 
     # Raises an exception if #get receives the wrong number of arguments
