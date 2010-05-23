@@ -794,7 +794,7 @@ module DataMapper
 
       @repository_name        = model.repository_name
       @model                  = model
-      @name                   = name.to_s.sub(/\?$/, '').to_sym
+      @name                   = name.to_s.chomp('?').to_sym
       @options                = predefined_options.merge(options).freeze
       @instance_variable_name = "@#{@name}".freeze
 

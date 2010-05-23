@@ -108,7 +108,7 @@ share_examples_for 'A public Property' do
       [true, false].each do |value|
         describe "when created with :#{method} => #{value}" do
           before :all do
-            opt = method.to_s.sub('?', '').to_sym
+            opt = method.to_s.chomp('?').to_sym
             @property = @type.new(@model, @name, opt => value)
           end
 

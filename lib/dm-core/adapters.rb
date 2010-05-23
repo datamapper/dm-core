@@ -147,7 +147,7 @@ module DataMapper
       #
       # @api semipublic
       def adapter_name(const_name)
-        const_name.to_s.sub('Adapter', '').downcase
+        const_name.to_s.chomp('Adapter').downcase
       end
 
       # Require the adapter library
