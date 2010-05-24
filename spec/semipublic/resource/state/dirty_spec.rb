@@ -48,7 +48,7 @@ describe DataMapper::Resource::State::Dirty do
 
         it 'should set the child key if the parent key changes' do
           original_id = @parent.id
-          @parent.update(:id => 42).should be_true
+          @parent.update(:id => 42).should be(true)
           method(:subject).should change(@resource, :parent_id).from(original_id.to_s).to('42')
         end
 
