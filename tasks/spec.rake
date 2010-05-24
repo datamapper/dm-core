@@ -35,4 +35,7 @@ rescue LoadError
   end
 end
 
+task :spec => :check_dependencies
+task :rcov => :check_dependencies
+
 task :default => :spec
