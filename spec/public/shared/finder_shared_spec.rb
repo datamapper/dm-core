@@ -884,6 +884,24 @@ share_examples_for 'Finder Interface' do
     end
   end
 
+  it { @articles.should respond_to(:each) }
+
+  describe '#each' do
+    subject { @articles.each(&block) }
+
+    let(:yields) { []                                       }
+    let(:block)  { lambda { |resource| yields << resource } }
+
+    before do
+      @copy = @articles.kind_of?(Class) ? @articles : @articles.dup
+      @copy.to_a
+    end
+
+    it { should equal(@articles) }
+
+    it { method(:subject).should change { yields.dup }.from([]).to(@copy.to_a) }
+  end
+
   it { @articles.should respond_to(:fetch) }
 
   describe '#fetch' do

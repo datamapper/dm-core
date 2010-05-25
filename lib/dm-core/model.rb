@@ -319,12 +319,10 @@ module DataMapper
       all.reverse
     end
 
-    # TODO: spec this
-    def entries
-      all.entries
+    def each(&block)
+      all.each(&block)
+      self
     end
-
-    alias to_a entries
 
     # Find a set of records matching an optional set of conditions. Additionally,
     # specify the order that the records are return.

@@ -481,51 +481,6 @@ share_examples_for 'A public Collection' do
     end
   end
 
-  # TODO: move this to enumerable_shared_spec.rb
-  it { should respond_to(:each) }
-
-  describe '#each' do
-    before :all do
-      rescue_if @skip do
-        @resources = @articles.dup.entries
-        @resources.should_not be_empty
-
-        @yield       = []
-        @collections = []
-
-        @return = @articles.each do |resource|
-          @yield       << resource
-          @collections << [ resource, resource.collection.object_id ]
-        end
-      end
-    end
-
-    it 'should return a Collection' do
-      @return.should be_kind_of(DataMapper::Collection)
-    end
-
-    it 'should return self' do
-      @return.should equal(@articles)
-    end
-
-    it 'should yield to each entry' do
-      @yield.should == @articles
-    end
-
-    it 'should yield Resources' do
-      @yield.each { |resource| resource.should be_kind_of(DataMapper::Resource) }
-    end
-
-    it 'should relate the Resource collection to the Collection within the block only' do
-      pending_if 'Fix SEL for m:m', @many_to_many do
-        @collections.each do |resource, object_id|
-          resource.collection.should_not equal(@articles)  # collection outside block
-          object_id.should == @articles.object_id          # collection inside block
-        end
-      end
-    end
-  end
-
   it { should respond_to(:insert) }
 
   describe '#insert' do
