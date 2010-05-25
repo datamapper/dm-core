@@ -242,6 +242,18 @@ describe DataMapper::Model do
       end
     end
 
+    [ :destroy, :destroy! ].each do |method|
+      describe "##{method}" do
+        subject { model.send(method) }
+
+        let(:model) { @article_model }
+
+        it 'should remove all resources' do
+          method(:subject).should change { model.any? }.from(true).to(false)
+        end
+      end
+    end
+
     it_should_behave_like 'Finder Interface'
 
     it 'DataMapper::Model should respond to raise_on_save_failure' do

@@ -494,6 +494,26 @@ module DataMapper
       _create(attributes, false)
     end
 
+    # Remove all Resources from the repository
+    #
+    # @return [Boolean]
+    #   true if the resources were successfully destroyed
+    #
+    # @api public
+    def destroy
+      all.destroy
+    end
+
+    # Remove all Resources from the repository, bypassing validation
+    #
+    # @return [Boolean]
+    #   true if the resources were successfully destroyed
+    #
+    # @api public
+    def destroy!
+      all.destroy!
+    end
+
     # Copy a set of records from one repository to another.
     #
     # @param [String] source_repository_name
