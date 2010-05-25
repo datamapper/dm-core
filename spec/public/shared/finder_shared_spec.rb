@@ -1326,6 +1326,37 @@ share_examples_for 'Finder Interface' do
     end
   end
 
+  it { @articles.should respond_to(:values_at) }
+
+  describe '#values_at' do
+    subject { @articles.values_at(*args) }
+
+    before :all do
+      @copy = @articles.kind_of?(Class) ? @articles : @articles.dup
+      @copy.to_a
+    end
+
+    context 'with positive offset' do
+      let(:args) { [ 0 ] }
+
+      should_not_be_a_kicker
+
+      it { should be_kind_of(Array) }
+
+      it { should == @copy.entries.values_at(*args) }
+    end
+
+    describe 'with negative offset' do
+      let(:args) { [ -1 ] }
+
+      should_not_be_a_kicker
+
+      it { should be_kind_of(Array) }
+
+      it { should == @copy.entries.values_at(*args) }
+    end
+  end
+
   it 'should respond to a belongs_to relationship method with #method_missing' do
     pending_if 'Model#method_missing should delegate to relationships', @articles.kind_of?(Class) do
       @articles.should respond_to(:original)
