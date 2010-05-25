@@ -7,6 +7,8 @@ module DataMapper
   module Model
     extend Chainable
 
+    include Enumerable
+
     # Creates a new Model class with default_storage_name +storage_name+
     #
     # If a block is passed, it will be eval'd in the context of the new Model

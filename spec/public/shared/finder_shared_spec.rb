@@ -21,6 +21,10 @@ share_examples_for 'Finder Interface' do
     pending if @skip
   end
 
+  it 'should be Enumerable' do
+    @articles.should be_kind_of(Enumerable)
+  end
+
   [ :[], :slice ].each do |method|
     it { @articles.should respond_to(method) }
 
