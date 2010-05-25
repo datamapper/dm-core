@@ -199,6 +199,49 @@ describe DataMapper::Model do
       end
     end
 
+    [ :create, :create! ].each do |method|
+      describe "##{method}" do
+        subject { model.create(*args) }
+
+        let(:model) { @article_model }
+
+        context 'with no arguments' do
+          let(:args) { [] }
+
+          it { should be_instance_of(model) }
+
+          it { should be_saved }
+        end
+
+        context 'with an empty Hash' do
+          let(:args) { [ {} ] }
+
+          it { should be_instance_of(model) }
+
+          it { should be_saved }
+        end
+
+        context 'with a non-empty Hash' do
+          let(:attributes) { { :title => 'A Title' } }
+          let(:args)       { [ attributes ]          }
+
+          it { should be_instance_of(model) }
+
+          it { should be_saved }
+
+          its(:title) { should == attributes[:title] }
+        end
+
+        context 'with nil' do
+          let(:args) { [ nil ] }
+
+          it { should be_instance_of(model) }
+
+          it { should be_saved }
+        end
+      end
+    end
+
     it_should_behave_like 'Finder Interface'
 
     it 'DataMapper::Model should respond to raise_on_save_failure' do
