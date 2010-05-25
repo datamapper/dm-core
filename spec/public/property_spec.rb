@@ -308,8 +308,8 @@ describe DataMapper::Property do
         Track.properties[:musicbrainz_hash].unique_index.should be(true)
       end
 
-      it 'returns nil when property has no unique index' do
-        Track.properties[:title].unique_index.should be_false
+      it 'returns false when property has no unique index' do
+        Track.properties[:title].unique_index.should be(false)
       end
 
       it 'returns true when property is unique' do
