@@ -305,6 +305,10 @@ module DataMapper
       all.at(*args)
     end
 
+    def fetch(*args, &block)
+      all.fetch(*args, &block)
+    end
+
     def reverse
       all.reverse
     end

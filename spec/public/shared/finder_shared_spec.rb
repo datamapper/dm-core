@@ -880,6 +880,53 @@ share_examples_for 'Finder Interface' do
     end
   end
 
+  it { @articles.should respond_to(:fetch) }
+
+  describe '#fetch' do
+    subject { @articles.fetch(*args, &block) }
+
+    let(:block) { nil }
+
+    context 'with a valid index and no default' do
+      let(:args) { [ 0 ] }
+
+      before do
+        @copy = @articles.kind_of?(Class) ? @articles : @articles.dup
+        @copy.to_a
+      end
+
+      should_not_be_a_kicker
+
+      it { should be_kind_of(DataMapper::Resource) }
+
+      it { should == @copy.entries.fetch(*args) }
+    end
+
+    context 'with an invalid index and no default' do
+      let(:args) { [ 42 ] }
+
+      it { method(:subject).should raise_error(IndexError) }
+    end
+
+    context 'with an invalid index and a default' do
+      let(:default) { mock('Default') }
+      let(:args)    { [ 42, default ] }
+
+      it { should equal(default) }
+    end
+
+    context 'with an invalid index and a block default' do
+      let(:yields)  { []                                          }
+      let(:default) { mock('Default')                             }
+      let(:block)   { lambda { |index| yields << index; default } }
+      let(:args)    { [ 42 ]                                      }
+
+      it { should equal(default) }
+
+      it { method(:subject).should change { yields.dup }.from([]).to([ 42 ]) }
+    end
+  end
+
   it { @articles.should respond_to(:first) }
 
   describe '#first' do
