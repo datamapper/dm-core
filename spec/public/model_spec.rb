@@ -201,7 +201,7 @@ describe DataMapper::Model do
 
     [ :create, :create! ].each do |method|
       describe "##{method}" do
-        subject { model.create(*args) }
+        subject { model.send(method, *args) }
 
         let(:model) { @article_model }
 
@@ -256,7 +256,7 @@ describe DataMapper::Model do
 
     [ :update, :update! ].each do |method|
       describe "##{method}" do
-        subject { model.update(*args) }
+        subject { model.send(method, *args) }
 
         let(:model) { @article_model }
 
