@@ -121,9 +121,9 @@ describe DataMapper::Model do
       class Article
         include DataMapper::Resource
 
-        property :id,      Serial
-        property :title,   String
-        property :content, Text
+        property :id,       Serial
+        property :title,    String, :required => true, :default => 'Default Title'
+        property :content,  Text
         property :subtitle, String
 
         belongs_to :original, self, :required => false
@@ -170,7 +170,7 @@ describe DataMapper::Model do
 
         it { should be_instance_of(model) }
 
-        its(:attributes) { should be_empty }
+        its(:attributes) { should == { :title => 'Default Title' } }
       end
 
       context 'with an empty Hash' do
@@ -178,7 +178,7 @@ describe DataMapper::Model do
 
         it { should be_instance_of(model) }
 
-        its(:attributes) { should be_empty }
+        its(:attributes) { should == { :title => 'Default Title' } }
       end
 
       context 'with a non-empty Hash' do
@@ -195,7 +195,7 @@ describe DataMapper::Model do
 
         it { should be_instance_of(model) }
 
-        its(:attributes) { should be_empty }
+        its(:attributes) { should == { :title => 'Default Title' } }
       end
     end
 
@@ -250,6 +250,45 @@ describe DataMapper::Model do
 
         it 'should remove all resources' do
           method(:subject).should change { model.any? }.from(true).to(false)
+        end
+      end
+    end
+
+    [ :update, :update! ].each do |method|
+      describe "##{method}" do
+        subject { model.update(*args) }
+
+        let(:model) { @article_model }
+
+        context 'with attributes' do
+          let(:attributes) { { :title => 'Updated Title' } }
+          let(:args)       { [ attributes ]                }
+
+          it { should be(true) }
+
+          it 'should persist the changes' do
+            subject
+            model.all(:fields => [ :title ]).map { |resource| resource.title }.uniq.should == [ attributes[:title] ]
+          end
+        end
+
+        context 'with attributes where one is a parent association' do
+          let(:attributes) { { :original => @other } }
+          let(:args)       { [ attributes ]          }
+
+          it { should be(true) }
+
+          it 'should persist the changes' do
+            subject
+            model.all(:fields => [ :original_id ]).map { |resource| resource.original }.uniq.should == [ attributes[:original] ]
+          end
+        end
+
+        context 'with attributes where a required property is nil' do
+          let(:attributes) { { :title => nil } }
+          let(:args)       { [ attributes ]    }
+
+          it { should be(false) }
         end
       end
     end

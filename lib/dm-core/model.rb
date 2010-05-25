@@ -494,6 +494,36 @@ module DataMapper
       _create(attributes, false)
     end
 
+    # Update every Resource
+    #
+    #   Person.update(:allow_beer => true)
+    #
+    # @param [Hash] attributes
+    #   attributes to update with
+    #
+    # @return [Boolean]
+    #   true if the resources were successfully updated
+    #
+    # @api public
+    def update(attributes)
+      all.update(attributes)
+    end
+
+    # Update every Resource, bypassing validations
+    #
+    #   Person.update!(:allow_beer => true)
+    #
+    # @param [Hash] attributes
+    #   attributes to update with
+    #
+    # @return [Boolean]
+    #   true if the resources were successfully updated
+    #
+    # @api public
+    def update!(attributes)
+      all.update!(attributes)
+    end
+
     # Remove all Resources from the repository
     #
     # @return [Boolean]
