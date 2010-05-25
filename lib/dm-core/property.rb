@@ -473,7 +473,7 @@ module DataMapper
     #
     # @api public
     def unique?
-      @unique
+      !!@unique
     end
 
     # Returns the hash of the property name
@@ -491,11 +491,11 @@ module DataMapper
 
     # Returns index name if property has index.
     #
-    # @return [true, Symbol, Array, nil]
+    # @return [Boolean, Symbol, Array]
     #   returns true if property is indexed by itself
     #   returns a Symbol if the property is indexed with other properties
     #   returns an Array if the property belongs to multiple indexes
-    #   returns nil if the property does not belong to any indexes
+    #   returns false if the property does not belong to any indexes
     #
     # @api public
     def index
@@ -505,11 +505,11 @@ module DataMapper
     # Returns true if property has unique index. Serial properties and
     # keys are unique by default.
     #
-    # @return [true, Symbol, Array, nil]
+    # @return [Boolean, Symbol, Array]
     #   returns true if property is indexed by itself
     #   returns a Symbol if the property is indexed with other properties
     #   returns an Array if the property belongs to multiple indexes
-    #   returns nil if the property does not belong to any indexes
+    #   returns false if the property does not belong to any indexes
     #
     # @api public
     def unique_index
@@ -804,13 +804,13 @@ module DataMapper
       @default   = @options[:default]
 
       @serial       = @options.fetch(:serial,       false)
-      @key          = @options.fetch(:key,          @serial || false)
+      @key          = @options.fetch(:key,          @serial)
+      @unique       = @options.fetch(:unique,       @key ? :key : false)
       @required     = @options.fetch(:required,     @key)
       @allow_nil    = @options.fetch(:allow_nil,    !@required)
       @allow_blank  = @options.fetch(:allow_blank,  !@required)
-      @index        = @options.fetch(:index,        nil)
-      @unique_index = @options.fetch(:unique_index, nil)
-      @unique       = @options.fetch(:unique,       @serial || @key || false)
+      @index        = @options.fetch(:index,        false)
+      @unique_index = @options.fetch(:unique_index, @unique)
       @lazy         = @options.fetch(:lazy,         false) && !@key
 
       determine_visibility

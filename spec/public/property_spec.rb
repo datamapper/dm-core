@@ -93,8 +93,8 @@ describe DataMapper::Property do
         Track.properties[:album].index.should eql(:artist_album)
       end
 
-      it 'returns nil when property has no index' do
-        Track.properties[:musicbrainz_hash].index.should be_nil
+      it 'returns false when property has no index' do
+        Track.properties[:musicbrainz_hash].index.should be(false)
       end
     end
 
@@ -309,7 +309,15 @@ describe DataMapper::Property do
       end
 
       it 'returns nil when property has no unique index' do
-        Image.properties[:title].unique_index.should be_nil
+        Track.properties[:title].unique_index.should be_false
+      end
+
+      it 'returns true when property is unique' do
+        Image.properties[:title].unique_index.should be(true)
+      end
+
+      it 'returns :key when property is a key' do
+        Track.properties[:id].unique_index.should == :key
       end
     end
 
