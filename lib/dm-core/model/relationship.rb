@@ -303,7 +303,7 @@ module DataMapper
         # :target_key (will mean something different for each relationship)
 
         [ :child_key, :parent_key ].each do |key|
-          if options.key?(key) && !options[key].is_a?(Enumerable)
+          if options.key?(key)
             options[key] = Array(options[key])
           end
         end
