@@ -1,4 +1,4 @@
---exclude "spec"
+--exclude "spec,^/"
 --sort coverage
 --callsites
 --xrefs
