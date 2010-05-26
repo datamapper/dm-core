@@ -26,6 +26,8 @@ describe 'SEL', 'with STI subclasses' do
       class Comment < Message; end
     end
 
+    DataMapper.finalize
+
     @author_model  = Blog::Author
     @message_model = Blog::Message
     @article_model = Blog::Article

@@ -38,6 +38,7 @@ describe DataMapper::Associations::Relationship do
         # TODO: move this to spec/public/model/relationship_spec.rb
         @article_relationship.child_repository_name.should == :default
         @article_relationship.parent_repository_name.should be_nil
+        DataMapper.finalize
       end
 
       it 'should return the inverted relationships' do
@@ -58,6 +59,7 @@ describe DataMapper::Associations::Relationship do
         # TODO: move this to spec/public/model/relationship_spec.rb
         @article_relationship.child_repository_name.should == :default
         @article_relationship.parent_repository_name.should be_nil
+        DataMapper.finalize
       end
 
       it 'should return the inverted relationships' do
@@ -78,6 +80,7 @@ describe DataMapper::Associations::Relationship do
         # TODO: move this to spec/public/model/relationship_spec.rb
         @article_relationship.child_repository_name.should == :default
         @article_relationship.parent_repository_name.should == :default
+        DataMapper.finalize
       end
 
       it 'should return the inverted relationships' do
@@ -98,6 +101,7 @@ describe DataMapper::Associations::Relationship do
 
         # after Relationship#inverse to ensure no match
         @expected = @comment_model.belongs_to(:article)
+        DataMapper.finalize
       end
 
       it 'should return a Relationship' do
@@ -129,6 +133,7 @@ describe DataMapper::Associations::Relationship do
 
         # after Relationship#inverse to ensure no match
         @expected = @article_model.has(n, :comments)
+        DataMapper.finalize
       end
 
       it 'should return a Relationship' do
@@ -156,6 +161,7 @@ describe DataMapper::Associations::Relationship do
   describe '#valid?' do
     before :all do
       @relationship = @article_model.has(n, :comments)
+      DataMapper.finalize
     end
 
     supported_by :all do

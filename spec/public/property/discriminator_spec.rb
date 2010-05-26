@@ -14,6 +14,7 @@ describe DataMapper::Property::Discriminator do
       class Announcement < Article; end
       class Release < Announcement; end
     end
+    DataMapper.finalize
 
     @article_model      = Blog::Article
     @announcement_model = Blog::Announcement

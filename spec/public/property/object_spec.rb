@@ -12,6 +12,7 @@ describe DataMapper::Property, 'Object type' do
       end
     end
 
+    DataMapper.finalize
     @model    = Blog::Article
     @property = @model.properties[:meta]
   end

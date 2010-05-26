@@ -32,6 +32,8 @@ describe 'One to Many Associations' do
     @subject_without_default       = @article_model.has(n, :without_default,       @author_model, :child_key => [ :without_default_id       ])
     @subject_with_default          = @article_model.has(n, :with_default,          @author_model, :child_key => [ :with_default_id          ], :default => @default_value)
     @subject_with_default_callable = @article_model.has(n, :with_default_callable, @author_model, :child_key => [ :with_default_callable_id ], :default => lambda { |resource, relationship| @default_value_callable })
+
+    DataMapper.finalize
   end
 
   supported_by :all do

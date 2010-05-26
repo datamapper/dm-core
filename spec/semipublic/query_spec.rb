@@ -1306,9 +1306,8 @@ describe DataMapper::Query do
       property :id, Serial
     end
 
-    # TODO: figure out how to remove these
-    User.send(:assert_valid)
-    Other.send(:assert_valid)
+    # finalize the models
+    DataMapper.finalize
 
     @repository = DataMapper::Repository.new(:default)
     @model      = User

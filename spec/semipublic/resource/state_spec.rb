@@ -12,6 +12,8 @@ describe DataMapper::Resource::State do
       belongs_to :parent, self, :required => false
     end
 
+    DataMapper.finalize
+
     @model = Author
   end
 

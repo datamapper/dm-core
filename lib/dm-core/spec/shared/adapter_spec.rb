@@ -34,6 +34,8 @@ share_examples_for 'An Adapter' do
       property :striped,   Boolean
     end
 
+    DataMapper.finalize
+
     # create all tables and constraints before each spec
     if @repository.respond_to?(:auto_migrate!)
       Heffalump.auto_migrate!

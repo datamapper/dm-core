@@ -13,6 +13,8 @@ describe DataMapper::Resource::State::Immutable do
       belongs_to :parent, self, :required => false
     end
 
+    DataMapper.finalize
+
     @model = Author
   end
 

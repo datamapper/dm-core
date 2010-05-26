@@ -452,22 +452,6 @@ module DataMapper
       first(conditions) || create(conditions.merge(attributes))
     end
 
-    # Initializes an instance of Resource with the given attributes
-    #
-    # @param [Hash(Symbol => Object)] attributes
-    #   hash of attributes to set
-    #
-    # @return [Resource]
-    #   the newly initialized Resource instance
-    #
-    # @api public
-    chainable do
-      def new(*args, &block)
-        assert_valid
-        super
-      end
-    end
-
     # Create a Resource
     #
     # @param [Hash(Symbol => Object)] attributes
@@ -796,6 +780,7 @@ module DataMapper
     end
 
     # @api private
+    # TODO: Remove this once appropriate warnings can be added.
     def assert_valid(force = false) # :nodoc:
       return if @valid && !force
       @valid = true

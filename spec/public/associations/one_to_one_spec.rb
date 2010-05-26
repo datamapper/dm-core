@@ -58,6 +58,7 @@ describe 'One to One Associations' do
 
       property :name, String, :key => true, :default => 'a default value'
     end
+    DataMapper.finalize
 
     @user_model      = Blog::User
     @author_model    = Blog::Author
@@ -148,6 +149,7 @@ describe 'One to One Through Associations' do
 
       property :name, String, :key => true, :default => 'a default value'
     end
+    DataMapper.finalize
 
     @referral_model  = Blog::Referral
     @user_model      = Blog::User

@@ -44,6 +44,8 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'spec_hel
         end
       end
 
+      DataMapper.finalize
+
       @author_model      = Blog::Author
       @article_model     = Blog::Article
       @publication_model = Blog::Publication

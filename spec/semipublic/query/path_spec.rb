@@ -24,6 +24,7 @@ describe DataMapper::Query::Path do
     @relationship  = Author.relationships[:articles]
     @relationships = [ @relationship ]
     @property      = Article.properties[:title]
+    DataMapper.finalize
   end
 
   it { DataMapper::Query::Path.should respond_to(:new) }
@@ -103,6 +104,7 @@ describe DataMapper::Query::Path do
     @property      = Article.properties[:title]
 
     @path = DataMapper::Query::Path.new(@relationships)
+    DataMapper.finalize
   end
 
   it { @path.should respond_to(:==) }

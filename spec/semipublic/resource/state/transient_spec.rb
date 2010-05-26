@@ -18,6 +18,8 @@ describe DataMapper::Resource::State::Transient do
       belongs_to :with_default, self, :required => false, :default => proc { first(:name => 'John Doe') }
     end
 
+    DataMapper.finalize
+
     @model = Author
   end
 

@@ -47,6 +47,7 @@ shared_examples_for 'DataMapper::Query::Conditions::AbstractOperation' do
         property :title, String, :required => true
       end
     end
+    DataMapper.finalize
 
     @model = Blog::Article
   end

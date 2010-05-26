@@ -18,6 +18,7 @@ describe DataMapper::Model do
         has 1, :previous,  self, :child_key => [ :original_id ], :order => [ :id.desc ]
       end
     end
+    DataMapper.finalize
 
     @article_model = Blog::Article
   end
@@ -141,6 +142,7 @@ describe DataMapper::Model do
         has n, :articles, :through => Resource
       end
     end
+    DataMapper.finalize
 
     @article_model     = Blog::Article
     @publication_model = Blog::Publication

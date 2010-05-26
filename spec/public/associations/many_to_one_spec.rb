@@ -59,6 +59,7 @@ describe 'Many to One Associations' do
 
       property :name, String, :key => true, :default => 'a default value'
     end
+    DataMapper.finalize
 
     @user_model      = Blog::User
     @author_model    = Blog::Author

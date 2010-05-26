@@ -38,6 +38,8 @@ describe 'Many to Many Associations read across multiple join associations' do
 
       has n, :sale_items
     end
+
+    DataMapper.finalize
   end
 
   supported_by :all do

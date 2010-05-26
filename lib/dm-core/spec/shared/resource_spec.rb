@@ -1177,37 +1177,6 @@ share_examples_for 'A public Resource' do
     end
   end
 
-  describe 'invalid resources' do
-    before do
-      class ::EmptyObject
-        include DataMapper::Resource
-      end
-
-      class ::KeylessObject
-        include DataMapper::Resource
-        property :name, String
-      end
-    end
-
-    it 'should raise an error for a resource without attributes' do
-      lambda { EmptyObject.new }.should raise_error
-    end
-
-    it 'should raise an error for a resource without a key' do
-      lambda { KeylessObject.new }.should raise_error
-    end
-
-    after do
-      # clean out invalid models so that global model cleanup
-      # does not throw an exception when working with models
-      # in an invalid state
-      [ EmptyObject, KeylessObject ].each do |model|
-        Object.send(:remove_const, model.name.to_sym)
-        DataMapper::Model.descendants.delete(model)
-      end
-    end
-  end
-
   describe 'lazy loading' do
     before :all do
       rescue_if @skip do

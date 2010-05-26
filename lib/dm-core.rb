@@ -285,4 +285,48 @@ module DataMapper
       current_repository
     end
   end
+
+  # Perform necessary steps to finalize DataMapper for the current repository
+  #
+  # This method should be called after loading all models and plugins.
+  #
+  # It ensures foreign key properties and anonymous join models are created.
+  # These are otherwise lazily declared, which can lead to unexpected errors.
+  # It also performs basic validity checking of the DataMapper models.
+  #
+  # @return [DataMapper] The DataMapper module
+  #
+  # @api public
+  def self.finalize
+    Model.descendants.each do |model|
+      finalize_model(model)
+    end
+    self
+  end
+
+  private
+  # @api private
+  def self.finalize_model(model)
+    name            = model.name
+    repository_name = model.repository_name
+    relationships   = model.relationships(repository_name).values
+
+    if model.properties(repository_name).empty? &&
+      !relationships.any? { |relationship| relationship.kind_of?(Associations::ManyToOne::Relationship) }
+      raise IncompleteModelError, "#{name} must have at least one property or many to one relationship to be valid"
+    end
+
+    if model.key(repository_name).empty?
+      raise IncompleteModelError, "#{name} must have a key to be valid"
+    end
+
+
+    # initialize join models and target keys
+    relationships.each do |relationship|
+      relationship.child_key
+      relationship.through if relationship.respond_to?(:through)
+      relationship.via     if relationship.respond_to?(:via)
+    end
+
+  end
 end

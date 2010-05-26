@@ -8,6 +8,7 @@ describe DataMapper::Model::Property do
 
       property :id, Serial
     end
+    DataMapper.finalize
   end
 
   describe '#property' do

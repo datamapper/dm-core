@@ -13,6 +13,7 @@ share_examples_for 'A semipublic Property' do
 
     @model = Blog::Article
     @property = @type.new(@model, @name)
+    DataMapper.finalize
   end
 
   describe '.new' do

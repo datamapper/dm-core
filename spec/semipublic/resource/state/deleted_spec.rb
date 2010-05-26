@@ -14,6 +14,7 @@ describe DataMapper::Resource::State::Deleted do
       has n, :children, self, :inverse => :parent
     end
 
+    DataMapper.finalize
     @model = Author
   end
 

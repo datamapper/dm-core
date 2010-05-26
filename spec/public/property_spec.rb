@@ -25,6 +25,7 @@ describe DataMapper::Property do
       property :format,       String, :default => 'jpeg'
       property :taken_at,     Time,   :default => proc { Time.now }
     end
+    DataMapper.finalize
   end
 
   supported_by :all do

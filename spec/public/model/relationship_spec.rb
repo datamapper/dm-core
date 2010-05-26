@@ -468,6 +468,7 @@ describe DataMapper::Associations do
 
       Car.belongs_to(@name, :required => false)
       Engine.has(1, :car)
+      DataMapper.finalize
     end
 
     supported_by :all do
@@ -486,6 +487,7 @@ describe DataMapper::Associations do
       describe 'with a :key option' do
         before :all do
           @relationship = Car.belongs_to("#{@name}_with_key".to_sym, @model, :required => false, :key => true)
+          DataMapper.finalize
         end
 
         it 'should create a foreign key that is part of the key' do
@@ -501,6 +503,7 @@ describe DataMapper::Associations do
       before :all do
         Car.has(1, :engine)
         Engine.belongs_to(:car)
+        DataMapper.finalize
       end
 
       supported_by :all do
@@ -628,6 +631,7 @@ describe DataMapper::Associations do
     describe 'with a model' do
       before :all do
         Engine.belongs_to(:vehicle, Car)
+        DataMapper.finalize
       end
 
       it 'should set the relationship target model' do
@@ -638,6 +642,7 @@ describe DataMapper::Associations do
     describe 'with a :model option' do
       before :all do
         Engine.belongs_to(:vehicle, :model => Car)
+        DataMapper.finalize
       end
 
       it 'should set the relationship target model' do
@@ -648,6 +653,7 @@ describe DataMapper::Associations do
     describe 'with a single element as :child_key option' do
       before :all do
         Engine.belongs_to(:vehicle, :model => Car, :child_key => :bike_id)
+        DataMapper.finalize
       end
 
       it 'should set the relationship child key' do
@@ -658,6 +664,7 @@ describe DataMapper::Associations do
     describe 'with an array as :child_key option' do
       before :all do
         Engine.belongs_to(:vehicle, :model => Car, :child_key => [:bike_id])
+        DataMapper.finalize
       end
 
       it 'should set the relationship child key' do
@@ -668,6 +675,7 @@ describe DataMapper::Associations do
     describe 'with a single element as :parent_key option' do
       before :all do
         Engine.belongs_to(:vehicle, :model => Car, :parent_key => :name)
+        DataMapper.finalize
       end
 
       it 'should set the relationship parent key' do
@@ -678,6 +686,7 @@ describe DataMapper::Associations do
     describe 'with an array as :parent_key option' do
       before :all do
         Engine.belongs_to(:vehicle, :model => Car, :parent_key => [:name])
+        DataMapper.finalize
       end
 
       it 'should set the relationship parent key' do
@@ -696,6 +705,7 @@ describe DataMapper::Associations do
 
         Car.has(1, @name)
         Engine.belongs_to(:car)
+        DataMapper.finalize
       end
 
       supported_by :all do
@@ -720,6 +730,7 @@ describe DataMapper::Associations do
 
         Car.has(1, @name, :through => DataMapper::Resource)
         Engine.has(1, :car, :through => DataMapper::Resource)
+        DataMapper.finalize
       end
 
       supported_by :all do
@@ -753,6 +764,7 @@ describe DataMapper::Associations do
 
         Car.has(1..4, @name)
         Door.belongs_to(:car, :required => false)
+        DataMapper.finalize
       end
 
       supported_by :all do
@@ -777,6 +789,7 @@ describe DataMapper::Associations do
 
         Window.has(1, :car, :through => DataMapper::Resource)
         Car.has(1..4, :windows, :through => DataMapper::Resource)
+        DataMapper.finalize
       end
 
       supported_by :all do
@@ -806,6 +819,7 @@ describe DataMapper::Associations do
     describe 'when the 3rd argument is a Model' do
       before :all do
         Car.has(1, :engine, Engine)
+        DataMapper.finalize
       end
 
       it 'should set the relationship target model' do
@@ -816,6 +830,7 @@ describe DataMapper::Associations do
     describe 'when the 3rd argument is a String' do
       before :all do
         Car.has(1, :engine, 'Engine')
+        DataMapper.finalize
       end
 
       it 'should set the relationship target model' do
@@ -836,6 +851,7 @@ describe DataMapper::Associations do
     describe 'when a relationship has an inverse' do
       before :all do
         @engine_relationship = Car.has(1, :engine, :inverse => Engine.belongs_to(:sports_car, Car))
+        DataMapper.finalize
       end
 
       supported_by :all do
@@ -848,6 +864,7 @@ describe DataMapper::Associations do
     describe 'when a relationship does not have an inverse' do
       before :all do
         @engine_relationship = Car.has(1, :engine)
+        DataMapper.finalize
       end
 
       supported_by :all do
@@ -865,6 +882,7 @@ describe DataMapper::Associations do
           class ::ElectricCar < Car; end
 
           Car.has(1, :engine, :inverse => Engine.belongs_to(:sports_car, Car))
+          DataMapper.finalize
         end
 
         supported_by :all do
@@ -889,6 +907,7 @@ describe DataMapper::Associations do
           class ::ElectricCar < Car; end
 
           Car.has(1, :engine)
+          DataMapper.finalize
         end
 
         supported_by :all do
@@ -915,6 +934,7 @@ describe DataMapper::Associations do
           class ::ElectricCar < Car; end
 
           ElectricCar.has(1, :engine, :inverse => Engine.belongs_to(:sports_car, Car))
+          DataMapper.finalize
         end
 
         supported_by :all do
@@ -939,6 +959,7 @@ describe DataMapper::Associations do
           class ::ElectricCar < Car; end
 
           ElectricCar.has(1, :engine)
+          DataMapper.finalize
         end
 
         supported_by :all do
@@ -978,6 +999,7 @@ describe DataMapper::Associations do
         belongs_to :owner, Employee, :required => false
         has n, :employees
       end
+      DataMapper.finalize
     end
 
     supported_by :all do

@@ -50,6 +50,7 @@ describe 'Many to Many Associations' do
       end
     end
 
+
     @article_model = Blog::Article
     @author_model  = Blog::Author
 
@@ -61,6 +62,8 @@ describe 'Many to Many Associations' do
     @subject_without_default       = @article_model.has(n, :without_default,       'Author', :through => :without_default_join,       :via => :author)
     @subject_with_default          = @article_model.has(n, :with_default,          'Author', :through => :with_default_join,          :via => :author, :default => @default_value)
     @subject_with_default_callable = @article_model.has(n, :with_default_callable, 'Author', :through => :with_default_callable_join, :via => :author, :default => lambda { |resource, relationship| @default_value_callable })
+
+    DataMapper.finalize
   end
 
   supported_by :all do

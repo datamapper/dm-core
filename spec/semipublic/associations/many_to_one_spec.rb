@@ -32,6 +32,8 @@ describe 'Many to One Associations' do
 
     @default_value.with_default          = nil
     @default_value.with_default_callable = nil
+
+    DataMapper.finalize
   end
 
   supported_by :all do

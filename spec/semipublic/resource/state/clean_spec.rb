@@ -13,6 +13,7 @@ describe DataMapper::Resource::State::Clean do
       belongs_to :parent, self, :required => false
       has n, :children, self, :inverse => :parent
     end
+    DataMapper.finalize
 
     @model = Author
   end

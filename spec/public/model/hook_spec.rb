@@ -12,6 +12,7 @@ describe DataMapper::Model::Hook do
     end
 
     class ::ModelHookSpecsSubclass < ModelHookSpecs; end
+    DataMapper.finalize
   end
 
   before :all do

@@ -160,6 +160,7 @@ share_examples_for 'A semipublic Resource' do
         property :name,  String
         property :value, Integer
       end
+      DataMapper.finalize
     end
 
     with_alternate_adapter do

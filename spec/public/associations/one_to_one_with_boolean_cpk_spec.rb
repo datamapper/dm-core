@@ -22,6 +22,7 @@ describe 'One to One Associations when foreign key is part of a composite key an
 
       belongs_to :parent_model, :child_key => [ :integer_key, :boolean_key ]
     end
+    DataMapper.finalize
   end
 
   supported_by :all do

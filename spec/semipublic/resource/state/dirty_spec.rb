@@ -14,6 +14,8 @@ describe DataMapper::Resource::State::Dirty do
       has n, :children, self, :inverse => :parent
     end
 
+    DataMapper.finalize
+
     @model = Author
   end
 

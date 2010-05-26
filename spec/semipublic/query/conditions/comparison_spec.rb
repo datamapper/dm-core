@@ -14,6 +14,8 @@ shared_examples_for 'DataMapper::Query::Conditions::AbstractComparison' do
       end
     end
 
+    DataMapper.finalize
+
     @model = Blog::Article
   end
 
@@ -270,6 +272,7 @@ describe DataMapper::Query::Conditions::Comparison do
         property :title, String, :required => true
       end
     end
+    DataMapper.finalize
 
     @model = Blog::Article
   end

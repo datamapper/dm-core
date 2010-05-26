@@ -20,6 +20,7 @@ describe 'Many to One Associations when foreign key is part of a composite key, 
 
       has n, :many_models, :child_key => [ :integer_key ]
     end
+    DataMapper.finalize
   end
 
   supported_by :all do
