@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{dm-core}
-  s.version = "1.0.0.rc2"
+  s.version = "1.0.0.rc3"
 
   s.required_rubygems_version = Gem::Requirement.new("> 1.3.1") if s.respond_to? :required_rubygems_version=
   s.authors = ["Dan Kubb"]
-  s.date = %q{2010-05-23}
+  s.date = %q{2010-05-27}
   s.description = %q{Faster, Better, Simpler.}
   s.email = %q{dan.kubb@gmail.com}
   s.extra_rdoc_files = [
@@ -126,6 +126,7 @@ Gem::Specification.new do |s|
      "spec/public/associations/one_to_one_spec.rb",
      "spec/public/associations/one_to_one_with_boolean_cpk_spec.rb",
      "spec/public/collection_spec.rb",
+     "spec/public/finalize_spec.rb",
      "spec/public/model/hook_spec.rb",
      "spec/public/model/property_spec.rb",
      "spec/public/model/relationship_spec.rb",
@@ -227,6 +228,7 @@ Gem::Specification.new do |s|
      "spec/public/associations/one_to_one_spec.rb",
      "spec/public/associations/one_to_one_with_boolean_cpk_spec.rb",
      "spec/public/collection_spec.rb",
+     "spec/public/finalize_spec.rb",
      "spec/public/model/hook_spec.rb",
      "spec/public/model/property_spec.rb",
      "spec/public/model/relationship_spec.rb",
