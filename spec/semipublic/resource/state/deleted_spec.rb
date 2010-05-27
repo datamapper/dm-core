@@ -25,7 +25,7 @@ describe DataMapper::Resource::State::Deleted do
   end
 
   after do
-    @model.all.destroy!
+    @model.destroy!
   end
 
   describe '#commit' do

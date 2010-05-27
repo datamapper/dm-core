@@ -30,7 +30,7 @@ describe DataMapper::Resource::State::Dirty do
   end
 
   after do
-    @model.all.destroy!
+    @model.destroy!
   end
 
   describe '#commit' do

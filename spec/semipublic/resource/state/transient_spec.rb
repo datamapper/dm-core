@@ -32,7 +32,7 @@ describe DataMapper::Resource::State::Transient do
   end
 
   after do
-    @model.all.destroy!
+    @model.destroy!
   end
 
   describe '#commit' do

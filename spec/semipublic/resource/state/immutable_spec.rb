@@ -29,7 +29,7 @@ describe DataMapper::Resource::State::Immutable do
   end
 
   after do
-    @model.all.destroy!
+    @model.destroy!
   end
 
   describe '#commit' do
