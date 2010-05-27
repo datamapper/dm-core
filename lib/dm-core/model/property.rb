@@ -240,9 +240,11 @@ module DataMapper
 
         if property.kind_of?(DataMapper::Property::Boolean) && !reserved_method?(boolean_reader_name)
           class_eval <<-RUBY, __FILE__, __LINE__ + 1
-            #{reader_visibility}
-            def #{boolean_reader_name}
-              #{name}
+            chainable do
+              #{reader_visibility}
+              def #{boolean_reader_name}
+                #{name}
+              end
             end
           RUBY
         end
