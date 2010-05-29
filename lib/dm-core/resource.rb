@@ -442,10 +442,10 @@ module DataMapper
       return true if destroyed?
       catch :halt do
         before_destroy_hook
-        retval = _destroy
+        _destroy
         after_destroy_hook
-        retval
       end
+      destroyed?
     end
 
     # Destroy the instance, remove it from the repository, bypassing hooks
@@ -457,6 +457,7 @@ module DataMapper
     def destroy!
       return true if destroyed?
       _destroy(false)
+      destroyed?
     end
 
     # Compares another Resource for equality
@@ -1001,11 +1002,14 @@ module DataMapper
       end
     end
 
+    # Destroy the resource
+    #
+    # @return [undefined]
+    #
     # @api private
     def _destroy(execute_hooks = true)
-      deleted              = persisted_state.delete
-      self.persisted_state = deleted.commit
-      true
+      self.persisted_state = persisted_state.delete
+      _persist
     end
 
     # @api private
