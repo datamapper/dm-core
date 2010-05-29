@@ -958,26 +958,13 @@ module DataMapper
       child_relationships.map { |relationship| relationship.get_collection(self) }
     end
 
-    # Creates the resource with default values
+    # Commit the persisted state
     #
-    # If resource is not dirty or a new (not yet saved),
-    # this method returns false
-    #
-    # On successful save identity map of the repository is
-    # updated
-    #
-    # Needs to be a protected method so that it is hookable
-    #
-    # The primary purpose of this method is to allow before :create
-    # hooks to fire at a point just before/after resource creation
-    #
-    # @return [Boolean]
-    #   true if the receiver was successfully created
+    # @return [undefined]
     #
     # @api private
-    def _create
+    def _persist
       self.persisted_state = persisted_state.commit
-      clean?
     end
 
     # This method executes the hooks before and after resource creation
@@ -991,26 +978,10 @@ module DataMapper
       catch :halt do
         before_save_hook
         before_create_hook
-        retval = _create
+        _persist
         after_create_hook
         after_save_hook
-        retval
       end
-    end
-
-    # Updates resource state
-    #
-    # The primary purpose of this method is to allow before :update
-    # hooks to fire at a point just before/after resource update whether
-    # it is the result of Resource#save, or using Resource#update
-    #
-    # @return [Boolean]
-    #   true if the receiver was successfully created
-    #
-    # @api private
-    def _update
-      self.persisted_state = persisted_state.commit
-      clean?
     end
 
     # This method executes the hooks before and after resource updating
@@ -1024,10 +995,9 @@ module DataMapper
       catch :halt do
         before_save_hook
         before_update_hook
-        retval = _update
+        _persist
         after_update_hook
         after_save_hook
-        retval
       end
     end
 
@@ -1055,12 +1025,12 @@ module DataMapper
       # short-circuit if the resource is not dirty
       return saved? unless dirty_self?
 
-      new_resource = new?
       if execute_hooks
-        new_resource ? create_with_hooks : update_with_hooks
+        new? ? create_with_hooks : update_with_hooks
       else
-        new_resource ? _create : _update
+        _persist
       end
+      clean?
     end
 
     # Saves the parent resources
