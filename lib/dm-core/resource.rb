@@ -1205,7 +1205,7 @@ module DataMapper
     # @api private
     def assert_save_successful(method, save_retval)
       if save_retval != true && raise_on_save_failure
-        raise SaveFailureError, "#{model}##{method} returned #{save_retval.inspect}, #{model} was not saved"
+        raise SaveFailureError.new("#{model}##{method} returned #{save_retval.inspect}, #{model} was not saved", self)
       end
     end
 

@@ -172,7 +172,9 @@ describe DataMapper::Resource do
             end
 
             it 'should raise an exception' do
-              method(:subject).should raise_error(DataMapper::SaveFailureError, "Blog::User##{method} returned false, Blog::User was not saved")
+              method(:subject).should raise_error(DataMapper::SaveFailureError, "Blog::User##{method} returned false, Blog::User was not saved") { |error|
+                error.resource.should equal(@user)
+              }
             end
           end
         end

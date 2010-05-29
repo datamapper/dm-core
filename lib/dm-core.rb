@@ -206,7 +206,14 @@ module DataMapper
 
   class UpdateConflictError < PersistenceError; end
 
-  class SaveFailureError < PersistenceError; end
+  class SaveFailureError < PersistenceError
+    attr_reader :resource
+
+    def initialize(message, resource)
+      super(message)
+      @resource = resource
+    end
+  end
 
   class ImmutableError < RuntimeError; end
 
