@@ -39,7 +39,8 @@ module DataMapper
       private
 
         def setup_hook(type, name, method, proc)
-          if types = hooks[name]
+          types = hooks[name]
+          if types && types[type]
             types[type] << if proc
               ProcCommand.new(proc)
             else
@@ -54,8 +55,10 @@ module DataMapper
         def copy_hooks(model)
           hooks = Hash.new do |hooks, name|
             hooks[name] = Hash.new do |types, type|
-              types[type] = self.hooks[name][type].map do |command|
-                command.copy(model)
+              if self.hooks[name]
+                types[type] = self.hooks[name][type].map do |command|
+                  command.copy(model)
+                end
               end
             end
           end

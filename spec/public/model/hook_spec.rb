@@ -12,6 +12,7 @@ describe DataMapper::Model::Hook do
     end
 
     class ::ModelHookSpecsSubclass < ModelHookSpecs; end
+
     DataMapper.finalize
   end
 
@@ -99,11 +100,11 @@ describe DataMapper::Model::Hook do
       supported_by :all do
         before do
           @hooks = hooks = []
-          ModelHookSpecs.before(:create) { hooks << :inherited_hook }
+          ModelHookSpecs.before(:an_instance_method) { hooks << :inherited_hook }
         end
 
         it 'should execute inherited hook' do
-          ModelHookSpecsSubclass.create
+          ModelHookSpecsSubclass.new.an_instance_method
           @hooks.should == [ :inherited_hook ]
         end
       end
@@ -113,22 +114,21 @@ describe DataMapper::Model::Hook do
       supported_by :all do
         before do
           @hooks = hooks = []
-          ModelHookSpecsSubclass.before(:create) { hooks << :hook }
+          ModelHookSpecsSubclass.before(:an_instance_method) { hooks << :hook }
         end
 
         it 'should execute hook' do
-          ModelHookSpecsSubclass.create
+          ModelHookSpecsSubclass.new.an_instance_method
           @hooks.should == [ :hook ]
         end
 
         it 'should not alter hooks in the parent class' do
           @hooks.should be_empty
-          ModelHookSpecs.create
+          ModelHookSpecs.new.an_instance_method
           @hooks.should == []
         end
       end
     end
-
   end
 
   describe '#after' do
@@ -206,5 +206,40 @@ describe DataMapper::Model::Hook do
         end
       end
     end
+
+    describe 'with an inherited hook' do
+      supported_by :all do
+        before do
+          @hooks = hooks = []
+          ModelHookSpecs.after(:an_instance_method) { hooks << :inherited_hook }
+        end
+
+        it 'should execute inherited hook' do
+          ModelHookSpecsSubclass.new.an_instance_method
+          @hooks.should == [ :inherited_hook ]
+        end
+      end
+    end
+
+    describe 'with a hook declared in the subclasss' do
+      supported_by :all do
+        before do
+          @hooks = hooks = []
+          ModelHookSpecsSubclass.after(:an_instance_method) { hooks << :hook }
+        end
+
+        it 'should execute hook' do
+          ModelHookSpecsSubclass.new.an_instance_method
+          @hooks.should == [ :hook ]
+        end
+
+        it 'should not alter hooks in the parent class' do
+          @hooks.should be_empty
+          ModelHookSpecs.new.an_instance_method
+          @hooks.should == []
+        end
+      end
+    end
+
   end
 end
