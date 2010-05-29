@@ -767,6 +767,21 @@ share_examples_for 'A public Resource' do
         end
       end
 
+      describe 'on a new, invalid resource' do
+        before :all do
+          @user = @user_model.new(:name => nil)
+          @return = @user.__send__(method)
+        end
+
+        it 'should return false' do
+          @return.should be(false)
+        end
+
+        it 'should call save hook expected number of times' do
+          @user.save_hook_call_count.should == (method == :save ? 1 : nil)
+        end
+      end
+
       describe 'on a dirty invalid resource' do
         before :all do
           rescue_if @skip do

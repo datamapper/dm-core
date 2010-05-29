@@ -977,7 +977,7 @@ module DataMapper
     # @api private
     def _create
       self.persisted_state = persisted_state.commit
-      true
+      clean?
     end
 
     # This method executes the hooks before and after resource creation
