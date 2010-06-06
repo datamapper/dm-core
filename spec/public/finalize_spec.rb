@@ -14,6 +14,15 @@ describe DataMapper do
       Object.send(:remove_const, :ValidObject)
     end
 
+    it 'should raise on an anonymous model' do
+      model = Class.new do
+        include DataMapper::Resource
+        property :id, Integer, :key => true
+      end
+      method(:subject).should raise_error(DataMapper::IncompleteModelError, "#{model.inspect} must have a name")
+      DataMapper::Model.descendants.delete(model)
+    end
+
     it 'should raise on an empty model' do
       class ::EmptyObject
         include DataMapper::Resource

@@ -318,6 +318,10 @@ module DataMapper
     repository_name = model.repository_name
     relationships   = model.relationships(repository_name).values
 
+    if name.to_s.strip.empty?
+      raise IncompleteModelError, "#{model.inspect} must have a name"
+    end
+
     if model.properties(repository_name).empty? &&
       !relationships.any? { |relationship| relationship.kind_of?(Associations::ManyToOne::Relationship) }
       raise IncompleteModelError, "#{name} must have at least one property or many to one relationship to be valid"
