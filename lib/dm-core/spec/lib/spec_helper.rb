@@ -17,8 +17,9 @@ module DataMapper
       while model = descendants.shift
         descendants.concat(model.descendants.to_a - [ model ])
 
-        unless model.name.to_s[0] == ?#
-          parts         = model.name.split('::')
+        model_name = model.name.to_s.strip
+        unless model_name.empty?
+          parts         = model_name.split('::')
           constant_name = parts.pop.to_sym
           base          = parts.empty? ? Object : Object.full_const_get(parts.join('::'))
 
