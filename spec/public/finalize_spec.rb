@@ -4,7 +4,7 @@ describe DataMapper do
   describe '.finalize' do
     subject { DataMapper.finalize }
 
-    it "should not raise with valid models" do
+    it 'should not raise with valid models' do
       class ::ValidObject
         include DataMapper::Resource
         property :id, Integer, :key => true
@@ -14,7 +14,7 @@ describe DataMapper do
       Object.send(:remove_const, :ValidObject)
     end
 
-    it "should raise on an empty model" do
+    it 'should raise on an empty model' do
       class ::EmptyObject
         include DataMapper::Resource
       end
@@ -23,7 +23,7 @@ describe DataMapper do
       Object.send(:remove_const, :EmptyObject)
     end
 
-    it "should raise on a keyless model" do
+    it 'should raise on a keyless model' do
       class ::KeylessObject
         include DataMapper::Resource
         property :name, String
