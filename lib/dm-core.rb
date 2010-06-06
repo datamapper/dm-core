@@ -327,13 +327,11 @@ module DataMapper
       raise IncompleteModelError, "#{name} must have a key to be valid"
     end
 
-
     # initialize join models and target keys
     relationships.each do |relationship|
       relationship.child_key
       relationship.through if relationship.respond_to?(:through)
       relationship.via     if relationship.respond_to?(:via)
     end
-
   end
 end
