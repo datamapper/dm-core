@@ -1,7 +1,7 @@
 require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
 
 describe DataMapper do
-  describe '.setup' do
+  describe '.finalize' do
     it "should not raise with valid models" do
       class ::ValidObject
         include DataMapper::Resource
