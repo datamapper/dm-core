@@ -327,15 +327,15 @@ module DataMapper
       raise IncompleteModelError, "#{name} must have at least one property or many to one relationship to be valid"
     end
 
-    if model.key(repository_name).empty?
-      raise IncompleteModelError, "#{name} must have a key to be valid"
-    end
-
     # initialize join models and target keys
     relationships.each do |relationship|
       relationship.child_key
       relationship.through if relationship.respond_to?(:through)
       relationship.via     if relationship.respond_to?(:via)
+    end
+
+    if model.key(repository_name).empty?
+      raise IncompleteModelError, "#{name} must have a key to be valid"
     end
   end
 end

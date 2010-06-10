@@ -17,6 +17,25 @@ describe DataMapper do
       end
     end
 
+    it "should not raise on valid child model" do
+      class ::ValidChild
+        include DataMapper::Resource
+        belongs_to :valid_object, :key => true
+      end
+      class ::ValidObject
+        include DataMapper::Resource
+        property :id, Integer, :key => true
+      end
+      begin
+        method(:subject).should_not raise_error
+      ensure
+        DataMapper::Model.descendants.delete(ValidChild)
+        DataMapper::Model.descendants.delete(ValidObject)
+        Object.send(:remove_const, :ValidChild)
+        Object.send(:remove_const, :ValidObject)
+      end
+    end
+
     it 'should raise on an anonymous model' do
       model = Class.new do
         include DataMapper::Resource
