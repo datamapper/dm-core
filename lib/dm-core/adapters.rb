@@ -161,8 +161,12 @@ module DataMapper
       # @api private
       def load_adapter(name)
         require "dm-#{name}-adapter"
-      rescue LoadError
-        require in_memory_adapter?(name) ? in_memory_adapter_path : legacy_path(name)
+      rescue LoadError => original_error
+        begin
+          require in_memory_adapter?(name) ? in_memory_adapter_path : legacy_path(name)
+        rescue LoadError
+          raise original_error
+        end
       end
 
       # Returns wether or not the given adapter name is considered an in memory adapter
