@@ -44,5 +44,5 @@ module DataMapper
         RUBY
       end
     end # class Discriminator
-  end # module Types
+  end # module Property
 end # module DataMapper

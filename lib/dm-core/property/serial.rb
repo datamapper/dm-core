@@ -4,5 +4,5 @@ module DataMapper
       serial    true
       min       1
     end # class Text
-  end # module Types
+  end # module Property
 end # module DataMapper
