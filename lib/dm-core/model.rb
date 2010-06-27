@@ -726,8 +726,8 @@ module DataMapper
         self
       elsif name == :Resource
         Resource
-      elsif DataMapper::Property.const_defined?(name)
-        DataMapper::Property.const_get(name)
+      elsif const = DataMapper::Property.find_class(name)
+        const
       elsif DataMapper::Types.const_defined?(name)
         DataMapper::Types.const_get(name)
       else

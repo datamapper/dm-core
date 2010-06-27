@@ -60,28 +60,13 @@ module DataMapper
 
         # if the type can be found within Property then
         # use that class rather than the primitive
-        type_name = type.name
-        unless type_name.blank?
-          type_name = ActiveSupport::Inflector.demodulize(type_name)
+        klass = DataMapper::Property.determine_class(type)
 
-          if DataMapper::Property.const_defined?(type_name)
-            type = DataMapper::Property.find_const(type_name)
-          elsif DataMapper::Types.const_defined?(type_name)
-            type = DataMapper::Types.find_const(type_name)
-          end
-        end
-
-        unless type < DataMapper::Property || type < DataMapper::Type
+        unless klass
           raise ArgumentError, "+type+ was #{type.inspect}, which is not a supported type"
         end
 
-        klass = if type < DataMapper::Property
-          type
-        else
-          DataMapper::Property.find_const(ActiveSupport::Inflector.demodulize(type.primitive.name))
-        end
-
-        property = klass.new(self, name, options, type)
+        property = klass.new(self, name, options, type < DataMapper::Type ? type : nil)
 
         repository_name = self.repository_name
         properties      = properties(repository_name)

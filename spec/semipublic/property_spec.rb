@@ -2,6 +2,49 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
 
 # instance methods
 describe DataMapper::Property do
+  describe ".find_class" do
+    [ :Serial, :Text ].each do |type|
+      describe "with #{type}" do
+        subject { DataMapper::Property.find_class(type) }
+
+        it { subject.should be(DataMapper::Property.const_get(type)) }
+      end
+    end
+  end
+
+  describe ".determine_class" do
+    [ Integer, String, Float, Class, String, Time, DateTime, Date ].each do |type|
+      describe "with #{type}" do
+        subject { DataMapper::Property.determine_class(type) }
+
+        it { subject.should be(DataMapper::Property.const_get(type.name)) }
+      end
+    end
+
+    describe "with custom types" do
+      before :all do
+        module ::CustomProps
+          class Property
+            class Hash  < DataMapper::Property::Object; end
+            class Other < DataMapper::Property::Object; end
+          end
+        end
+      end
+
+      describe "with ::Foo::Property::Hash" do
+        subject { DataMapper::Property.determine_class(Hash) }
+
+        it { subject.should be(::CustomProps::Property::Hash) }
+      end
+
+      describe "with ::Foo::Property::Other" do
+        subject { DataMapper::Property.determine_class(::CustomProps::Property::Other) }
+
+        it { subject.should be(::CustomProps::Property::Other) }
+      end
+    end
+  end
+
   before :all do
     module ::Blog
       class Author

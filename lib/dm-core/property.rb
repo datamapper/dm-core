@@ -354,6 +354,42 @@ module DataMapper
       :default, :repository_name, :allow_nil, :allow_blank, :required
 
     class << self
+      # @api semipublic
+      def determine_class(type)
+        if type < DataMapper::Property::Object
+          return type
+        end
+
+        name  = ActiveSupport::Inflector.demodulize(type.name)
+        klass = find_class(name)
+
+        if !klass && type < DataMapper::Type
+          klass = find_class(type.primitive.name)
+        end
+
+        klass
+      end
+
+      # @api semipublic
+      def find_class(name)
+        klass = all_descendants.find do |descendant|
+          ActiveSupport::Inflector.demodulize(descendant.name) == name
+        end
+
+        if !klass && const_defined?(name)
+          klass = const_get(name)
+        end
+
+        klass
+      end
+
+      # @api public
+      def all_descendants
+        descendants + descendants.map do |property|
+          property.all_descendants
+        end.flatten.compact
+      end
+
       # @api public
       def descendants
         @descendants ||= []
