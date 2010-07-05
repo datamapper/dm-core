@@ -395,6 +395,20 @@ module DataMapper
         @descendants ||= []
       end
 
+      # @api private
+      def inherited(subclass)
+        add_descendant(subclass)
+
+        subclass.primitive primitive
+        subclass.accept_options(*accepted_options)
+      end
+
+      # @api private
+      def add_descendant(subclass)
+        descendants << subclass
+        superclass.add_descendant(subclass) if superclass.respond_to?(:add_descendant)
+      end
+
       # @api public
       def accepted_options
         @accepted_options ||= []
@@ -407,13 +421,17 @@ module DataMapper
         # Load Property options
         accepted_options.each do |property_option|
           class_eval <<-RUBY, __FILE__, __LINE__ + 1
-            def self.#{property_option}(*args)                             # def unique(*args)
-              if args.any?                                                 #   if args.any?
-                @#{property_option} = args.first                           #     @unique = args.first
-              else                                                         #   else
-                defined?(@#{property_option}) ? @#{property_option} : nil  #     defined?(@unique) ? @unique : nil
-              end                                                          #   end
-            end                                                            # end
+            def self.#{property_option}(*args)                        # def unique(*args)
+              if args.any?                                            #   if args.any?
+                @#{property_option} = args.first                      #     @unique = args.first
+              elsif instance_variable_defined?(:@#{property_option})  #   elsif instance_variable_defined?(:@unique)
+                @#{property_option}                                   #     @unique
+              elsif superclass.respond_to?(:#{property_option})       #   elsif superclass.respond_to?(:unique)
+                superclass.#{property_option}                         #     superclass.unique
+              else                                                    #   else
+                nil                                                   #     nil
+              end                                                     #   end
+            end                                                       # end
           RUBY
         end
 
@@ -449,24 +467,11 @@ module DataMapper
         @primitive = primitive
       end
 
+      # @api private
       def nullable(value)
         # :required is preferable to :allow_nil, but :nullable maps precisely to :allow_nil
         warn "#nullable is deprecated, use #required instead (#{caller[0]})"
         allow_nil(value)
-      end
-
-      def inherited(base)
-        descendants << base
-
-        base.primitive primitive
-        base.accept_options(*accepted_options)
-
-        # inherit the options from the parent class
-        base_options = base.options
-
-        options.each do |key, value|
-          base.send(key, value) unless base_options.key?(key)
-        end
       end
     end
 

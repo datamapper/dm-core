@@ -43,16 +43,19 @@ share_examples_for 'A public Property' do
 
         describe "auto-generated option setters" do
           before :all do
-            [@type, @subtype].each do |type|
-              type.foo true
-              type.bar 1
-              @property = type.new(@model, @name)
-            end
+            @type.foo true
+            @type.bar 1
+            @property = @type.new(@model, @name)
           end
 
           it "should set the pre-defined option values" do
             @property.options[:foo].should == true
             @property.options[:bar].should == 1
+          end
+
+          it "should ask the superclass for the value if unknown" do
+            @subtype.foo.should == true
+            @subtype.bar.should == 1
           end
         end
       end
