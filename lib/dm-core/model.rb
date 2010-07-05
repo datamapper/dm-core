@@ -250,7 +250,7 @@ module DataMapper
     # the names of the storage receptacles for this resource across all repositories
     #
     # @return [Hash(Symbol => String)]
-    #   All available names of storage recepticles
+    #   All available names of storage receptacles
     #
     # @api public
     def storage_names
