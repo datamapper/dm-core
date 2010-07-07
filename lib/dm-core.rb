@@ -102,6 +102,7 @@ require 'dm-core/property/date_time'
 require 'dm-core/property/time'
 require 'dm-core/property/class'
 require 'dm-core/property/discriminator'
+require 'dm-core/property/lookup'
 require 'dm-core/property_set'
 
 require 'dm-core/adapters'
