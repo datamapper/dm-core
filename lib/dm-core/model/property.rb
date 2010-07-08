@@ -7,7 +7,7 @@
 module DataMapper
   module Model
     module Property
-      Model.append_extensions self
+      Model.append_extensions self, DataMapper::Property::Lookup
 
       extend Chainable
 
