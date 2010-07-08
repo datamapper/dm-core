@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Dan Kubb"]
-  s.date = %q{2010-06-08}
+  s.date = %q{2010-07-08}
   s.description = %q{Faster, Better, Simpler.}
   s.email = %q{dan.kubb@gmail.com}
   s.extra_rdoc_files = [
@@ -63,6 +63,7 @@ Gem::Specification.new do |s|
      "lib/dm-core/property/discriminator.rb",
      "lib/dm-core/property/float.rb",
      "lib/dm-core/property/integer.rb",
+     "lib/dm-core/property/lookup.rb",
      "lib/dm-core/property/numeric.rb",
      "lib/dm-core/property/object.rb",
      "lib/dm-core/property/serial.rb",
@@ -174,6 +175,7 @@ Gem::Specification.new do |s|
      "spec/semipublic/property/discriminator_spec.rb",
      "spec/semipublic/property/float_spec.rb",
      "spec/semipublic/property/integer_spec.rb",
+     "spec/semipublic/property/lookup_spec.rb",
      "spec/semipublic/property/serial_spec.rb",
      "spec/semipublic/property/string_spec.rb",
      "spec/semipublic/property/text_spec.rb",
@@ -197,7 +199,7 @@ Gem::Specification.new do |s|
      "spec/semipublic/shared/subject_shared_spec.rb",
      "spec/spec.opts",
      "spec/spec_helper.rb",
-     "spec/support/types/huge_integer.rb",
+     "spec/support/properties/huge_integer.rb",
      "spec/unit/array_spec.rb",
      "spec/unit/hash_spec.rb",
      "spec/unit/hook_spec.rb",
@@ -275,6 +277,7 @@ Gem::Specification.new do |s|
      "spec/semipublic/property/discriminator_spec.rb",
      "spec/semipublic/property/float_spec.rb",
      "spec/semipublic/property/integer_spec.rb",
+     "spec/semipublic/property/lookup_spec.rb",
      "spec/semipublic/property/serial_spec.rb",
      "spec/semipublic/property/string_spec.rb",
      "spec/semipublic/property/text_spec.rb",
@@ -297,7 +300,7 @@ Gem::Specification.new do |s|
      "spec/semipublic/shared/resource_state_shared_spec.rb",
      "spec/semipublic/shared/subject_shared_spec.rb",
      "spec/spec_helper.rb",
-     "spec/support/types/huge_integer.rb",
+     "spec/support/properties/huge_integer.rb",
      "spec/unit/array_spec.rb",
      "spec/unit/hash_spec.rb",
      "spec/unit/hook_spec.rb",
