@@ -1,16 +1,16 @@
 module DataMapper
-  module Types
+  class Property
     class HugeInteger < DataMapper::Property::String
-      def self.load(value, property)
+      def load(value)
         value.to_i unless value.nil?
       end
 
-      def self.dump(value, property)
+      def dump(value)
         value.to_s unless value.nil?
       end
 
-      def self.typecast(value, property)
-        load(value, property)
+      def typecast(value)
+        load(value)
       end
     end
   end
