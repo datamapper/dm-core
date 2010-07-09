@@ -292,7 +292,7 @@ module DataMapper
       # @api semipublic
       def load(value)
         unless value.nil?
-          value = @type.load(value, self) if @type
+          value = type.load(value, self) if type
           typecast(value)
         else
           value
@@ -307,8 +307,8 @@ module DataMapper
       #
       # @api semipublic
       def dump(value)
-        if @type
-          @type.dump(value, self)
+        if type
+          type.dump(value, self)
         else
           value
         end
