@@ -88,6 +88,28 @@ share_examples_for 'A semipublic Property' do
     end
   end
 
+  describe "#typecast" do
+    describe "when is able to do typecasting on it's own" do
+      it 'delegates all the work to the type' do
+        return_value = mock(@other_value)
+        @property.should_receive(:typecast_to_primitive).with(@invalid_value).and_return(return_value)
+        @property.typecast(@invalid_value)
+      end
+    end
+
+    describe 'when value is nil' do
+      it 'returns value unchanged' do
+        @property.typecast(nil).should be(nil)
+      end
+
+      describe 'when value is a Ruby primitive' do
+        it 'returns value unchanged' do
+          @property.typecast(@value).should == @value
+        end
+      end
+    end
+  end
+
   describe '#valid?' do
     describe 'when provided a valid value' do
       it 'should return true' do
@@ -114,31 +136,5 @@ share_examples_for 'A semipublic Property' do
         @property.valid?(nil).should be(true)
       end
     end
-  end
-
-  describe "#typecast" do
-    describe "when is able to do typecasting on it's own" do
-      it 'delegates all the work to the type' do
-        return_value = mock(@other_value)
-        @property.should_receive(:typecast_to_primitive).with(@invalid_value).and_return(return_value)
-        @property.typecast(@invalid_value)
-      end
-    end
-
-    describe 'when value is nil' do
-      it 'returns value unchanged' do
-        @property.typecast(nil).should be(nil)
-      end
-
-      describe 'when value is a Ruby primitive' do
-        it 'returns value unchanged' do
-          @property.typecast(@value).should == @value
-        end
-    end
-    end
-  end
-
-  describe '#value' do
-    it 'returns value for a core type'
   end
 end
