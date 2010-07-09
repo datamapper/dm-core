@@ -741,24 +741,6 @@ module DataMapper
       end
     end
 
-    # Returns given value unchanged for core types and
-    # uses +dump+ method of the property type for custom types.
-    #
-    # @param [Object] loaded_value
-    #   the value to be converted into a storeable (ie., primitive) value
-    #
-    # @return [Object]
-    #   the primitive value to be stored in the repository for +val+
-    #
-    # @api semipublic
-    def dump(value)
-      if custom?
-        type.dump(loaded_value, self)
-      else
-        loaded_value
-      end
-    end
-
     # Test the value to see if it is a valid value for this Property
     #
     # @param [Object] loaded_value
