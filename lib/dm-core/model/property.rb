@@ -208,22 +208,20 @@ module DataMapper
         reader_visibility      = property.reader_visibility
         instance_variable_name = property.instance_variable_name
 
-        unless reserved_method?(name)
-          class_eval <<-RUBY, __FILE__, __LINE__ + 1
-            chainable do
-              #{reader_visibility}
-              def #{name}
-                return #{instance_variable_name} if defined?(#{instance_variable_name})
-                property = properties[#{name.inspect}]
-                #{instance_variable_name} = property ? persisted_state.get(property) : nil
-              end
+        class_eval <<-RUBY, __FILE__, __LINE__ + 1
+          chainable do
+            #{reader_visibility}
+            def #{name}
+              return #{instance_variable_name} if defined?(#{instance_variable_name})
+              property = properties[#{name.inspect}]
+              #{instance_variable_name} = property ? persisted_state.get(property) : nil
             end
-          RUBY
-        end
+          end
+        RUBY
 
         boolean_reader_name = "#{name}?"
 
-        if property.kind_of?(DataMapper::Property::Boolean) && !reserved_method?(boolean_reader_name)
+        if property.kind_of?(DataMapper::Property::Boolean)
           class_eval <<-RUBY, __FILE__, __LINE__ + 1
             chainable do
               #{reader_visibility}
@@ -244,8 +242,6 @@ module DataMapper
 
         writer_name = "#{name}="
 
-        return if reserved_method?(writer_name)
-
         class_eval <<-RUBY, __FILE__, __LINE__ + 1
           chainable do
             #{writer_visibility}
@@ -256,11 +252,6 @@ module DataMapper
             end
           end
         RUBY
-      end
-
-      # @api private
-      def reserved_method?(name)
-        method_defined?(name) && !%w[ id type ].include?(name)
       end
 
       chainable do
