@@ -4,7 +4,7 @@ describe 'AbstractAdapter' do
   before :all do
     @adapter = DataMapper::Adapters::AbstractAdapter.new(:abstract, :foo => 'bar')
     @adapter_class = @adapter.class
-    @scheme        = ActiveSupport::Inflector.underscore(ActiveSupport::Inflector.demodulize(@adapter_class).chomp('Adapter'))
+    @scheme        = DataMapper::Inflector.underscore(DataMapper::Inflector.demodulize(@adapter_class).chomp('Adapter'))
     @adapter_name  = "test_#{@scheme}".to_sym
   end
 

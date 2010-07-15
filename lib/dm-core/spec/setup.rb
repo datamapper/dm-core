@@ -148,8 +148,8 @@ module DataMapper
       private
 
         def infer_adapter_name
-          demodulized = ActiveSupport::Inflector.demodulize(self.class.name.chomp('Adapter'))
-          ActiveSupport::Inflector.underscore(demodulized).freeze
+          demodulized = DataMapper::Inflector.demodulize(self.class.name.chomp('Adapter'))
+          DataMapper::Inflector.underscore(demodulized).freeze
         end
 
       end

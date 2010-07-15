@@ -35,7 +35,7 @@ module DataMapper
         warn "Passing in +storage_name+ to #{name}.new is deprecated (#{caller[0]})"
         model.class_eval <<-RUBY, __FILE__, __LINE__ + 1
           def self.default_storage_name
-            #{ActiveSupport::Inflector.classify(storage_name).inspect}.freeze
+            #{DataMapper::Inflector.classify(storage_name).inspect}.freeze
           end
         RUBY
       end

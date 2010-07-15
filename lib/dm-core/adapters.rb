@@ -129,7 +129,7 @@ module DataMapper
       # @api private
       def adapter_class(name)
         adapter_name = normalize_adapter_name(name)
-        class_name = (ActiveSupport::Inflector.camelize(adapter_name) << 'Adapter').to_sym
+        class_name = (DataMapper::Inflector.camelize(adapter_name) << 'Adapter').to_sym
         load_adapter(adapter_name) unless const_defined?(class_name)
         const_get(class_name)
       end

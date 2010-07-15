@@ -360,7 +360,7 @@ module DataMapper
           return type
         end
 
-        name  = ActiveSupport::Inflector.demodulize(type.name)
+        name  = DataMapper::Inflector.demodulize(type.name)
         klass = find_class(name)
 
         if !klass && type < DataMapper::Type
@@ -373,7 +373,7 @@ module DataMapper
       # @api semipublic
       def find_class(name)
         klass = all_descendants.find do |descendant|
-          ActiveSupport::Inflector.demodulize(descendant.name) == name
+          DataMapper::Inflector.demodulize(descendant.name) == name
         end
 
         if !klass && const_defined?(name)

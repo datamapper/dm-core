@@ -28,25 +28,25 @@ module DataMapper
 
       module UnderscoredAndPluralized
         def self.call(name)
-          ActiveSupport::Inflector.pluralize(ActiveSupport::Inflector.underscore(name)).gsub('/', '_')
+          DataMapper::Inflector.pluralize(DataMapper::Inflector.underscore(name)).gsub('/', '_')
         end
       end # module UnderscoredAndPluralized
 
       module UnderscoredAndPluralizedWithoutModule
         def self.call(name)
-          ActiveSupport::Inflector.pluralize(ActiveSupport::Inflector.underscore(ActiveSupport::Inflector.demodulize(name)))
+          DataMapper::Inflector.pluralize(DataMapper::Inflector.underscore(DataMapper::Inflector.demodulize(name)))
         end
       end # module UnderscoredAndPluralizedWithoutModule
 
       module Underscored
         def self.call(name)
-          ActiveSupport::Inflector.underscore(name)
+          DataMapper::Inflector.underscore(name)
         end
       end # module Underscored
 
       module Yaml
         def self.call(name)
-          "#{ActiveSupport::Inflector.pluralize(ActiveSupport::Inflector.underscore(name))}.yaml"
+          "#{DataMapper::Inflector.pluralize(DataMapper::Inflector.underscore(name))}.yaml"
         end
       end # module Yaml
 
@@ -56,25 +56,25 @@ module DataMapper
 
       module UnderscoredAndPluralized
         def self.call(property)
-          ActiveSupport::Inflector.pluralize(ActiveSupport::Inflector.underscore(property.name.to_s)).gsub('/', '_')
+          DataMapper::Inflector.pluralize(DataMapper::Inflector.underscore(property.name.to_s)).gsub('/', '_')
         end
       end # module UnderscoredAndPluralized
 
       module UnderscoredAndPluralizedWithoutModule
         def self.call(property)
-          ActiveSupport::Inflector.pluralize(ActiveSupport::Inflector.underscore(ActiveSupport::Inflector.demodulize(property.name.to_s)))
+          DataMapper::Inflector.pluralize(DataMapper::Inflector.underscore(DataMapper::Inflector.demodulize(property.name.to_s)))
         end
       end # module UnderscoredAndPluralizedWithoutModule
 
       module Underscored
         def self.call(property)
-          ActiveSupport::Inflector.underscore(property.name.to_s)
+          DataMapper::Inflector.underscore(property.name.to_s)
         end
       end # module Underscored
 
       module Yaml
         def self.call(property)
-          "#{ActiveSupport::Inflector.pluralize(ActiveSupport::Inflector.underscore(property.name.to_s))}.yaml"
+          "#{DataMapper::Inflector.pluralize(DataMapper::Inflector.underscore(property.name.to_s))}.yaml"
         end
       end # module Yaml
 

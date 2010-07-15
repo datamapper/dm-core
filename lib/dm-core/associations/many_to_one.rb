@@ -181,7 +181,7 @@ module DataMapper
 
           @required      = options.fetch(:required, true)
           @key           = options.fetch(:key,      false)
-          target_model ||= ActiveSupport::Inflector.camelize(name)
+          target_model ||= DataMapper::Inflector.camelize(name)
           options        = { :min => @required ? 1 : 0, :max => 1 }.update(options)
           super
         end
@@ -222,7 +222,7 @@ module DataMapper
         #
         # @api private
         def inverse_name
-          super || ActiveSupport::Inflector.underscore(ActiveSupport::Inflector.demodulize(source_model.name)).pluralize.to_sym
+          super || DataMapper::Inflector.underscore(DataMapper::Inflector.demodulize(source_model.name)).pluralize.to_sym
         end
 
         # @api private

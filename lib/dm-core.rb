@@ -25,6 +25,10 @@ begin
   require 'dm-core/core_ext/object'
   require 'dm-core/core_ext/string'
 
+  module DataMapper
+    Inflector = ActiveSupport::Inflector
+  end
+
 rescue LoadError
 
   # Default to extlib
@@ -45,7 +49,7 @@ rescue LoadError
     end
   end
 
-  module ActiveSupport
+  module DataMapper
     Inflector = Extlib::Inflection
   end
 
