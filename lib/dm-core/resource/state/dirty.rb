@@ -44,9 +44,9 @@ module DataMapper
             if original_attributes[subject].eql?(value)
               original_attributes.delete(subject)
             end
-          else
+          elsif !value.eql?(original = get(subject))
             # track the original value
-            original_attributes[subject] = get(subject)
+            original_attributes[subject] = original
           end
         end
 

@@ -127,7 +127,7 @@ describe DataMapper::Resource::State::Dirty do
     supported_by :all do
       describe 'with attributes that keep the resource dirty' do
         before do
-          @key   = @model.properties[:name]
+          @key   = @model.properties[:id]
           @value = @key.get!(@resource)
         end
 
@@ -136,6 +136,8 @@ describe DataMapper::Resource::State::Dirty do
         it 'should return a Dirty state' do
           should equal(@state)
         end
+
+        its(:original_attributes) { should == { @model.properties[:name] => 'Dan Kubb' } }
       end
 
       describe 'with attributes that make the resource clean' do
