@@ -339,10 +339,8 @@ module DataMapper
     # @see Collection
     #
     # @api public
-    def all(query = nil)
-      # TODO: update this not to accept a nil value, and instead either
-      # accept a Hash/Query and nothing else
-      if query.nil? || (query.kind_of?(Hash) && query.empty?)
+    def all(query = Undefined)
+      if query.equal?(Undefined) || (query.kind_of?(Hash) && query.empty?)
         # TODO: after adding Enumerable methods to Model, try to return self here
         new_collection(self.query.dup)
       else

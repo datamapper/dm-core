@@ -7,6 +7,10 @@ require 'set'
 require 'time'
 require 'yaml'
 
+module DataMapper
+  module Undefined; end
+end
+
 begin
 
   # Prefer active_support
