@@ -798,9 +798,9 @@ module DataMapper
 
     # @api semipublic
     def initialize(model, name, options = {}, type = nil)
-      options       = options.to_hash.dup
+      options = options.to_hash.dup
 
-      if type && !self.kind_of?(type)
+      if type && !kind_of?(type)
         warn "#{type} < DataMapper::Type is deprecated, use the new DataMapper::Property API instead (#{caller[2]})"
         @type = type
       end
