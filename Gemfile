@@ -88,7 +88,7 @@ end
 group(:development) do # Development dependencies (as in the gemspec)
 
   gem 'rake',           '~> 0.8.7'
-  gem 'rspec',          '~> 1.3'
+  gem 'rspec',          '~> 1.3', :git => 'git://github.com/snusnu/rspec', :branch => 'heckle_fix_plus_gemfile'
   gem 'jeweler',        '~> 1.4'
 
 end
