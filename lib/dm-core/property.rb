@@ -399,9 +399,10 @@ module DataMapper
       def inherited(descendant)
         add_descendant(descendant)
 
-        descendant.accept_options(*accepted_options)
+        # inherit accepted options
+        descendant.accepted_options.concat(accepted_options)
 
-        # inherit the options from the parent class
+        # inherit the option values
         options.each { |key, value| descendant.send(key, value) }
       end
 
@@ -433,7 +434,7 @@ module DataMapper
           RUBY
         end
 
-        descendants.each { |descendant| descendant.accept_options(*args) }
+        descendants.each { |descendant| descendant.accepted_options.concat(args) }
       end
 
       # @api private
