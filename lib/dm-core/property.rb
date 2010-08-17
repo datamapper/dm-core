@@ -421,8 +421,8 @@ module DataMapper
       def accept_options(*args)
         accepted_options.concat(args)
 
-        # Load Property options
-        accepted_options.each do |property_option|
+        # create methods for each new option
+        args.each do |property_option|
           class_eval <<-RUBY, __FILE__, __LINE__ + 1
             def self.#{property_option}(value = Undefined)           # def self.unique(value = Undefined)
               return @#{property_option} if value.equal?(Undefined)  #   return @unique if value.equal?(Undefined)
