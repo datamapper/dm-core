@@ -134,7 +134,7 @@ group :datamapper do # We need this because we want to pin these dependencies to
   end
 
   plugins = ENV['PLUGINS'] || ENV['PLUGIN']
-  plugins = (plugins.to_s.gsub(',',' ').split(' ') + ['dm-migrations']).uniq
+  plugins = plugins.to_s.tr(',', ' ').split.push('dm-migrations').uniq
 
   plugins.each do |plugin|
     gem plugin, DM_VERSION, :git => "#{DATAMAPPER}/#{plugin}.git"
