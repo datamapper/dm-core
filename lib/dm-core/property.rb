@@ -399,7 +399,6 @@ module DataMapper
       def inherited(descendant)
         add_descendant(descendant)
 
-        descendant.primitive primitive
         descendant.accept_options(*accepted_options)
 
         # inherit the options from the parent class
