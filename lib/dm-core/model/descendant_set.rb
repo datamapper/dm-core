@@ -3,79 +3,74 @@ module DataMapper
     class DescendantSet
       include Enumerable
 
-      # Append a model as a descendant
+      # Initialize a DescendantSet instance
       #
-      # @param [Model] model
-      #   the descendant model
+      # @param [#to_ary] descendants
+      #   initialize with the descendants
+      #
+      # @api private
+      def initialize(descendants = [])
+        @descendants = descendants.to_ary
+      end
+
+      # Add a descendant
+      #
+      # @param [Module] descendant
       #
       # @return [DescendantSet]
       #   self
       #
       # @api private
-      def <<(model)
-        @descendants << model unless @descendants.include?(model)
-        @ancestors   << model if @ancestors
+      def <<(descendant)
+        @descendants << descendant
         self
+      end
+
+      # Remove a descendant
+      #
+      # Also removes from all descendants
+      #
+      # @param [Module] descendant
+      #
+      # @return [DescendantSet]
+      #   self
+      #
+      # @api private
+      def delete(descendant)
+        @descendants.delete(descendant)
+        each do |d|
+          next if equal?(descendants = d.descendants)
+          descendants.delete(descendant)
+        end
       end
 
       # Iterate over each descendant
       #
-      # @yield [model]
-      #   iterate over each descendant
-      # @yieldparam [Model] model
-      #   the descendant model
+      # @yield [descendant]
+      # @yieldparam [Module] descendant
       #
       # @return [DescendantSet]
       #   self
       #
       # @api private
       def each
-        @descendants.each { |model| yield model }
+        @descendants.each do |d|
+          yield d
+          next if equal?(descendants = d.descendants)
+          descendants.each { |dd| yield dd unless dd.equal?(d) }
+        end
         self
       end
 
-      # Remove a descendant
+      # Test if there are any descendants
       #
-      # Also removed the descendant from the ancestors.
-      #
-      # @param [Model] model
-      #   the model to remove
-      #
-      # @return [Model, nil]
-      #   the model is return if it is a descendant
+      # @return [Boolean]
       #
       # @api private
-      def delete(model)
-        @ancestors.delete(model) if @ancestors
-        @descendants.delete(model)
+      def empty?
+        @descendants.empty?
       end
 
-      # Return an Array representation of descendants
-      #
-      # @return [Array]
-      #   the descendants
-      #
-      # @api private
-      def to_ary
-        @descendants.dup
-      end
-
-      private
-
-      # Initialize a DescendantSet instance
-      #
-      # @param [Model] model
-      #   the base model
-      # @param [DescendantSet] ancestors
-      #   the ancestors to notify when a descendant is added
-      #
-      # @api private
-      def initialize(model = nil, ancestors = nil)
-        @descendants = []
-        @ancestors   = ancestors
-
-        @descendants << model if model
-      end
     end
   end
 end

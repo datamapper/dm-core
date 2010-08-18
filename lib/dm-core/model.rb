@@ -75,7 +75,9 @@ module DataMapper
     #   Set containing the descendant classes
     #
     # @api semipublic
-    attr_reader :descendants
+    def descendants
+      @descendants ||= DescendantSet.new([ self ])
+    end
 
     # Return if Resource#save should raise an exception on save failures (globally)
     #
@@ -156,6 +158,7 @@ module DataMapper
 
       # Add the inclusion to existing descendants
       descendants.each do |model|
+        next if equal?(model)
         inclusions.each { |inclusion| model.send :include, inclusion }
       end
 
@@ -187,6 +190,7 @@ module DataMapper
 
       # Add the extension to existing descendants
       descendants.each do |model|
+        next if equal?(model)
         extensions.each { |extension| model.extend(extension) }
       end
 
@@ -204,15 +208,12 @@ module DataMapper
 
     # @api private
     def self.extended(model)
-      descendants = self.descendants
-
       descendants << model
 
       model.instance_variable_set(:@valid,         false)
       model.instance_variable_set(:@base_model,    model)
       model.instance_variable_set(:@storage_names, {})
       model.instance_variable_set(:@default_order, {})
-      model.instance_variable_set(:@descendants,   descendants.class.new(model, descendants))
 
       model.extend(Chainable)
 
@@ -223,15 +224,12 @@ module DataMapper
     # @api private
     chainable do
       def inherited(model)
-        descendants = self.descendants
-
         descendants << model
 
         model.instance_variable_set(:@valid,         false)
         model.instance_variable_set(:@base_model,    base_model)
         model.instance_variable_set(:@storage_names, @storage_names.dup)
         model.instance_variable_set(:@default_order, @default_order.dup)
-        model.instance_variable_set(:@descendants,   descendants.class.new(model, descendants))
       end
     end
 
