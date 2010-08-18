@@ -207,29 +207,29 @@ module DataMapper
     end
 
     # @api private
-    def self.extended(model)
-      descendants << model
+    def self.extended(descendant)
+      descendants << descendant
 
-      model.instance_variable_set(:@valid,         false)
-      model.instance_variable_set(:@base_model,    model)
-      model.instance_variable_set(:@storage_names, {})
-      model.instance_variable_set(:@default_order, {})
+      descendant.instance_variable_set(:@valid,         false)
+      descendant.instance_variable_set(:@base_model,    descendant)
+      descendant.instance_variable_set(:@storage_names, {})
+      descendant.instance_variable_set(:@default_order, {})
 
-      model.extend(Chainable)
+      descendant.extend(Chainable)
 
-      extra_extensions.each { |mod| model.extend(mod)         }
-      extra_inclusions.each { |mod| model.send(:include, mod) }
+      extra_extensions.each { |mod| descendant.extend(mod)         }
+      extra_inclusions.each { |mod| descendant.send(:include, mod) }
     end
 
     # @api private
     chainable do
-      def inherited(model)
-        descendants << model
+      def inherited(descendant)
+        descendants << descendant
 
-        model.instance_variable_set(:@valid,         false)
-        model.instance_variable_set(:@base_model,    base_model)
-        model.instance_variable_set(:@storage_names, @storage_names.dup)
-        model.instance_variable_set(:@default_order, @default_order.dup)
+        descendant.instance_variable_set(:@valid,         false)
+        descendant.instance_variable_set(:@base_model,    base_model)
+        descendant.instance_variable_set(:@storage_names, @storage_names.dup)
+        descendant.instance_variable_set(:@default_order, @default_order.dup)
       end
     end
 
