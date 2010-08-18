@@ -354,6 +354,10 @@ module DataMapper
       :default, :repository_name, :allow_nil, :allow_blank, :required
 
     class << self
+      extend Deprecate
+
+      deprecate :all_descendants, :descendants
+
       # @api semipublic
       def determine_class(type)
         if type < DataMapper::Property::Object
@@ -372,7 +376,7 @@ module DataMapper
 
       # @api semipublic
       def find_class(name)
-        klass = all_descendants.find do |descendant|
+        klass = descendants.detect do |descendant|
           DataMapper::Inflector.demodulize(descendant.name) == name
         end
 
@@ -384,32 +388,19 @@ module DataMapper
       end
 
       # @api public
-      def all_descendants
-        descendants + descendants.map do |property|
-          property.all_descendants
-        end.flatten.compact
-      end
-
-      # @api public
       def descendants
-        @descendants ||= []
+        @descendants ||= DescendantSet.new
       end
 
       # @api private
       def inherited(descendant)
-        add_descendant(descendant)
+        descendants << descendant
 
         # inherit accepted options
         descendant.accepted_options.concat(accepted_options)
 
         # inherit the option values
         options.each { |key, value| descendant.send(key, value) }
-      end
-
-      # @api private
-      def add_descendant(descendant)
-        descendants << descendant
-        superclass.add_descendant(descendant) if superclass.respond_to?(:add_descendant)
       end
 
       # @api public
