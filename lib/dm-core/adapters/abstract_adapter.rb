@@ -20,18 +20,12 @@ module DataMapper
 
       # @api semipublic
       def self.descendants
-        @descendants ||= Set.new
+        @descendants ||= DescendantSet.new([ self ])
       end
 
       # @api private
-      def self.inherited(subclass)
-        add_descendant(subclass)
-      end
-
-      # @api private
-      def self.add_descendant(subclass)
-        descendants << subclass
-        superclass.add_descendant(subclass) if superclass.respond_to?(:add_descendant)
+      def self.inherited(descendant)
+        descendants << descendant
       end
 
       # Adapter name
