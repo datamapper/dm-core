@@ -46,7 +46,7 @@ module DataMapper
 
         # skip "global" and non-DM objects
         next if object.kind_of?(DataMapper::Logger)                    ||
-                object.kind_of?(DataMapper::Model::DescendantSet)      ||
+                object.kind_of?(DataMapper::DescendantSet)             ||
                 object.kind_of?(DataMapper::Adapters::AbstractAdapter) ||
                 object.class.name[0, 13] == 'DataObjects::'
 
@@ -61,7 +61,7 @@ module DataMapper
         value = object.instance_variable_get(ivar)
 
         # skip descendant sets
-        next if value.kind_of?(DataMapper::Model::DescendantSet)
+        next if value.kind_of?(DataMapper::DescendantSet)
 
         object.__send__(:remove_instance_variable, ivar) unless object.frozen?
 
