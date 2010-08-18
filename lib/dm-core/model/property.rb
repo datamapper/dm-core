@@ -172,7 +172,7 @@ module DataMapper
 
       # @api private
       def properties_with_subclasses(repository_name = default_repository_name)
-        properties = PropertySet.new
+        properties = properties(repository_name).dup
 
         descendants.each do |model|
           model.properties(repository_name).each do |property|

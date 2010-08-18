@@ -7,9 +7,23 @@ module DataMapper
     # @param [#to_ary] descendants
     #   initialize with the descendants
     #
+    # @return [undefined]
+    #
     # @api private
     def initialize(descendants = [])
       @descendants = descendants.to_ary
+    end
+
+    # Copy a DescendantSet instance
+    #
+    # @param [DescendantSet] original
+    #   the original descendants
+    #
+    # @return [undefined]
+    #
+    # @api private
+    def initialize_copy(original)
+      @descendants = @descendants.dup
     end
 
     # Add a descendant
@@ -37,10 +51,7 @@ module DataMapper
     # @api private
     def delete(descendant)
       @descendants.delete(descendant)
-      each do |d|
-        next if equal?(descendants = d.descendants)
-        descendants.delete(descendant)
-      end
+      each { |d| d.descendants.delete(descendant) }
     end
 
     # Iterate over each descendant
@@ -53,10 +64,9 @@ module DataMapper
     #
     # @api private
     def each
-      @descendants.each do |d|
-        yield d
-        next if equal?(descendants = d.descendants)
-        descendants.each { |dd| yield dd unless dd.equal?(d) }
+      @descendants.each do |descendant|
+        yield descendant
+        descendant.descendants.each { |dd| yield dd }
       end
       self
     end

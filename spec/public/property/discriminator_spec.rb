@@ -71,29 +71,29 @@ describe DataMapper::Property::Discriminator do
 
   describe 'Model#descendants' do
     it 'should set the descendants for the grandparent model' do
-      @article_model.descendants.to_a.should == [ @article_model, @announcement_model, @release_model ]
+      @article_model.descendants.to_a.should =~ [ @announcement_model, @release_model ]
     end
 
     it 'should set the descendants for the parent model' do
-      @announcement_model.descendants.to_a.should == [ @announcement_model, @release_model ]
+      @announcement_model.descendants.to_a.should == [ @release_model ]
     end
 
     it 'should set the descendants for the child model' do
-      @release_model.descendants.to_a.should == [ @release_model ]
+      @release_model.descendants.to_a.should == []
     end
   end
 
   describe 'Model#default_scope' do
     it 'should set the default scope for the grandparent model' do
-      @article_model.default_scope[:type].should equal(@article_model.descendants)
+      @article_model.default_scope[:type].to_a.should =~ [ @article_model, @announcement_model, @release_model ]
     end
 
     it 'should set the default scope for the parent model' do
-      @announcement_model.default_scope[:type].should equal(@announcement_model.descendants)
+      @announcement_model.default_scope[:type].to_a.should =~ [ @announcement_model, @release_model ]
     end
 
     it 'should set the default scope for the child model' do
-      @release_model.default_scope[:type].should equal(@release_model.descendants)
+      @release_model.default_scope[:type].to_a.should == [ @release_model ]
     end
   end
 

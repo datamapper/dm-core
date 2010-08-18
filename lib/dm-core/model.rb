@@ -76,7 +76,7 @@ module DataMapper
     #
     # @api semipublic
     def descendants
-      @descendants ||= DescendantSet.new([ self ])
+      @descendants ||= DescendantSet.new
     end
 
     # Return if Resource#save should raise an exception on save failures (globally)
@@ -158,7 +158,6 @@ module DataMapper
 
       # Add the inclusion to existing descendants
       descendants.each do |model|
-        next if equal?(model)
         inclusions.each { |inclusion| model.send :include, inclusion }
       end
 
@@ -190,7 +189,6 @@ module DataMapper
 
       # Add the extension to existing descendants
       descendants.each do |model|
-        next if equal?(model)
         extensions.each { |extension| model.extend(extension) }
       end
 
