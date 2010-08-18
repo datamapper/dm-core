@@ -20,7 +20,7 @@ module DataMapper
 
       # @api semipublic
       def self.descendants
-        @descendants ||= DescendantSet.new([ self ])
+        @descendants ||= DescendantSet.new
       end
 
       # @api private
