@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Dan Kubb"]
-  s.date = %q{2010-07-27}
+  s.date = %q{2010-08-18}
   s.description = %q{Faster, Better, Simpler.}
   s.email = %q{dan.kubb@gmail.com}
   s.extra_rdoc_files = [
@@ -47,7 +47,6 @@ Gem::Specification.new do |s|
      "lib/dm-core/core_ext/try_dup.rb",
      "lib/dm-core/identity_map.rb",
      "lib/dm-core/model.rb",
-     "lib/dm-core/model/descendant_set.rb",
      "lib/dm-core/model/hook.rb",
      "lib/dm-core/model/is.rb",
      "lib/dm-core/model/property.rb",
@@ -103,6 +102,7 @@ Gem::Specification.new do |s|
      "lib/dm-core/support/assertions.rb",
      "lib/dm-core/support/chainable.rb",
      "lib/dm-core/support/deprecate.rb",
+     "lib/dm-core/support/descendant_set.rb",
      "lib/dm-core/support/equalizer.rb",
      "lib/dm-core/support/hook.rb",
      "lib/dm-core/support/lazy_array.rb",
