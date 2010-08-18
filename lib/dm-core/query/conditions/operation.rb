@@ -97,7 +97,7 @@ module DataMapper
         #
         # @api private
         def self.descendants
-          @descendants ||= Set.new
+          @descendants ||= DescendantSet.new
         end
 
         # Hook executed when inheriting from AbstractComparison
@@ -105,8 +105,8 @@ module DataMapper
         # @return [undefined]
         #
         # @api private
-        def self.inherited(operation_class)
-          descendants << operation_class
+        def self.inherited(descendant)
+          descendants << descendant
         end
 
         # Get and set the slug for the operation class

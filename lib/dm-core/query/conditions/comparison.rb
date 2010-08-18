@@ -160,14 +160,14 @@ module DataMapper
         # @return [Set<AbstractComparison>]
         # @api private
         def self.descendants
-          @descendants ||= Set.new
+          @descendants ||= DescendantSet.new
         end
 
         # Registers AbstractComparison subclasses (used in Comparison)
         #
         # @api private
-        def self.inherited(comparison_class)
-          descendants << comparison_class
+        def self.inherited(descendant)
+          descendants << descendant
         end
 
         # Setter/getter: allows subclasses to easily set their slug
