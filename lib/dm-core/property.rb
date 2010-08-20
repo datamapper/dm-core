@@ -532,11 +532,6 @@ module DataMapper
       @unique_index
     end
 
-    # @api public
-    def instance_of?(klass)
-      super || klass == Property
-    end
-
     # Returns whether or not the property is to be lazy-loaded
     #
     # @return [Boolean]

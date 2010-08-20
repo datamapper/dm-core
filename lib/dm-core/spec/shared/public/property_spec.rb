@@ -157,23 +157,51 @@ share_examples_for 'A public Property' do
     end
   end
 
-  [:instance_of?, :kind_of?].each do |method|
-    describe "##{method}" do
-      before :all do
-        @property = @type.new(@model, @name)
-      end
+  describe '#instance_of?' do
+    subject { property.instance_of?(klass) }
 
-      describe "when provided Property" do
-        it "should return true" do
-          @property.send(method, DataMapper::Property).should be(true)
-        end
-      end
+    let(:property) { @type.new(@model, @name) }
 
-      describe "when provided property class" do
-        it "should return true" do
-          @property.send(method, @type).should be(true)
-        end
-      end
+    context 'when provided the property class' do
+      let(:klass) { @type }
+
+      it { should be(true) }
+    end
+
+    context 'when provided the property superclass' do
+      let(:klass) { @type.superclass }
+
+      it { should be(false) }
+    end
+
+    context 'when provided the DataMapper::Property class' do
+      let(:klass) { DataMapper::Property }
+
+      it { should be(false) }
+    end
+  end
+
+  describe '#kind_of?' do
+    subject { property.kind_of?(klass) }
+
+    let(:property) { @type.new(@model, @name) }
+
+    context 'when provided the property class' do
+      let(:klass) { @type }
+
+      it { should be(true) }
+    end
+
+    context 'when provided the property superclass' do
+      let(:klass) { @type.superclass }
+
+      it { should be(true) }
+    end
+
+    context 'when provided the DataMapper::Property class' do
+      let(:klass) { DataMapper::Property }
+
+      it { should be(true) }
     end
   end
 end
