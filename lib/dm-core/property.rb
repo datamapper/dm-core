@@ -533,11 +533,6 @@ module DataMapper
     end
 
     # @api public
-    def kind_of?(klass)
-      super || klass == Property
-    end
-
-    # @api public
     def instance_of?(klass)
       super || klass == Property
     end
