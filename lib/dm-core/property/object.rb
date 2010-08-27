@@ -27,6 +27,11 @@ module DataMapper
             value
           end
       end
+
+      # @api private
+      def to_child_key
+        self.class
+      end
     end
   end
 end

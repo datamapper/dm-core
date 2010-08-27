@@ -55,8 +55,7 @@ module DataMapper
             properties[property_name] || begin
               # create the property within the correct repository
               DataMapper.repository(repository_name) do
-                type = parent_property.send(parent_property.type == DataMapper::Property::Boolean ? :type : :primitive)
-                model.property(property_name, type, child_key_options(parent_property))
+                model.property(property_name, parent_property.to_child_key, child_key_options(parent_property))
               end
             end
           end
