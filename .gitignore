@@ -31,6 +31,7 @@ measurements
 .bundle
 Gemfile.local
 Gemfile.lock
+Gemfile.local.lock
 
 ## PROJECT::SPECIFIC
 spec/db/
