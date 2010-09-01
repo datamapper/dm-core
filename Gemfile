@@ -111,29 +111,25 @@ group :datamapper do # We need this because we want to pin these dependencies to
   adapters = ENV['ADAPTER'] || ENV['ADAPTERS']
   adapters = adapters.to_s.tr(',', ' ').split.uniq - %w[ in_memory ]
 
-  unless adapters.empty?
+  DO_VERSION     = '~> 0.10.2'
+  DM_DO_ADAPTERS = %w[ sqlite postgres mysql oracle sqlserver ]
 
-    DO_VERSION     = '~> 0.10.2'
-    DM_DO_ADAPTERS = %w[ sqlite postgres mysql oracle sqlserver ]
+  if (do_adapters = DM_DO_ADAPTERS & adapters).any?
+    options = {}
+    options[:git] = "#{DATAMAPPER}/do.git" if ENV['DO_GIT'] == 'true'
 
-    do_options = {}
-    do_options[:git] = "#{DATAMAPPER}/do.git" if ENV['DO_GIT'] == 'true'
+    gem 'data_objects',  DO_VERSION, options.dup
 
-    gem 'data_objects',  DO_VERSION, do_options.dup
-
-    adapters.each do |adapter|
-      if DM_DO_ADAPTERS.any? { |dm_do_adapter| dm_do_adapter.include?(adapter) }
-        adapter = 'sqlite3' if adapter == 'sqlite'
-        gem "do_#{adapter}", DO_VERSION, do_options.dup
-      end
+    do_adapters.each do |adapter|
+      adapter = 'sqlite3' if adapter == 'sqlite'
+      gem "do_#{adapter}", DO_VERSION, options.dup
     end
 
     gem 'dm-do-adapter', DM_VERSION, :git => "#{DATAMAPPER}/dm-do-adapter.git"
+  end
 
-    adapters.each do |adapter|
-      gem "dm-#{adapter}-adapter", DM_VERSION, :git => "#{DATAMAPPER}/dm-#{adapter}-adapter.git"
-    end
-
+  adapters.each do |adapter|
+    gem "dm-#{adapter}-adapter", DM_VERSION, :git => "#{DATAMAPPER}/dm-#{adapter}-adapter.git"
   end
 
   plugins = ENV['PLUGINS'] || ENV['PLUGIN']
