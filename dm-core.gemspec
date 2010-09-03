@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{dm-core}
-  s.version = "1.0.0"
+  s.version = "1.0.1"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Dan Kubb"]
-  s.date = %q{2010-08-29}
+  s.date = %q{2010-09-03}
   s.description = %q{Faster, Better, Simpler.}
   s.email = %q{dan.kubb@gmail.com}
   s.extra_rdoc_files = [
@@ -125,6 +125,7 @@ Gem::Specification.new do |s|
      "spec/public/associations/many_to_many_spec.rb",
      "spec/public/associations/many_to_one_spec.rb",
      "spec/public/associations/many_to_one_with_boolean_cpk_spec.rb",
+     "spec/public/associations/many_to_one_with_custom_fk_spec.rb",
      "spec/public/associations/one_to_many_spec.rb",
      "spec/public/associations/one_to_one_spec.rb",
      "spec/public/associations/one_to_one_with_boolean_cpk_spec.rb",
@@ -226,6 +227,7 @@ Gem::Specification.new do |s|
      "spec/public/associations/many_to_many_spec.rb",
      "spec/public/associations/many_to_one_spec.rb",
      "spec/public/associations/many_to_one_with_boolean_cpk_spec.rb",
+     "spec/public/associations/many_to_one_with_custom_fk_spec.rb",
      "spec/public/associations/one_to_many_spec.rb",
      "spec/public/associations/one_to_one_spec.rb",
      "spec/public/associations/one_to_one_with_boolean_cpk_spec.rb",
