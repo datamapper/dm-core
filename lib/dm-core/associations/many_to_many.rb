@@ -27,7 +27,7 @@ module DataMapper
         end
 
         # @api semipublic
-        alias target_key child_key
+        alias_method :target_key, :child_key
 
         # Intermediate association for through model
         # relationships

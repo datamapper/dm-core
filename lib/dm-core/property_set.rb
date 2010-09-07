@@ -15,7 +15,7 @@ module DataMapper
       @properties[name]
     end
 
-    alias superclass_slice []=
+    alias_method :superclass_slice, :[]=
     private :superclass_slice
 
     # @api semipublic

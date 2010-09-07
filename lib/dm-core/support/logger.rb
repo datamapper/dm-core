@@ -153,7 +153,7 @@ module DataMapper
 
       message
     end
-    alias :push :<<
+    alias_method :push, :<<
 
     # Generate the logging methods for Extlib.logger for each log level.
     Levels.each_pair do |name, number|

@@ -97,8 +97,8 @@ module DataMapper
       set_operation(:|, other)
     end
 
-    alias | union
-    alias + union
+    alias_method :|, :union
+    alias_method :+, :union
 
     # Return the intersection with another collection
     #
@@ -113,7 +113,7 @@ module DataMapper
       set_operation(:&, other)
     end
 
-    alias & intersection
+    alias_method :&, :intersection
 
     # Return the difference with another collection
     #
@@ -128,7 +128,7 @@ module DataMapper
       set_operation(:-, other)
     end
 
-    alias - difference
+    alias_method :-, :difference
 
     # Lookup a Resource in the Collection by key
     #
@@ -367,7 +367,7 @@ module DataMapper
     # the resources directly so that it can orphan them properly.
     #
     # @api private
-    alias superclass_slice slice
+    alias_method :superclass_slice, :slice
     private :superclass_slice
 
     # Simulates Array#slice and returns a new Collection
@@ -406,7 +406,7 @@ module DataMapper
       end
     end
 
-    alias slice []
+    alias_method :slice, :[]
 
     # Deletes and Returns the Resources given by an offset or a Range
     #
@@ -466,7 +466,7 @@ module DataMapper
       resources
     end
 
-    alias splice []=
+    alias_method :splice, :[]=
 
     # Return a copy of the Collection sorted in reverse
     #
@@ -526,7 +526,7 @@ module DataMapper
       super { |resource| resource_added(yield(resource_removed(resource))) }
     end
 
-    alias map! collect!
+    alias_method :map!, :collect!
 
     # Append one Resource to the Collection and relate it
     #
@@ -690,7 +690,7 @@ module DataMapper
     # Access LazyArray#replace directly
     #
     # @api private
-    alias superclass_replace replace
+    alias_method :superclass_replace, :replace
     private :superclass_replace
 
     # Replace the Resources within the Collection

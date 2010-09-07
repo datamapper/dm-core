@@ -209,7 +209,7 @@ module DataMapper
       # Access Relationship#child_key directly
       #
       # @api private
-      alias relationship_child_key child_key
+      alias_method :relationship_child_key, :child_key
       private :relationship_child_key
 
       # Returns model class used by parent side of the relationship

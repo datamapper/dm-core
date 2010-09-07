@@ -88,7 +88,7 @@ module DataMapper
         # @api semipublic
         attr_reader :operands
 
-        alias children operands
+        alias_method :children, :operands
 
         # Returns the classes that inherit from AbstractComparison
         #
@@ -232,8 +232,8 @@ module DataMapper
           Operation.new(:or, dup, other.dup).minimize
         end
 
-        alias | union
-        alias + union
+        alias_method :|, :union
+        alias_method :+, :union
 
         # Return the intersection of the operation and another operand
         #
@@ -248,7 +248,7 @@ module DataMapper
           Operation.new(:and, dup, other.dup).minimize
         end
 
-        alias & intersection
+        alias_method :&, :intersection
 
         # Return the difference of the operation and another operand
         #
@@ -263,7 +263,7 @@ module DataMapper
           Operation.new(:and, dup, Operation.new(:not, other.dup)).minimize
         end
 
-        alias - difference
+        alias_method :-, :difference
 
         # Minimize the operation
         #

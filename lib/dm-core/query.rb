@@ -430,8 +430,8 @@ module DataMapper
       set_operation(:union, other)
     end
 
-    alias | union
-    alias + union
+    alias_method :|, :union
+    alias_method :+, :union
 
     # Return the intersection with another query
     #
@@ -447,7 +447,7 @@ module DataMapper
       set_operation(:intersection, other)
     end
 
-    alias & intersection
+    alias_method :&, :intersection
 
     # Return the difference with another query
     #
@@ -462,7 +462,7 @@ module DataMapper
       set_operation(:difference, other)
     end
 
-    alias - difference
+    alias_method :-, :difference
 
     # Clear conditions
     #
@@ -568,7 +568,7 @@ module DataMapper
       dup.slice!(*args)
     end
 
-    alias [] slice
+    alias_method :[], :slice
 
     # Slices collection by adding limit and offset to the
     # query, so a single query is executed

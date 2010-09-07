@@ -96,7 +96,7 @@ module DataMapper
           @adapter ||= setup!
         end
 
-        alias :setup :adapter
+        alias_method :setup, :adapter
 
         def setup!
           adapter = DataMapper.setup(name, connection_uri)

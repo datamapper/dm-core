@@ -116,7 +116,7 @@ class LazyArray  # borrowed partially from StrokeDB
     end
   end
 
-  alias slice []
+  alias_method :slice, :[]
 
   def slice!(*args)
     index, length = extract_slice_arguments(*args)
@@ -144,7 +144,7 @@ class LazyArray  # borrowed partially from StrokeDB
     end
   end
 
-  alias splice []=
+  alias_method :splice, :[]=
 
   def reverse
     dup.reverse!
@@ -278,7 +278,7 @@ class LazyArray  # borrowed partially from StrokeDB
     @array.to_a
   end
 
-  alias to_ary to_a
+  alias_method :to_ary, :to_a
 
   def load_with(&block)
     @load_with_proc = block
@@ -293,7 +293,7 @@ class LazyArray  # borrowed partially from StrokeDB
     super || @array.kind_of?(klass)
   end
 
-  alias is_a? kind_of?
+  alias_method :is_a?, :kind_of?
 
   def respond_to?(method, include_private = false)
     super || @array.respond_to?(method)

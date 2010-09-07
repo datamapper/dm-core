@@ -254,7 +254,7 @@ module DataMapper
       persisted_state.get(properties[name])
     end
 
-    alias [] attribute_get
+    alias_method :[], :attribute_get
 
     # Sets the value of the attribute and marks the attribute as dirty
     # if it has been changed so that it may be saved. Do not set from
@@ -295,7 +295,7 @@ module DataMapper
       self.persisted_state = persisted_state.set(properties[name], value)
     end
 
-    alias []= attribute_set
+    alias_method :[]=, :attribute_set
 
     # Gets all the attributes of the Resource instance
     #

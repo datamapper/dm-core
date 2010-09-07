@@ -46,7 +46,7 @@ module DataMapper
     attr_reader :name
 
     # @api semipublic
-    alias to_sym name
+    alias_method :to_sym, :name
 
     # Get the adapter for this repository
     #

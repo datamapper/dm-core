@@ -297,7 +297,7 @@ module DataMapper
       all[*args]
     end
 
-    alias slice []
+    alias_method :slice, :[]
 
     def at(*args)
       all.at(*args)

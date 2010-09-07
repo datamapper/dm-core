@@ -2,9 +2,9 @@ share_examples_for 'A method that delegates to the superclass #set' do
   it 'should delegate to the superclass' do
     # this is the only way I could think of to test if the
     # superclass method is being called
-    DataMapper::Resource::State.class_eval { alias original_set set; undef_method(:set) }
+    DataMapper::Resource::State.class_eval { alias_method :original_set, :set; undef_method(:set) }
     method(:subject).should raise_error(NoMethodError)
-    DataMapper::Resource::State.class_eval { alias set original_set; undef_method(:original_set) }
+    DataMapper::Resource::State.class_eval { alias_method :set, :original_set; undef_method(:original_set) }
   end
 end
 
@@ -12,9 +12,9 @@ share_examples_for 'A method that does not delegate to the superclass #set' do
   it 'should delegate to the superclass' do
     # this is the only way I could think of to test if the
     # superclass method is not being called
-    DataMapper::Resource::State.class_eval { alias original_set set; undef_method(:set) }
+    DataMapper::Resource::State.class_eval { alias_method :original_set, :set; undef_method(:set) }
     method(:subject).should_not raise_error(NoMethodError)
-    DataMapper::Resource::State.class_eval { alias set original_set; undef_method(:original_set) }
+    DataMapper::Resource::State.class_eval { alias_method :set, :original_set; undef_method(:original_set) }
   end
 end
 
