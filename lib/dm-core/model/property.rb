@@ -109,7 +109,8 @@ module DataMapper
         create_reader_for(property)
         create_writer_for(property)
 
-        property
+        # FIXME: explicit return needed for YARD to parse this properly
+        return property
       end
 
       # Gets a list of all properties that have been defined on this Model in
