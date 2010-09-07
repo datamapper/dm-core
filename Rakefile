@@ -15,6 +15,8 @@ begin
 
     gem.rubyforge_project = 'datamapper'
 
+    gem.has_rdoc = 'yard'
+
     gem.add_dependency 'extlib',      '~> 0.9.15'
     gem.add_dependency 'addressable', '~> 2.2'
 
