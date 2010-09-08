@@ -17,8 +17,7 @@ module DataMapper
   #   developers on your team to take a model-centric view of development.
   # * it provides the ability to use Ruby's access control functions.
   # * and, because DataMapper only cares about properties explicitly defined
-  # in
-  #   your models, DataMapper plays well with legacy databases, and shares
+  #   in your models, DataMapper plays well with legacy databases, and shares
   #   databases easily with other applications.
   #
   # == Declaring Properties
@@ -30,23 +29,23 @@ module DataMapper
   #     include DataMapper::Resource
   #
   #     property :title,   String,  :required => true  # Cannot be null
-  #     property :publish, Boolean, :default => false   # Default value for new records is false
+  #     property :publish, Boolean, :default => false  # Default value for new records is false
   #   end
   #
   # By default, DataMapper supports the following primitive (Ruby) types
   # also called core types:
   #
   # * Boolean
-  # * String (default length is 50)
-  # * Text (limit of 65k characters by default)
+  # * Class (datastore primitive is the same as String. Used for Inheritance)
+  # * Date
+  # * DateTime
+  # * Decimal
   # * Float
   # * Integer
-  # * BigDecimal
-  # * DateTime
-  # * Date
-  # * Time
   # * Object (marshalled out during serialization)
-  # * Class (datastore primitive is the same as String. Used for Inheritance)
+  # * String (default length is 50)
+  # * Text (limit of 65k characters by default)
+  # * Time
   #
   # Other types are known as custom types.
   #
@@ -205,9 +204,8 @@ module DataMapper
   #
   #  end
   #
-  # This functionality is available with the dm-validations gem, part of the
-  # dm-more bundle. For more information about validations, check the
-  # documentation for dm-validations.
+  # This functionality is available with the dm-validations gem. For more information
+  # about validations, check the documentation for dm-validations.
   #
   # == Default Values
   # To set a default for a property, use the <tt>:default</tt> key.  The
@@ -224,7 +222,7 @@ module DataMapper
   # Word of warning.  Don't try to read the value of the property you're setting
   # the default for in the proc.  An infinite loop will ensue.
   #
-  # == Embedded Values
+  # == Embedded Values (not implemented yet)
   # As an alternative to extraneous has_one relationships, consider using an
   # EmbeddedValue.
   #
@@ -247,8 +245,6 @@ module DataMapper
   #  :allow_nil           if true, property may have a nil value on save
   #
   #  :key                 name of the key associated with this property.
-  #
-  #  :serial              if true, field value is auto incrementing
   #
   #  :field               field in the data-store which the property corresponds to
   #
@@ -277,6 +273,31 @@ module DataMapper
   #
   #  All other keys you pass to +property+ method are stored and available
   #  as options[:extra_keys].
+  #
+  # == Overriding default Property options
+  #
+  # There is the ability to reconfigure a Property and it's subclasses by explicitly
+  # setting a value in the Property, eg:
+  #
+  #   # set all String properties to have a default length of 255
+  #   DataMapper::Property::String.length(255)
+  #
+  #   # set all Boolean properties to not allow nil (force true or false)
+  #   DataMapper::Property::Boolean.allow_nil(false)
+  #
+  #   # set all properties to be required by default
+  #   DataMapper::Property.required(true)
+  #
+  #   # turn off auto-validation for all properties by default
+  #   DataMapper::Property.auto_validation(false)
+  #
+  #   # set all mutator methods to be private by default
+  #   DataMapper::Property.writer(false)
+  #
+  # Please note that this has no effect when a subclass has explicitly
+  # defined it's own option. For example, setting the String length to
+  # 255 will not affect the Text property even though it inherits from
+  # String, because it sets it's own default length to 65535.
   #
   # == Misc. Notes
   # * Properties declared as strings will default to a length of 50, rather than
