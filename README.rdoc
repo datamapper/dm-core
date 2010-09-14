@@ -64,14 +64,14 @@ board.
 Not so with the DataMapper. Text fields are lazily loaded, meaning they
 only load when you need them. If you want more control you can enable or
 disable this feature for any field (not just text-fields) by passing a
-@:lazy@ option to your field mapping with a value of <tt>true</tt> or
+<tt>:lazy</tt> option to your field mapping with a value of <tt>true</tt> or
 <tt>false</tt>.
 
   class Animal
     include DataMapper::Resource
 
-    property :name,  String
-    property :notes, Text, :lazy => false
+    property :name,        String
+    property :description, Text, :lazy => false
   end
 
 Plus, lazy-loading of Text fields happens automatically and intelligently when
@@ -79,10 +79,10 @@ working with associations.  The following only issues 2 queries to load up all
 of the notes fields on each animal:
 
   repository do
-    Animal.all.each { |animal| animal.notes.to_a }
+    Animal.all.each { |animal| animal.description.to_a }
   end
 
-Did you notice the the <tt>#to_a</tt> call in the above example?  That
+Did you notice the <tt>#to_a</tt> call in the above example?  That
 was necessary because even DataMapper collections are lazy.  If you don't
 iterate over them, or in this case ask them to become Arrays, they won't
 execute until you need them.  We needed to call <tt>#to_a</tt> to force
@@ -90,12 +90,11 @@ the lazy load because without it, the above example would have only
 executed one query.  This extra bit of laziness can come in very handy,
 for example:
 
-  animals = Animal.all
+  animals     = Animal.all
+  description = 'foo'
 
-  unless note.blank?
-    animals.each do |animal|
-      animal.update(:note => note)
-    end
+  animals.each do |animal|
+    animal.update(:description => description)
   end
 
 In the above example, the Animals won't be retrieved until you actually
