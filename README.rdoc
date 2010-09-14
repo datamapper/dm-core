@@ -132,6 +132,40 @@ You can even use this on association collections, eg:
 
   zoo.animals.mammals.to_a  # => executes one query
 
+== Custom Properties
+
+With DataMapper it is possible to create custom properties for your models.
+Consider this example:
+
+  module DataMapper
+    class Property
+      class Email < String
+        required true
+        format   /^([\w\.%\+\-]+)@([\w\-]+\.)+([\w]{2,})$/i
+      end
+    end
+  end
+
+  class User
+    include DataMapper::Resource
+
+    property :id,    Serial
+    property :email, Email
+  end
+
+This way there won't be a need to repeat same property options every time you
+add an email to a model. In the example above we create an Email property which
+is just a String with additional pre-configured options: <tt>required</tt> and
+<tt>format</tt>. Please note that it is possible to override these options when
+declaring a property, like this:
+
+  class Member
+    include DataMapper::Resource
+
+    property :id,    Serial
+    property :email, Email, :required => false
+  end
+
 == Plays Well With Others
 
 In ActiveRecord, all your fields are mapped, whether you want them or not.
