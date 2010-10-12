@@ -178,7 +178,7 @@ module DataMapper
       #
       # @param [Resource] resource
       #   the resource to set the serial property in
-      # @param [Integer] id
+      # @param [Integer] next_id
       #   the identifier to set in the resource
       #
       # @return [undefined]
