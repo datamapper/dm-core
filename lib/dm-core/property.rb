@@ -436,13 +436,15 @@ module DataMapper
         # create methods for each new option
         args.each do |property_option|
           class_eval <<-RUBY, __FILE__, __LINE__ + 1
-            def self.#{property_option}(value = Undefined)           # def self.unique(value = Undefined)
-              return @#{property_option} if value.equal?(Undefined)  #   return @unique if value.equal?(Undefined)
-              descendants.each do |descendant|                       #   descendants.each do |descendant|
-                descendant.#{property_option}(value)                 #     descendant.unique(value)
-              end                                                    #   end
-              @#{property_option} = value                            #   @unique = value
-            end                                                      # end
+            def self.#{property_option}(value = Undefined)                         # def self.unique(value = Undefined)
+              return @#{property_option} if value.equal?(Undefined)                #   return @unique if value.equal?(Undefined)
+              descendants.each do |descendant|                                     #   descendants.each do |descendant|
+                unless descendant.instance_variable_defined?(:@#{property_option}) #     unless descendant.instance_variable_defined?(:@unique)
+                  descendant.#{property_option}(value)                             #       descendant.unique(value)
+                end                                                                #     end
+              end                                                                  #   end
+              @#{property_option} = value                                          #   @unique = value
+            end                                                                    # end
           RUBY
         end
 

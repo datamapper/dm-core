@@ -21,6 +21,29 @@ share_examples_for 'A public Property' do
       @type.accept_options :foo, :bar
     end
 
+    describe "predefined options" do
+      before :all do
+        class ::ChildSubType < @subtype
+          default nil
+        end
+        @child_subtype = ChildSubType
+      end
+
+      describe "when parent type overrides a default" do
+        before do
+          @subtype.default "foo"
+        end
+
+        after do
+          Object.send(:remove_const, :ChildSubType)
+        end
+
+        it "should not override the child's type setting" do
+          @child_subtype.default.should eql(nil)
+        end
+      end
+    end
+
     after :all do
       Object.send(:remove_const, :SubType)
     end
