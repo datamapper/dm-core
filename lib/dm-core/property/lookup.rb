@@ -22,7 +22,7 @@ module DataMapper
       # @since 1.0.1
       #
       def const_missing(name)
-        if const = Property.find_class(name)
+        if const = Property.find_class(name.to_s)
           return const
         end
 
