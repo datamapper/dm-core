@@ -4,6 +4,7 @@ require 'dm-core/property/lookup'
 describe DataMapper::Property::Lookup do
   supported_by :all do
     before(:all) do
+      Object.send(:remove_const, :Foo) if defined?(Foo)
       @klass = Class.new { extend DataMapper::Model }
 
       DataMapper::Types::LegacyType = Class.new(DataMapper::Types::Text)
