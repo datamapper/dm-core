@@ -52,8 +52,11 @@ module DataMapper
 
       def require_plugins
         plugins = ENV['PLUGINS'] || ENV['PLUGIN']
-        plugins = plugins.to_s.split(/[,\s]+/).push('dm-migrations').uniq
-        plugins.each { |plugin| require plugin }
+        plugins = plugins.to_s.split(/[,\s]+/)
+        unless ENV['ADAPTER'] == 'in_memory'
+          plugins.push('dm-migrations')
+        end
+        plugins.uniq.each { |plugin| require plugin }
       end
 
       def spec_adapters
