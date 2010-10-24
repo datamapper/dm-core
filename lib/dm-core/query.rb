@@ -1356,7 +1356,18 @@ module DataMapper
     #
     # @api private
     def other_conditions(other, operation)
-      query_conditions(self).send(operation, query_conditions(other))
+      self_conditions = query_conditions(self)
+
+      unless self_conditions.kind_of?(Conditions::Operation)
+        operation_slug = case operation
+                         when :intersection, :difference then :and
+                         when :union                     then :or
+                         end
+
+        self_conditions = Conditions::Operation.new(operation_slug, self_conditions)
+      end
+
+      self_conditions.send(operation, query_conditions(other))
     end
 
     # Extract conditions from a Query

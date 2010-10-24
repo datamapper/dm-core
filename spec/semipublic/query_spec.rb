@@ -1960,7 +1960,15 @@ describe DataMapper::Query do
           end
         end
 
-        subject { @query.send(method, @other) }
+        subject do
+          result = @query.send(method, @other)
+
+          if @another
+            result = result.send(method, @another)
+          end
+
+          result
+        end
 
         describe 'with equivalent query' do
           before { @other = @query.dup }
@@ -1995,8 +2003,9 @@ describe DataMapper::Query do
 
         describe 'with self matching everything' do
           before do
-            @query = DataMapper::Query.new(@repository, @model)
-            @other = DataMapper::Query.new(@repository, @model, :name => 'Dan Kubb')
+            @query   = DataMapper::Query.new(@repository, @model)
+            @other   = DataMapper::Query.new(@repository, @model, :name => 'Dan Kubb')
+            @another = DataMapper::Query.new(@repository, @model, :citizenship => 'US')
           end
 
           it { should be_kind_of(DataMapper::Query) }
@@ -2005,10 +2014,10 @@ describe DataMapper::Query do
 
           it { should_not equal(@other) }
 
+          it { should_not equal(@another) }
+
           it 'should factor out the operation matching everything' do
-            pending 'TODO: compress Query#conditions for proper comparison' do
-              should == DataMapper::Query.new(@repository, @model, :name => 'Dan Kubb')
-            end
+            should == DataMapper::Query.new(@repository, @model, :name => 'Dan Kubb', :citizenship => 'US')
           end
         end
 
