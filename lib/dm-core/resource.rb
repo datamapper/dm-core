@@ -632,7 +632,7 @@ module DataMapper
     #
     # @api private
     def collection
-      return @_collection if (@_collection && @_collection.query.conditions.matches?(self)) || new? || readonly?
+      return @_collection if @_collection || new? || readonly?
       collection_for_self
     end
 

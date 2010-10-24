@@ -916,7 +916,7 @@ share_examples_for 'A public Resource' do
         end
 
         it 'should succesfully save the dependency' do
-          @user.attributes.should == @user_model.get(*@user.key).attributes
+          @user.name.should == @user_model.get(*@user.key).name
         end
       end
 
