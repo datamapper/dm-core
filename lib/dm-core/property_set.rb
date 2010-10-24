@@ -3,8 +3,9 @@ module DataMapper
   # queries with set of fields it performed over,
   # to represent composite keys (esp. for associations)
   # and so on.
-  class PropertySet < Array
+  class PropertySet
     extend Deprecate
+    include Enumerable
 
     deprecate :has_property?, :named?
     deprecate :slice,         :values_at
@@ -15,12 +16,10 @@ module DataMapper
       @properties[name]
     end
 
-    alias_method :superclass_slice, :[]=
-    private :superclass_slice
-
     # @api semipublic
     def []=(name, property)
-      self << property
+      raise "Property is not added with the correct name" unless name == property.name
+      add_property(property)
     end
 
     # @api semipublic
@@ -35,19 +34,51 @@ module DataMapper
 
     # @api semipublic
     def <<(property)
-      found = named?(property.name)
       add_property(property)
-
-      if found
-        superclass_slice(index(property), property)
-      else
-        super
-      end
     end
 
     # @api semipublic
     def include?(property)
       named?(property.name)
+    end
+
+    def each
+      @order.each do |p|
+        yield p
+      end
+    end
+
+    def to_a
+      @order
+    end
+
+    def to_ary
+      to_a
+    end
+
+    def size
+      @properties.size
+    end
+
+    def |(other)
+      self.class.new(to_a | other.to_a)
+    end
+
+    def &(other)
+      self.class.new(to_a & other.to_a)
+    end
+
+    def -(other)
+      self.class.new(to_a - other.to_a)
+    end
+
+    def ==(other)
+      to_a == other.to_a
+    end
+
+    # @api semipublic
+    def empty?
+      @properties.empty?
     end
 
     # @api semipublic
@@ -153,23 +184,31 @@ module DataMapper
       map { |property| [ property.field, property ] }.to_hash
     end
 
+    def inspect
+      to_a.inspect
+    end
+
     private
 
     # @api semipublic
-    def initialize(*)
-      super
-      @properties = map { |property| [ property.name, property ] }.to_mash
+    def initialize(args = [])
+      @order      = []
+      @properties = args.map do |property|
+        @order << property
+        [ property.name, property ]
+      end.to_mash
     end
 
     # @api private
     def initialize_copy(*)
-      super
+      @order      = @order.dup
       @properties = @properties.dup
     end
 
     # @api private
     def add_property(property)
       clear_cache
+      @order << property unless @order.include?(@property)
       @properties[property.name] = property
     end
 
