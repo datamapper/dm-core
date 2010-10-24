@@ -95,10 +95,18 @@ module DataMapper
         def resource_for(source, other_query = nil)
           query = query_for(source, other_query)
 
-          # TODO: lookup the resource in the Identity Map, and make sure
-          # it matches the query criteria, otherwise perform the query
-
-          target_model.first(query)
+          # If the target key is equal to the model key, we can use the
+          # Model#get so the IdentityMap is used
+          if target_key == target_model.key
+            target = target_model.get(*source_key.get!(source))
+            if query.conditions.matches?(target)
+              target
+            else
+              nil
+            end
+          else
+            target_model.first(query)
+          end
         end
 
         # Loads and returns association target (ex.: author) for given source resource
@@ -127,7 +135,7 @@ module DataMapper
         # @param source [DataMapper::Resource]
         #   Child object (ex.: instance of article)
         #
-        # @param source [DataMapper::Resource]
+        # @param target [DataMapper::Resource]
         #   Parent object (ex.: instance of author)
         #
         # @api semipublic
