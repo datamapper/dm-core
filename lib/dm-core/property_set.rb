@@ -72,6 +72,10 @@ module DataMapper
       self.class.new(to_a - other.to_a)
     end
 
+    def +(other)
+      self.class.new(to_a + other.to_a)
+    end
+
     def ==(other)
       to_a == other.to_a
     end
