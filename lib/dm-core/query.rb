@@ -788,17 +788,22 @@ module DataMapper
 
       model = self.model
 
+      valid_properties = model.properties
+
+      model.descendants.each { |descendant|
+        valid_properties += descendant.properties }
+
       fields.each do |field|
         inspect = field.inspect
 
         case field
           when Symbol, String
-            unless @properties.named?(field)
+            unless valid_properties.named?(field)
               raise ArgumentError, "+options[:fields]+ entry #{inspect} does not map to a property in #{model}"
             end
 
           when Property
-            unless @properties.include?(field)
+            unless valid_properties.include?(field)
               raise ArgumentError, "+options[:field]+ entry #{field.name.inspect} does not map to a property in #{model}"
             end
 
