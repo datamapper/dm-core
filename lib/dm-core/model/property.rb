@@ -1,6 +1,3 @@
-# TODO: move paranoid property concerns to a ParanoidModel that is mixed
-# into Model when a Paranoid property is used
-
 # TODO: update Model#respond_to? to return true if method_method missing
 # would handle the message
 
@@ -14,14 +11,12 @@ module DataMapper
       def self.extended(model)
         model.instance_variable_set(:@properties,               {})
         model.instance_variable_set(:@field_naming_conventions, {})
-        model.instance_variable_set(:@paranoid_properties,      {})
       end
 
       chainable do
         def inherited(model)
           model.instance_variable_set(:@properties,               {})
           model.instance_variable_set(:@field_naming_conventions, @field_naming_conventions.dup)
-          model.instance_variable_set(:@paranoid_properties,      @paranoid_properties.dup)
 
           @properties.each do |repository_name, properties|
             model_properties = model.properties(repository_name)
@@ -182,16 +177,6 @@ module DataMapper
         end
 
         properties
-      end
-
-      # @api private
-      def paranoid_properties
-        @paranoid_properties
-      end
-
-      # @api private
-      def set_paranoid_property(name, &block)
-        paranoid_properties[name] = block
       end
 
       # @api private
