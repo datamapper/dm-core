@@ -91,8 +91,7 @@ module DataMapper
           return if loaded?(source)
 
           # SEL: load all related resources in the source collection
-          collection = source.collection
-          if source.saved? && collection.size > 1
+          if source.saved? && (collection = source.collection).size > 1
             eager_load(collection)
           end
 

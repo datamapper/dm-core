@@ -794,12 +794,10 @@ module DataMapper
         valid_properties += descendant.properties }
 
       fields.each do |field|
-        inspect = field.inspect
-
         case field
           when Symbol, String
             unless valid_properties.named?(field)
-              raise ArgumentError, "+options[:fields]+ entry #{inspect} does not map to a property in #{model}"
+              raise ArgumentError, "+options[:fields]+ entry #{field.inspect} does not map to a property in #{model}"
             end
 
           when Property
@@ -808,7 +806,7 @@ module DataMapper
             end
 
           else
-            raise ArgumentError, "+options[:fields]+ entry #{inspect} of an unsupported object #{field.class}"
+            raise ArgumentError, "+options[:fields]+ entry #{field.inspect} of an unsupported object #{field.class}"
         end
       end
     end
@@ -825,12 +823,10 @@ module DataMapper
       end
 
       links.each do |link|
-        inspect = link.inspect
-
         case link
           when Symbol, String
             unless @relationships.key?(link.to_sym)
-              raise ArgumentError, "+options[:links]+ entry #{inspect} does not map to a relationship in #{model}"
+              raise ArgumentError, "+options[:links]+ entry #{link.inspect} does not map to a relationship in #{model}"
             end
 
           when Associations::Relationship
@@ -840,7 +836,7 @@ module DataMapper
             #end
 
           else
-            raise ArgumentError, "+options[:links]+ entry #{inspect} of an unsupported object #{link.class}"
+            raise ArgumentError, "+options[:links]+ entry #{link.inspect} of an unsupported object #{link.class}"
         end
       end
     end
@@ -855,19 +851,17 @@ module DataMapper
       case conditions
         when Hash
           conditions.each do |subject, bind_value|
-            inspect = subject.inspect
-
             case subject
               when Symbol, ::String
                 unless subject.to_s.include?('.') || @properties.named?(subject) || @relationships.key?(subject)
-                  raise ArgumentError, "condition #{inspect} does not map to a property or relationship in #{model}"
+                  raise ArgumentError, "condition #{subject.inspect} does not map to a property or relationship in #{model}"
                 end
 
               when Operator
                 operator = subject.operator
 
                 unless (Conditions::Comparison.slugs | [ :not ]).include?(operator)
-                  raise ArgumentError, "condition #{inspect} used an invalid operator #{operator}"
+                  raise ArgumentError, "condition #{subject.inspect} used an invalid operator #{operator}"
                 end
 
                 assert_valid_conditions(subject.target => bind_value)
@@ -883,7 +877,7 @@ module DataMapper
                 #end
 
               else
-                raise ArgumentError, "condition #{inspect} of an unsupported object #{subject.class}"
+                raise ArgumentError, "condition #{subject.inspect} of an unsupported object #{subject.class}"
             end
           end
 
@@ -943,12 +937,10 @@ module DataMapper
       model = self.model
 
       order.each do |order_entry|
-        inspect = order_entry.inspect
-
         case order_entry
           when Symbol, String
             unless @properties.named?(order_entry)
-              raise ArgumentError, "+options[:order]+ entry #{inspect} does not map to a property in #{model}"
+              raise ArgumentError, "+options[:order]+ entry #{order_entry.inspect} does not map to a property in #{model}"
             end
 
           when Property
@@ -960,13 +952,13 @@ module DataMapper
             operator = order_entry.operator
 
             unless operator == :asc || operator == :desc
-              raise ArgumentError, "+options[:order]+ entry #{inspect} used an invalid operator #{operator}"
+              raise ArgumentError, "+options[:order]+ entry #{order_entry.inspect} used an invalid operator #{operator}"
             end
 
             assert_valid_order([ order_entry.target ], fields)
 
           else
-            raise ArgumentError, "+options[:order]+ entry #{inspect} of an unsupported object #{order_entry.class}"
+            raise ArgumentError, "+options[:order]+ entry #{order_entry.inspect} of an unsupported object #{order_entry.class}"
         end
       end
     end
