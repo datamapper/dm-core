@@ -790,8 +790,9 @@ module DataMapper
 
       valid_properties = model.properties
 
-      model.descendants.each { |descendant|
-        valid_properties += descendant.properties }
+      model.descendants.each do |descendant|
+        valid_properties += descendant.properties
+      end
 
       fields.each do |field|
         case field
