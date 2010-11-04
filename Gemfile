@@ -95,6 +95,7 @@ end
 
 group :quality do # These gems contain rake tasks that check the quality of the source code
 
+  gem 'rcov',           '~> 0.9.7'
   gem 'yard',           '~> 0.5'
   gem 'yardstick',      '~> 0.1'
 
