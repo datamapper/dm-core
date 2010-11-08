@@ -292,7 +292,9 @@ module DataMapper
     #
     # @api public
     def attribute_set(name, value)
-      self.persisted_state = persisted_state.set(properties[name], value)
+      property = properties[name]
+      value = property.typecast(value)
+      self.persisted_state = persisted_state.set(property, value)
     end
 
     alias_method :[]=, :attribute_set
