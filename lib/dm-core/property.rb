@@ -622,7 +622,7 @@ module DataMapper
     #
     # @api private
     def set(resource, value)
-      set!(resource, typecast(value))
+      set!(resource, value)
     end
 
     # Set the ivar value in the resource
