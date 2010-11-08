@@ -233,6 +233,7 @@ module DataMapper
             #{writer_visibility}
             def #{writer_name}(value)
               property = properties[#{name.inspect}]
+              value = property.typecast(value)
               self.persisted_state = persisted_state.set(property, value)
               persisted_state.get(property)
             end
