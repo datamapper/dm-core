@@ -233,12 +233,16 @@ share_examples_for 'A public Resource' do
     describe 'when a public mutator is specified' do
       before :all do
         rescue_if @skip do
-          @user.attributes = { :name => 'dkubb' }
+          @user.attributes = { :name => 'dkubb', @user.class.properties[:age] => '42' }
         end
       end
 
       it 'should set the value' do
         @user.name.should eql('dkubb')
+      end
+
+      it 'should typecast and set the value' do
+        @user.age.should eql(42)
       end
     end
 
