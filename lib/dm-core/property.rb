@@ -1,3 +1,6 @@
+require 'dm-core/resource'
+require 'dm-core/query'
+
 module DataMapper
   # = Properties
   # Properties for a model are not derived from a database structure, but
@@ -369,6 +372,9 @@ module DataMapper
 
     # Possible :visibility option values
     VISIBILITY_OPTIONS = [ :public, :protected, :private ].to_set.freeze
+
+    # Invalid property names
+    INVALID_NAMES = (Resource.instance_methods + Resource.private_instance_methods + Query::OPTIONS.to_a).map { |name| name.to_s }.freeze
 
     attr_reader :primitive, :model, :name, :instance_variable_name,
       :type, :reader_visibility, :writer_visibility, :options,
@@ -793,9 +799,8 @@ module DataMapper
         @type = type
       end
 
-      reserved_method_names = DataMapper::Resource.instance_methods + DataMapper::Resource.private_instance_methods
-      if reserved_method_names.map { |m| m.to_s }.include?(name.to_s)
-        raise ArgumentError, "+name+ was #{name.inspect}, which cannot be used as a property name since it collides with an existing method"
+      if INVALID_NAMES.include?(name.to_s)
+        raise ArgumentError, "+name+ was #{name.inspect}, which cannot be used as a property name since it collides with an existing method or a query option"
       end
 
       assert_valid_options(options)
