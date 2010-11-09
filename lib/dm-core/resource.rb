@@ -349,6 +349,10 @@ module DataMapper
               raise ArgumentError, "The attribute '#{name}' is not accessible in #{model}"
             end
           when Associations::Relationship, Property
+            # only call a public #typecast (e.g. on Property instances)
+            if name.respond_to?(:typecast)
+              value = name.typecast(value)
+            end
             self.persisted_state = persisted_state.set(name, value)
         end
       end
