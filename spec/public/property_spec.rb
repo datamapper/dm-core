@@ -24,6 +24,8 @@ describe DataMapper::Property do
       property :description,  Text,   :length => 1..1024, :lazy => [ :detail ]
       property :format,       String, :default => 'jpeg'
       property :taken_at,     Time,   :default => proc { Time.now }
+      property :size,         Integer, :default => '10'
+      property :kb_size,      Integer, :default => proc { |r, p| r.size * 1024 }
     end
     DataMapper.finalize
   end
@@ -52,6 +54,20 @@ describe DataMapper::Property do
 
       it 'returns result of a call for callable values' do
         Image.properties[:taken_at].default_for(Image.new).year.should == Time.now.year
+      end
+
+      it 'returns typecasted default value for non-callables' do
+        Image.properties[:size].default_for(Image.new).should == 10
+      end
+
+      it 'returns typecasted result of a call for callable values' do
+        Image.properties[:kb_size].default_for(Image.new(:size => 20)).should == 20480
+      end
+    end
+
+    describe '#default' do
+      it 'returns a typecasted value' do
+        Image.properties[:size].default.should == 10
       end
     end
 

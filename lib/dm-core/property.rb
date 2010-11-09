@@ -372,7 +372,7 @@ module DataMapper
 
     attr_reader :primitive, :model, :name, :instance_variable_name,
       :type, :reader_visibility, :writer_visibility, :options,
-      :default, :repository_name, :allow_nil, :allow_blank, :required
+      :repository_name, :allow_nil, :allow_blank, :required
 
     class << self
       extend Deprecate
@@ -732,6 +732,16 @@ module DataMapper
       elsif respond_to?(:typecast_to_primitive)
         typecast_to_primitive(value)
       end
+    end
+
+    # @api semipublic
+    def default_for(resource)
+      typecast(super)
+    end
+
+    # @api public
+    def default
+      typecast(@default)
     end
 
     # Test the value to see if it is a valid value for this Property
