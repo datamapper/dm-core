@@ -105,8 +105,8 @@ group :datamapper do # We need this because we want to pin these dependencies to
 
   gem 'dm-core', DM_VERSION, :path => File.dirname(__FILE__) # Make ourself available to the adapters
 
-  adapters = ENV['ADAPTER'] || ENV['ADAPTERS']
-  adapters = adapters.to_s.tr(',', ' ').split.uniq - %w[ in_memory ]
+  adapters = ENV['ADAPTERS'] || ENV['ADAPTER'] || 'in_memory'
+  adapters = adapters.to_s.tr(',', ' ').split.uniq
 
   DO_VERSION     = '~> 0.10.2'
   DM_DO_ADAPTERS = %w[ sqlite postgres mysql oracle sqlserver ]
@@ -126,7 +126,9 @@ group :datamapper do # We need this because we want to pin these dependencies to
   end
 
   adapters.each do |adapter|
-    gem "dm-#{adapter}-adapter", DM_VERSION, :git => "#{DATAMAPPER}/dm-#{adapter}-adapter.git"
+    unless adapter == 'in_memory'
+      gem "dm-#{adapter}-adapter", DM_VERSION, :git => "#{DATAMAPPER}/dm-#{adapter}-adapter.git"
+    end
   end
 
   plugins = ENV['PLUGINS'] || ENV['PLUGIN']
