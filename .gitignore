@@ -32,6 +32,8 @@ measurements
 Gemfile.local
 Gemfile.lock
 Gemfile.local.lock
+Gemfile.*.local
+Gemfile.*.local.lock
 
 ## PROJECT::SPECIFIC
 spec/db/
