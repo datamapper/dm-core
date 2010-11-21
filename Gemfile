@@ -2,14 +2,15 @@ require 'pathname'
 
 source 'http://rubygems.org'
 
-SOURCE     = ENV['SOURCE']   ? ENV['SOURCE'].to_sym              : :git
-DATAMAPPER = SOURCE == :path ? Pathname(__FILE__).dirname.parent : 'git://github.com/datamapper'
-DM_VERSION = '~> 1.0.2'
+SOURCE       = ENV['SOURCE']   ? ENV['SOURCE'].to_sym              : :git
+REPO_POSTFIX = SOURCE == :path ? ''                                : '.git'
+DATAMAPPER   = SOURCE == :path ? Pathname(__FILE__).dirname.parent : 'http://github.com/datamapper'
+DM_VERSION   = '~> 1.0.2'
 
 group :runtime do # Runtime dependencies (as in the gemspec)
 
   if ENV['EXTLIB']
-    gem 'extlib',        '~> 0.9.15', SOURCE => "#{DATAMAPPER}/extlib"
+    gem 'extlib',        '~> 0.9.15', SOURCE => "#{DATAMAPPER}/extlib#{REPO_POSTFIX}"
   else
     gem 'activesupport', '~> 3.0.3'
   end
@@ -46,7 +47,7 @@ group :datamapper do # We need this because we want to pin these dependencies to
 
   if (do_adapters = DM_DO_ADAPTERS & adapters).any?
     options = {}
-    options[:git] = "#{DATAMAPPER}/do" if ENV['DO_GIT'] == 'true'
+    options[:git] = "#{DATAMAPPER}/do#{REPO_POSTFIX}" if ENV['DO_GIT'] == 'true'
 
     gem 'data_objects',  DO_VERSION, options.dup
 
@@ -55,12 +56,12 @@ group :datamapper do # We need this because we want to pin these dependencies to
       gem "do_#{adapter}", DO_VERSION, options.dup
     end
 
-    gem 'dm-do-adapter', DM_VERSION, SOURCE => "#{DATAMAPPER}/dm-do-adapter"
+    gem 'dm-do-adapter', DM_VERSION, SOURCE => "#{DATAMAPPER}/dm-do-adapter#{REPO_POSTFIX}"
   end
 
   adapters.each do |adapter|
     unless adapter == 'in_memory'
-      gem "dm-#{adapter}-adapter", DM_VERSION, SOURCE => "#{DATAMAPPER}/dm-#{adapter}-adapter"
+      gem "dm-#{adapter}-adapter", DM_VERSION, SOURCE => "#{DATAMAPPER}/dm-#{adapter}-adapter#{REPO_POSTFIX}"
     end
   end
 
@@ -68,7 +69,7 @@ group :datamapper do # We need this because we want to pin these dependencies to
   plugins = plugins.to_s.tr(',', ' ').split.push('dm-migrations').uniq
 
   plugins.each do |plugin|
-    gem plugin, DM_VERSION, SOURCE => "#{DATAMAPPER}/#{plugin}"
+    gem plugin, DM_VERSION, SOURCE => "#{DATAMAPPER}/#{plugin}#{REPO_POSTFIX}"
   end
 
 end
