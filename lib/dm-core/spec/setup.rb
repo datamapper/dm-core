@@ -130,11 +130,11 @@ module DataMapper
         end
 
         def username
-          'datamapper'
+          ENV.fetch('DM_DB_USER', 'datamapper')
         end
 
         def password
-          'datamapper'
+          ENV.fetch('DM_DB_PASSWORD', 'datamapper')
         end
 
         # Test the connection
