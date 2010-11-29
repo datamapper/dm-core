@@ -529,7 +529,7 @@ module DataMapper
     # Limits a set of records by the offset and/or limit
     #
     # @param [Enumerable] records
-    #   A list of Recrods to sort
+    #   A list of records to sort
     #
     # @return [Enumerable]
     #   The offset & limited records
