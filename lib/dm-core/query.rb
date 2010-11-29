@@ -486,10 +486,10 @@ module DataMapper
     #
     # @api semipublic
     def filter_records(records)
-      records = records.uniq if unique?
-      records = match_records(records)
-      records = sort_records(records)
-      records = limit_records(records)
+      records = records.uniq           if unique?
+      records = match_records(records) if conditions
+      records = sort_records(records)  if order
+      records = limit_records(records) if limit || offset > 0
       records
     end
 
@@ -504,7 +504,6 @@ module DataMapper
     # @api semipublic
     def match_records(records)
       conditions = self.conditions
-      return records if conditions.nil?
       records.select { |record| conditions.matches?(record) }
     end
 
