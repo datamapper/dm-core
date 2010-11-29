@@ -275,7 +275,7 @@ module DataMapper
       repository = self.repository
       key        = self.key(repository.name).typecast(key)
 
-      repository.identity_map(self)[key] || first(key_conditions(repository, key))
+      repository.identity_map(self)[key] || first(key_conditions(repository, key).update(:order => nil))
     end
 
     # Grab a single record just like #get, but raise an ObjectNotFoundError

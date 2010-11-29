@@ -170,7 +170,7 @@ module DataMapper
         @identity_map[key]
       else
         # current query is all inclusive, lookup using normal approach
-        first(model.key_conditions(repository, key))
+        first(model.key_conditions(repository, key).update(:order => nil))
       end
     end
 
