@@ -114,7 +114,7 @@ module DataMapper
         end
 
         def connection_uri
-          "#{adapter_name}://#{username}:#{password}@localhost/#{storage_name}"
+          "#{adapter_name}://#{username}:#{password}@#{host}/#{storage_name}"
         end
 
         def storage_name
@@ -135,6 +135,10 @@ module DataMapper
 
         def password
           ENV.fetch('DM_DB_PASSWORD', 'datamapper')
+        end
+
+        def host
+          ENV.fetch('DM_DB_HOST', 'localhost')
         end
 
         # Test the connection
