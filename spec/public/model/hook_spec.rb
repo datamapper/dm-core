@@ -6,6 +6,7 @@ describe DataMapper::Model::Hook do
       include DataMapper::Resource
 
       property :id, Serial
+      property :value, Integer, :required => true, :default => 1
 
       def an_instance_method
       end
@@ -71,7 +72,7 @@ describe DataMapper::Model::Hook do
           ModelHookSpecs.before(:update) { hooks << :before_update }
 
           @resource.save
-          @resource.update(:id => 2)
+          @resource.update(:value => 2)
         end
 
         it 'should execute before update hook' do
@@ -182,7 +183,7 @@ describe DataMapper::Model::Hook do
           ModelHookSpecs.after(:update) { hooks << :after_update }
 
           @resource.save
-          @resource.update(:id => 2)
+          @resource.update(:value => 2)
         end
 
         it 'should execute after update hook' do

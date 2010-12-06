@@ -48,6 +48,12 @@ describe DataMapper::Resource::State::Transient do
       end
 
       it 'should set the child key if the parent key changes' do
+        # SqlServer does not allow updating IDENTITY columns.
+        if defined?(DataMapper::Adapters::SqlserverAdapter) &&
+           @adapter.kind_of?(DataMapper::Adapters::SqlserverAdapter)
+          return
+        end
+
         original_id = @parent.id
         @parent.update(:id => 42).should be(true)
         method(:subject).should change(@resource, :parent_id).from(original_id).to(42)
