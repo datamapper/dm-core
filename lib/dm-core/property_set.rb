@@ -212,7 +212,7 @@ module DataMapper
     # @api private
     def add_property(property)
       clear_cache
-      @order << property unless @order.include?(@property)
+      @order << property unless @order.include?(property)
       @properties[property.name] = property
     end
 
