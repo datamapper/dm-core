@@ -90,7 +90,7 @@ module DataMapper
           context = :default if context == true
 
           Array(context).each do |context|
-            properties.lazy_context(context) << self
+            properties.lazy_context(context) << property
           end
         end
 

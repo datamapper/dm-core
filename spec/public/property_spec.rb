@@ -22,6 +22,8 @@ describe DataMapper::Property do
       property :md5hash,      String, :key => true, :length => 32
       property :title,        String, :required => true, :unique => true
       property :description,  Text,   :length => 1..1024, :lazy => [ :detail ]
+      property :width,        Integer, :lazy => [:dimensions]
+      property :height,       Integer, :lazy => [:dimensions]
       property :format,       String, :default => 'jpeg'
       property :taken_at,     Time,   :default => proc { Time.now }
     end
@@ -149,7 +151,17 @@ describe DataMapper::Property do
         Track.properties[:artist].lazy?.should be(false)
       end
     end
-
+    
+    describe "#lazy_load_properties" do
+      it "returns all lazy properties in the same context" do
+        Image.properties[:width].__send__(:lazy_load_properties).should == Image.properties.values_at(:width, :height)
+      end
+      
+      it "returns all properties by default" do
+        Track.properties[:artist].__send__(:lazy_load_properties).should == Track.properties
+      end
+    end
+    
     describe '#length' do
       it 'returns upper bound for Range values' do
         Image.properties[:description].length.should eql(1024)
