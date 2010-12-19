@@ -414,7 +414,16 @@ module DataMapper
 
       # @api private
       def hash
-        source_model.hash ^ name.hash
+        name.hash                   ^
+        child_repository_name.hash  ^
+        parent_repository_name.hash ^
+        child_model.hash            ^
+        parent_model.hash           ^
+        child_properties.hash       ^
+        parent_properties.hash      ^
+        min.hash                    ^
+        max.hash                    ^
+        query.hash
       end
 
       private
