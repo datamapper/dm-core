@@ -10,7 +10,7 @@ module DataMapper
       # TODO: replace this with BasicObject
       instance_methods.each do |method|
         next if method =~ /\A__/ ||
-          %w[ send class dup object_id kind_of? instance_of? respond_to? respond_to_missing? equal? freeze frozen? should should_not instance_variables instance_variable_set instance_variable_get instance_variable_defined? remove_instance_variable extend hash inspect copy_object initialize_dup ].include?(method.to_s)
+          %w[ send class dup object_id kind_of? instance_of? respond_to? respond_to_missing? equal? freeze frozen? should should_not instance_variables instance_variable_set instance_variable_get instance_variable_defined? remove_instance_variable extend hash inspect to_s copy_object initialize_dup ].include?(method.to_s)
         undef_method method
       end
 
