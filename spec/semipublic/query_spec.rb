@@ -1085,10 +1085,10 @@ describe DataMapper::Query do
           @direction = DataMapper::Query::Direction.new(@property, :desc)
         end
 
-        it 'should raise an exception' do
+        it 'should not raise an exception, since it may map to a joined model' do
           lambda {
             DataMapper::Query.new(@repository, @model, @options.update(:order => [ @direction ]))
-          }.should raise_error(ArgumentError, "+options[:order]+ entry :unknown does not map to a property in #{@model}")
+          }.should_not raise_error
         end
       end
 
@@ -1113,10 +1113,10 @@ describe DataMapper::Query do
           @property = DataMapper::Property::String.new(@model, :unknown)
         end
 
-        it 'should raise an exception' do
+        it 'should not raise an exception, since it may map to a joined model' do
           lambda {
             DataMapper::Query.new(@repository, @model, @options.update(:order => [ @property ]))
-          }.should raise_error(ArgumentError, "+options[:order]+ entry :unknown does not map to a property in #{@model}")
+          }.should_not raise_error
         end
       end
 

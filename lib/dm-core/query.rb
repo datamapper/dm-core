@@ -944,9 +944,8 @@ module DataMapper
             end
 
           when Property
-            unless @properties.include?(order_entry)
-              raise ArgumentError, "+options[:order]+ entry #{order_entry.name.inspect} does not map to a property in #{model}"
-            end
+            # Allow any arbitrary property, since it may map to a model
+            # that has been included via the :links option
 
           when Operator, Direction
             operator = order_entry.operator
