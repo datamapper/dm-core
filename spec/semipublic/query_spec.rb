@@ -935,6 +935,30 @@ describe DataMapper::Query do
           @return.order.should == [ DataMapper::Query::Direction.new(@model.properties[:name]) ]
         end
       end
+
+      describe 'that contains a Query::Direction with a property that is not part of the model' do
+        before :all do
+          @property = DataMapper::Property::String.new(@model, :unknown)
+          @direction = DataMapper::Query::Direction.new(@property, :desc)
+          @return = DataMapper::Query.new(@repository, @model, @options.update(:order => [ @direction ]))
+        end
+
+        it 'should set the order, since it may map to a joined model' do
+          @return.order.should == [ @direction ]
+        end
+      end
+
+      describe 'that contains a Property that is not part of the model' do
+        before :all do
+          @property = DataMapper::Property::String.new(@model, :unknown)
+          @return = DataMapper::Query.new(@repository, @model, @options.update(:order => [ @property ]))
+        end
+
+        it 'should set the order, since it may map to a joined model' do
+          @return.order.should == [ DataMapper::Query::Direction.new(@property) ]
+        end
+      end
+
       describe 'that is an Array containing a Symbol' do
         before :all do
           @return = DataMapper::Query.new(@repository, @model, @options.freeze)
@@ -1079,19 +1103,6 @@ describe DataMapper::Query do
         end
       end
 
-      describe 'that contains a Query::Direction with a property that is not part of the model' do
-        before :all do
-          @property = DataMapper::Property::String.new(@model, :unknown)
-          @direction = DataMapper::Query::Direction.new(@property, :desc)
-        end
-
-        it 'should not raise an exception, since it may map to a joined model' do
-          lambda {
-            DataMapper::Query.new(@repository, @model, @options.update(:order => [ @direction ]))
-          }.should_not raise_error
-        end
-      end
-
       describe 'that contains a Query::Operator with a target that is not part of the model' do
         it 'should raise an exception' do
           lambda {
@@ -1105,18 +1116,6 @@ describe DataMapper::Query do
           lambda {
             DataMapper::Query.new(@repository, @model, @options.update(:order => [ :name.gt ]))
           }.should raise_error(ArgumentError, '+options[:order]+ entry #<DataMapper::Query::Operator @target=:name @operator=:gt> used an invalid operator gt')
-        end
-      end
-
-      describe 'that contains a Property that is not part of the model' do
-        before :all do
-          @property = DataMapper::Property::String.new(@model, :unknown)
-        end
-
-        it 'should not raise an exception, since it may map to a joined model' do
-          lambda {
-            DataMapper::Query.new(@repository, @model, @options.update(:order => [ @property ]))
-          }.should_not raise_error
         end
       end
 
