@@ -853,8 +853,15 @@ module DataMapper
           conditions.each do |subject, bind_value|
             case subject
               when Symbol, ::String
-                unless subject.to_s.include?('.') || @properties.named?(subject) || @relationships.key?(subject)
-                  raise ArgumentError, "condition #{subject.inspect} does not map to a property or relationship in #{model}"
+                original = subject
+                subject  = subject.to_s
+
+                if subject.include?('.')
+                  unless @relationships.key?(subject[0, subject.index('.')])
+                    raise ArgumentError, "condition #{original.inspect} does not map to a relationship in #{model}"
+                  end
+                elsif !@properties.named?(subject) && !@relationships.key?(subject)
+                  raise ArgumentError, "condition #{original.inspect} does not map to a property or relationship in #{model}"
                 end
 
               when Property
