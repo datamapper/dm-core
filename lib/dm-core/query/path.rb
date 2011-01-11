@@ -50,6 +50,22 @@ module DataMapper
         super || (defined?(@property) ? @property.instance_of?(klass) : false)
       end
 
+      # Used for creating :order options. This technique may be deprecated,
+      # so marking as semipublic until the issue is resolved.
+      #
+      # @api semipublic
+      def asc
+        Operator.new(property, :asc)
+      end
+
+      # Used for creating :order options. This technique may be deprecated,
+      # so marking as semipublic until the issue is resolved.
+      #
+      # @api semipublic
+      def desc
+        Operator.new(property, :desc)
+      end
+
       # @api semipublic
       def respond_to?(method, include_private = false)
         super                                                                   ||
