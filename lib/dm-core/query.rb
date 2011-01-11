@@ -1042,9 +1042,10 @@ module DataMapper
     #
     # @api private
     def normalize_options(options = OPTIONS)
-      (options & [ :order, :fields, :links, :unique ]).each do |option|
-        send("normalize_#{option}")
-      end
+      normalize_order  if options.include? :order
+      normalize_fields if options.include? :fields
+      normalize_links  if options.include? :links
+      normalize_unique if options.include? :unique
     end
 
     # Normalize order elements to Query::Direction instances
