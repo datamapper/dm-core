@@ -865,7 +865,7 @@ module DataMapper
               when Operator
                 operator = subject.operator
 
-                unless (Conditions::Comparison.slugs | [ :not ]).include?(operator)
+                unless Conditions::Comparison.slugs.include?(operator) || operator == :not
                   raise ArgumentError, "condition #{subject.inspect} used an invalid operator #{operator}"
                 end
 
