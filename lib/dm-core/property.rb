@@ -521,19 +521,6 @@ module DataMapper
       !!@unique
     end
 
-    # Returns the hash of the property name
-    #
-    # This is necessary to allow comparisons between different properties
-    # in different models, having the same base model
-    #
-    # @return [Integer]
-    #   the property name hash
-    #
-    # @api semipublic
-    def hash
-      name.hash
-    end
-
     # Returns index name if property has index.
     #
     # @return [Boolean, Symbol, Array]
