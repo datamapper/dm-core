@@ -857,6 +857,11 @@ module DataMapper
                   raise ArgumentError, "condition #{subject.inspect} does not map to a property or relationship in #{model}"
                 end
 
+              when Property
+                unless @properties.include?(subject)
+                  raise ArgumentError, "condition #{subject.name.inspect} does not map to a property in #{model}, but belongs to #{subject.model}"
+                end
+
               when Operator
                 operator = subject.operator
 
@@ -869,11 +874,10 @@ module DataMapper
               when Path
                 assert_valid_links(subject.relationships)
 
-              when Associations::Relationship, Property
-                # TODO: validate that it belongs to the current model, or to any
-                # model in the links
-                #unless @properties.include?(subject)
-                #  raise ArgumentError, "condition #{subject.name.inspect} does not map to a property in #{model}"
+              when Associations::Relationship
+                # TODO: validate that it belongs to the current model
+                #unless subject.source_model.equal?(model)
+                #  raise ArgumentError, "condition #{subject.name.inspect} is not a valid relationship for #{model}, it's source model was #{subject.source_model}"
                 #end
 
               else
