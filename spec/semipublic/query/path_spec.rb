@@ -427,6 +427,32 @@ describe DataMapper::Query::Path do
     end
   end
 
+  describe 'ordering' do
+    before do
+      @path = Article.author.title
+    end
+
+    describe '#desc' do
+      before do
+        @return = @path.desc
+      end
+
+      it 'returns a :desc operator from the path' do
+        @return.should == DataMapper::Query::Operator.new(@path.property, :desc)
+      end
+    end
+
+    describe '#asc' do
+      before do
+        @return = @path.asc
+      end
+
+      it 'returns a :desc operator from the path' do
+        @return.should == DataMapper::Query::Operator.new(@path.property, :asc)
+      end
+    end
+  end
+
   ((DataMapper::Query::Conditions::Comparison.slugs | [ :not ]) - [ :eql, :in ]).each do |slug|
     describe "##{slug}" do
       before do
