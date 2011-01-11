@@ -16,7 +16,16 @@ module DataMapper
         #
         # @api semipublic
         def get(source, query = nil)
-          relationship.get(source, query).first
+          # This optimization is totally cargo-culted from ManyToOne#get.
+          # I don't fully understand it. Works For Me though.
+          # 
+          # If the target key is equal to the model key, we can use
+          # Model#get so the IdentityMap is used
+          if target_key == target_model.key && !query
+            target_model.get(*source_key.get!(source))
+          else
+            relationship.get(source, query).first
+          end
         end
 
         # Get the resource directly
