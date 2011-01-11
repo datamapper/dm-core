@@ -943,7 +943,7 @@ module DataMapper
               raise ArgumentError, "+options[:order]+ entry #{order_entry.inspect} does not map to a property in #{model}"
             end
 
-          when Property
+          when Property, Path
             # Allow any arbitrary property, since it may map to a model
             # that has been included via the :links option
 
@@ -1041,8 +1041,6 @@ module DataMapper
     def normalize_order
       return if @order.nil?
 
-      # TODO: should Query::Path objects be permitted?  If so, then it
-      # should probably be normalized to a Direction object
       @order = Array(@order)
       @order = @order.map do |order|
         case order
@@ -1060,6 +1058,10 @@ module DataMapper
 
           when Direction
             order.dup
+
+          when Path
+            Direction.new(order.property)
+            
         end
       end
     end
