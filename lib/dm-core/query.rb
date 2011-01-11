@@ -1115,7 +1115,7 @@ module DataMapper
     #
     # @api private
     def normalize_unique
-      @unique = @links.any? unless @options.key?(:unique)
+      @unique = links.any? unless @options.key?(:unique)
     end
 
     # Append conditions to this Query
