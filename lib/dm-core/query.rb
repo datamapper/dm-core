@@ -1146,6 +1146,16 @@ module DataMapper
     end
 
     # @api private
+    def equality_operator_for_type(bind_value)
+      case bind_value
+        when Model, String then :eql
+        when Enumerable    then :in
+        when Regexp        then :regexp
+        else                    :eql
+      end
+    end
+
+    # @api private
     def append_property_condition(subject, bind_value, operator)
       negated = operator == :not
 
@@ -1166,15 +1176,6 @@ module DataMapper
       end
 
       add_condition(condition)
-    end
-
-    def equality_operator_for_type(bind_value)
-      case bind_value
-        when Model, String then :eql
-        when Enumerable    then :in
-        when Regexp        then :regexp
-        else                    :eql
-      end
     end
 
     # @api private
