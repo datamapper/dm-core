@@ -614,9 +614,7 @@ describe DataMapper::Associations do
           end
 
           it 'should also change the foreign key' do
-            pending 'a change to the foreign key should also change the related object' do
-              @engine.car.should eql(@car2)
-            end
+            @engine.car.should eql(@car2)
           end
 
           it 'should add the engine to the car' do

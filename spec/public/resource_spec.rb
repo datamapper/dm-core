@@ -180,5 +180,47 @@ describe DataMapper::Resource do
         end
       end
     end
+
+    [ :update, :update! ].each do |method|
+      describe 'with attributes where one is a foreign key' do
+        before :all do
+          rescue_if @skip do
+            @dkubb = @user.referrer = @user_model.create(:name => 'dkubb', :age => 33)
+            @user.save
+            @user = @user_model.get(*@user.key)
+            @user.referrer.should == @dkubb
+
+            @solnic = @user_model.create(:name => 'solnic', :age => 28)
+
+            @attributes = {}
+
+            relationship = @user_model.relationships[:referrer]
+            relationship.child_key.to_a.each_with_index do |k, i|
+              @attributes[k.name] = relationship.parent_key.to_a[i].get(@solnic)
+            end
+
+            @return = @user.__send__(method, @attributes)
+          end
+        end
+
+        it 'should return true' do
+          @return.should be(true)
+        end
+
+        it 'should update attributes of Resource' do
+          @attributes.each { |key, value| @user.__send__(key).should == value }
+        end
+
+        it 'should persist the changes' do
+          resource = @user_model.get(*@user.key)
+          @attributes.each { |key, value| resource.__send__(key).should == value }
+        end
+
+        it 'should return correct parent' do
+          resource = @user_model.get(*@user.key)
+          resource.referrer.should == @solnic
+        end
+      end
+    end
   end
 end
