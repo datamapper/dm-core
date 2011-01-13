@@ -321,11 +321,12 @@ module DataMapper
   end
 
   private
+
   # @api private
   def self.finalize_model(model)
     name            = model.name
     repository_name = model.repository_name
-    relationships   = model.relationships(repository_name).values
+    relationships   = model.relationships(repository_name)
 
     if name.to_s.strip.empty?
       raise IncompleteModelError, "#{model.inspect} must have a name"
@@ -336,15 +337,32 @@ module DataMapper
       raise IncompleteModelError, "#{name} must have at least one property or many to one relationship to be valid"
     end
 
-    # initialize join models and target keys
+    # Initialize all foreign key properties established by relationships
     relationships.each do |relationship|
-      relationship.child_key
-      relationship.through if relationship.respond_to?(:through)
-      relationship.via     if relationship.respond_to?(:via)
+      case relationship
+      when Associations::ManyToOne::Relationship
+        # Initialize the foreign key property this "many to one"
+        # relationship uses to persist itself
+        relationship.child_key
+      when Associations::ManyToMany::Relationship
+        # Initialize the chain of "many to many" relationships
+        relationship.through if relationship.respond_to?(:through)
+        relationship.via     if relationship.respond_to?(:via)
+      else
+        # If this is a "one to one" or "one to many" relationship, initialize
+        # the inverse many to one relationships explicitly before initializing
+        # other relationships. This makes sure that foreign key properties always
+        # appear in the order they were declared.
+        relationship.child_model.relationships.each do |remote_relationship|
+          if remote_relationship.kind_of?(Associations::ManyToOne::Relationship)
+            remote_relationship.child_key
+          end
+        end
+      end
     end
 
     if model.key(repository_name).empty?
       raise IncompleteModelError, "#{name} must have a key to be valid"
     end
   end
-end
+end # module DataMapper

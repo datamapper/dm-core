@@ -1,6 +1,8 @@
 # TODO: update Model#respond_to? to return true if method_method missing
 # would handle the message
 
+require 'dm-core/relationship_set'
+
 module DataMapper
   module Model
     module Relationship
@@ -31,7 +33,7 @@ module DataMapper
 
           @relationships.each do |repository_name, relationships|
             model_relationships = model.relationships(repository_name)
-            relationships.each { |name, relationship| model_relationships[name] ||= relationship }
+            relationships.each { |relationship| model_relationships << relationship }
           end
 
           super
@@ -53,7 +55,7 @@ module DataMapper
         default_repository_name = self.default_repository_name
 
         @relationships[repository_name] ||= if repository_name == default_repository_name
-          Mash.new
+          RelationshipSet.new
         else
           relationships(default_repository_name).dup
         end
@@ -124,10 +126,12 @@ module DataMapper
           Associations::OneToOne::Relationship
         end
 
-        relationship = relationships(repository_name)[name] = klass.new(name, model, self, options)
+        relationship = klass.new(name, model, self, options)
+
+        relationships(repository_name) << relationship
 
         descendants.each do |descendant|
-          descendant.relationships(repository_name)[name] ||= relationship
+          descendant.relationships(repository_name) << relationship
         end
 
         create_relationship_reader(relationship)
@@ -179,10 +183,12 @@ module DataMapper
         options[:child_repository_name]  = repository_name
         options[:parent_repository_name] = options.delete(:repository)
 
-        relationship = relationships(repository_name)[name] = Associations::ManyToOne::Relationship.new(name, self, model, options)
+        relationship = Associations::ManyToOne::Relationship.new(name, self, model, options)
+
+        relationships(repository_name) << relationship
 
         descendants.each do |descendant|
-          descendant.relationships(repository_name)[name] ||= relationship
+          descendant.relationships(repository_name) << relationship
         end
 
         create_relationship_reader(relationship)

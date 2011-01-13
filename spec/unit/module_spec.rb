@@ -2,7 +2,7 @@ require 'dm-core/core_ext/module'
 
 describe Module do
 
-  before(:all) do
+  before :all do
     Object.send(:remove_const, :Foo) if defined?(Foo)
     Object.send(:remove_const, :Baz) if defined?(Baz)
     Object.send(:remove_const, :Bar) if defined?(Bar)

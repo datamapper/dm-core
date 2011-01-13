@@ -45,7 +45,7 @@ module DataMapper
       end
 
       def relationships
-        @relationships ||= model.relationships(repository.name).values
+        @relationships ||= model.relationships(repository.name)
       end
 
       def identity_map

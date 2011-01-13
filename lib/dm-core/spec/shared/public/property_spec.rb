@@ -35,6 +35,7 @@ share_examples_for 'A public Property' do
         end
 
         after do
+          DataMapper::Property.descendants.delete(ChildSubType)
           Object.send(:remove_const, :ChildSubType)
         end
 
@@ -45,6 +46,7 @@ share_examples_for 'A public Property' do
     end
 
     after :all do
+      DataMapper::Property.descendants.delete(SubType)
       Object.send(:remove_const, :SubType)
     end
 

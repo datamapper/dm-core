@@ -789,7 +789,7 @@ module DataMapper
 
       # initialize join models and target keys
       @relationships.values.each do |relationships|
-        relationships.values.each do |relationship|
+        relationships.each do |relationship|
           relationship.child_key
           relationship.through if relationship.respond_to?(:through)
           relationship.via     if relationship.respond_to?(:via)

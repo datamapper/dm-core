@@ -941,7 +941,7 @@ module DataMapper
     #
     # @api public
     def respond_to?(method, include_private = false)
-      super || model.respond_to?(method) || relationships.key?(method)
+      super || model.respond_to?(method) || relationships.named?(method)
     end
 
     # Checks if all the resources have no changes to save
