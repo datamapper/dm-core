@@ -7,4 +7,3 @@ end
 shared_examples_for 'DataMapper::SubjectSet#to_ary when entries are present' do
   it_should_behave_like 'DataMapper::OrderedSet#to_ary when entries are present'
 end
-

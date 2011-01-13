@@ -11,10 +11,9 @@ end
 describe 'DataMapper::OrderedSet#each' do
   subject { set.each { |entry| yields << entry } }
 
-  let(:set)    { DataMapper::OrderedSet.new([entry]) }
-  let(:entry)  { 1                                   }
-  let(:yields) { []                                  }
+  let(:set)    { DataMapper::OrderedSet.new([ entry ]) }
+  let(:entry)  { 1                                     }
+  let(:yields) { []                                    }
 
   it_should_behave_like 'DataMapper::OrderedSet#each'
 end
-

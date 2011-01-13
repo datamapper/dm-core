@@ -7,4 +7,3 @@ end
 shared_examples_for 'DataMapper::SubjectSet#[] when the entry with the given name is present' do
   it { should == entry }
 end
-

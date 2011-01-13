@@ -3,12 +3,12 @@ require 'dm-core/support/subject_set'
 require 'unit/data_mapper/subject_set/shared/size_spec'
 
 describe 'DataMapper::SubjectSet#size' do
-  before(:all) do
+  before :all do
 
     class ::Person
       attr_reader :name
       def initialize(name)
-        @name  = name
+        @name = name
       end
     end
 
@@ -40,4 +40,3 @@ describe 'DataMapper::SubjectSet#size' do
     it_should_behave_like 'DataMapper::SubjectSet#size when more than 1 entry is present'
   end
 end
-

@@ -9,4 +9,3 @@ shared_examples_for 'DataMapper::OrderedSet#to_ary when entries are present' do
   it { should_not be_empty }
   it { should == entries   }
 end
-

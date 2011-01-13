@@ -9,12 +9,12 @@ describe 'DataMapper::SubjectSet' do
 end
 
 describe 'DataMapper::SubjectSet#each' do
-  before(:all) do
+  before :all do
 
     class ::Person
       attr_reader :name
       def initialize(name)
-        @name  = name
+        @name = name
       end
     end
 
@@ -22,10 +22,9 @@ describe 'DataMapper::SubjectSet#each' do
 
   subject { set.each { |entry| yields << entry } }
 
-  let(:set)    { DataMapper::SubjectSet.new([entry]) }
-  let(:entry)  { Person.new('Alice')                 }
-  let(:yields) { []                                  }
+  let(:set)    { DataMapper::SubjectSet.new([ entry ]) }
+  let(:entry)  { Person.new('Alice')                   }
+  let(:yields) { []                                    }
 
   it_should_behave_like 'DataMapper::SubjectSet#each'
 end
-

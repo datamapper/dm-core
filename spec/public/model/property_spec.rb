@@ -1,7 +1,7 @@
 require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'spec_helper'))
 
 describe DataMapper::Model::Property do
-  before :each do
+  before do
     Object.send(:remove_const, :ModelPropertySpecs) if defined?(ModelPropertySpecs)
     class ::ModelPropertySpecs
       include DataMapper::Resource

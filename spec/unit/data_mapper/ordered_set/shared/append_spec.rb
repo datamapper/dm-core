@@ -22,4 +22,3 @@ shared_examples_for 'DataMapper::OrderedSet#<< when updating an already included
     subject.entries.index(entry2).should == @old_index
   end
 end
-

@@ -3,12 +3,12 @@ require 'dm-core/support/subject_set'
 require 'unit/data_mapper/subject_set/shared/clear_spec'
 
 describe 'DataMapper::SubjectSet#clear' do
-  before(:all) do
+  before :all do
 
     class ::Person
       attr_reader :name
       def initialize(name)
-        @name  = name
+        @name = name
       end
     end
 
@@ -32,4 +32,3 @@ describe 'DataMapper::SubjectSet#clear' do
     it_should_behave_like 'DataMapper::SubjectSet#clear when entries are present'
   end
 end
-

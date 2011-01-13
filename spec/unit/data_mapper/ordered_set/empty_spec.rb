@@ -12,10 +12,9 @@ describe 'DataMapper::OrderedSet#empty?' do
   end
 
   context 'with entries in it' do
-    let(:set)   { DataMapper::OrderedSet.new([entry]) }
-    let(:entry) { 1                                   }
+    let(:set)   { DataMapper::OrderedSet.new([ entry ]) }
+    let(:entry) { 1                                     }
 
     it_should_behave_like 'DataMapper::OrderedSet#empty? with entries in it'
   end
 end
-

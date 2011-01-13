@@ -12,17 +12,16 @@ describe 'DataMapper::OrderedSet#size' do
   end
 
   context 'when 1 entry is present' do
-    let(:ordered_set) { DataMapper::OrderedSet.new([1]) }
+    let(:ordered_set) { DataMapper::OrderedSet.new([ 1 ]) }
 
     it_should_behave_like 'DataMapper::OrderedSet#size when 1 entry is present'
   end
 
   context 'when more than 1 entry is present' do
     let(:ordered_set)   { DataMapper::OrderedSet.new(entries) }
-    let(:entries)       { [1,2]                               }
+    let(:entries)       { [ 1, 2 ]                            }
     let(:expected_size) { entries.size                        }
 
     it_should_behave_like 'DataMapper::OrderedSet#size when more than 1 entry is present'
   end
 end
-

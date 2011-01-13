@@ -3,12 +3,12 @@ require 'dm-core/support/subject_set'
 require 'unit/data_mapper/subject_set/shared/entries_spec'
 
 describe 'DataMapper::SubjectSet#entries' do
-  before(:all) do
+  before :all do
 
     class ::Person
       attr_reader :name
       def initialize(name)
-        @name  = name
+        @name = name
       end
     end
 
@@ -23,10 +23,9 @@ describe 'DataMapper::SubjectSet#entries' do
   end
 
   context 'with entries' do
-    let(:set)   { DataMapper::SubjectSet.new([entry]) }
-    let(:entry) { Person.new('Alice')                 }
+    let(:set)   { DataMapper::SubjectSet.new([ entry ]) }
+    let(:entry) { Person.new('Alice')                   }
 
     it_should_behave_like 'DataMapper::SubjectSet#entries with entries'
   end
 end
-

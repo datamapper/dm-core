@@ -3,12 +3,12 @@ require 'dm-core/support/subject_set'
 require 'unit/data_mapper/subject_set/shared/include_spec'
 
 describe 'DataMapper::SubjectSet#include?' do
-  before(:all) do
+  before :all do
 
     class ::Person
       attr_reader :name
       def initialize(name)
-        @name  = name
+        @name = name
       end
     end
 
@@ -19,7 +19,7 @@ describe 'DataMapper::SubjectSet#include?' do
   let(:entry) { Person.new('Alice') }
 
   context 'when the entry is present' do
-    let(:set) { DataMapper::SubjectSet.new([entry]) }
+    let(:set) { DataMapper::SubjectSet.new([ entry ]) }
 
     it_should_behave_like 'DataMapper::SubjectSet#include? when the entry is present'
   end
@@ -30,4 +30,3 @@ describe 'DataMapper::SubjectSet#include?' do
     it_should_behave_like 'DataMapper::SubjectSet#include? when the entry is not present'
   end
 end
-

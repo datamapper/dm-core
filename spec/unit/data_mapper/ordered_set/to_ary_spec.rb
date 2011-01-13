@@ -21,4 +21,3 @@ describe 'DataMapper::OrderedSet#to_ary' do
     it_should_behave_like 'DataMapper::OrderedSet#to_ary when entries are present'
   end
 end
-

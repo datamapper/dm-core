@@ -7,4 +7,3 @@ end
 shared_examples_for 'DataMapper::OrderedSet#entries with entries' do
   it { should include(entry) }
 end
-

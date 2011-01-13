@@ -26,4 +26,3 @@ shared_examples_for 'DataMapper::OrderedSet#initialize when entries are given an
 
   its(:size) { should ==  1 }
 end
-

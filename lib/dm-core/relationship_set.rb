@@ -56,4 +56,3 @@ module DataMapper
 
   end # class RelationshipSet
 end # module DataMapper
-

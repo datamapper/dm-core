@@ -42,4 +42,3 @@ shared_examples_for 'DataMapper::SubjectSet#values_at when more than one name is
     subject.compact.size.should == given_names.size
   end
 end
-

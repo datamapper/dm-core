@@ -16,4 +16,3 @@ shared_examples_for 'DataMapper::SubjectSet#<< when updating an entry with the s
     subject.entries.index(entry2).should == @old_index
   end
 end
-

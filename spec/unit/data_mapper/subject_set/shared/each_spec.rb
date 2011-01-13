@@ -7,4 +7,3 @@ end
 shared_examples_for 'DataMapper::SubjectSet#each' do
   it_should_behave_like 'DataMapper::OrderedSet#each'
 end
-

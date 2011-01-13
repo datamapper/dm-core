@@ -12,7 +12,6 @@ shared_examples_for 'DataMapper::OrderedSet#each' do
   it { should equal(set) }
 
   it 'yields each column' do
-    expect { subject }.to change { yields.dup }.from([]).to([entry])
+    expect { subject }.to change { yields.dup }.from([]).to([ entry ])
   end
 end
-

@@ -74,7 +74,7 @@ module DataMapper
         #
         # @api private
         def valid?(entry)
-           raise NotImplementedError, "#{self}#valid? must be implemented"
+          raise NotImplementedError, "#{self}#valid? must be implemented"
         end
 
         # Given an entry, return the key to be used in the cache
@@ -174,7 +174,7 @@ module DataMapper
       #
       # @api private
       def valid?(entry)
-         true
+        true
       end
 
       # Given an entry, return the key to be used in the cache
@@ -294,7 +294,6 @@ module DataMapper
       if index = @cache.delete(entry)
         entries.delete_at(index)
       end
-      @cache.delete(entry) ? entries.delete(entry) : nil
     end
 
     # Removes all entries and returns self

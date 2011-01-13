@@ -14,10 +14,9 @@ describe 'DataMapper::OrderedSet#entries' do
   end
 
   context 'with entries' do
-    let(:set)   { DataMapper::OrderedSet.new([entry]) }
-    let(:entry) { 1                                   }
+    let(:set)   { DataMapper::OrderedSet.new([ entry ]) }
+    let(:entry) { 1                                     }
 
     it_should_behave_like 'DataMapper::OrderedSet#entries with entries'
   end
 end
-

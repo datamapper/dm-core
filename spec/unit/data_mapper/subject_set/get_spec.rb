@@ -3,12 +3,12 @@ require 'dm-core/support/subject_set'
 require 'unit/data_mapper/subject_set/shared/get_spec'
 
 describe 'DataMapper::SubjectSet#[]' do
-  before(:all) do
+  before :all do
 
     class ::Person
       attr_reader :name
       def initialize(name)
-        @name  = name
+        @name = name
       end
     end
 
@@ -27,9 +27,8 @@ describe 'DataMapper::SubjectSet#[]' do
   end
 
   context 'when the entry with the given name is present' do
-    let(:entries) { [entry] }
+    let(:entries) { [ entry ] }
 
     it_should_behave_like 'DataMapper::SubjectSet#[] when the entry with the given name is present'
   end
 end
-

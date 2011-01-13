@@ -3,12 +3,12 @@ require 'dm-core/support/subject_set'
 require 'unit/data_mapper/subject_set/shared/delete_spec'
 
 describe 'DataMapper::SubjectSet#delete' do
-  before(:all) do
+  before :all do
 
     class ::Person
       attr_reader :name
       def initialize(name)
-        @name  = name
+        @name = name
       end
     end
 
@@ -16,13 +16,13 @@ describe 'DataMapper::SubjectSet#delete' do
 
   subject { set }
 
-  let(:set)         { DataMapper::SubjectSet.new([entry1, entry2, entry3]) }
-  let(:ordered_set) { set.entries }
-  let(:entry1)      { Person.new('Alice') }
-  let(:entry2)      { Person.new('John' ) }
-  let(:entry3)      { Person.new('Jane' ) }
+  let(:set)         { DataMapper::SubjectSet.new([ entry1, entry2, entry3 ]) }
+  let(:ordered_set) { set.entries                                            }
+  let(:entry1)      { Person.new('Alice')                                    }
+  let(:entry2)      { Person.new('John' )                                    }
+  let(:entry3)      { Person.new('Jane' )                                    }
 
-  before :each do
+  before do
     set.delete(entry)
   end
 
@@ -38,4 +38,3 @@ describe 'DataMapper::SubjectSet#delete' do
     it_should_behave_like 'DataMapper::SubjectSet#delete when deleting a not yet included entry'
   end
 end
-

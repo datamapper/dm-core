@@ -26,4 +26,3 @@ shared_examples_for 'DataMapper::OrderedSet#merge when merging a set with not ye
     expect { subject }.to change { set.size }.from(1).to(2)
   end
 end
-

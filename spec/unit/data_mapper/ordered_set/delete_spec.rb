@@ -5,12 +5,12 @@ require 'unit/data_mapper/ordered_set/shared/delete_spec'
 describe 'DataMapper::OrderedSet#delete' do
   subject { ordered_set }
 
-  let(:ordered_set) { DataMapper::OrderedSet.new([entry1, entry2, entry3]) }
-  let(:entry1)      { 1                                                    }
-  let(:entry2)      { 2                                                    }
-  let(:entry3)      { 3                                                    }
+  let(:ordered_set) { DataMapper::OrderedSet.new([ entry1, entry2, entry3 ]) }
+  let(:entry1)      { 1                                                      }
+  let(:entry2)      { 2                                                      }
+  let(:entry3)      { 3                                                      }
 
-  before :each do
+  before do
     ordered_set.delete(entry)
   end
 
@@ -26,4 +26,3 @@ describe 'DataMapper::OrderedSet#delete' do
     it_should_behave_like 'DataMapper::OrderedSet#delete when deleting a not yet included entry'
   end
 end
-

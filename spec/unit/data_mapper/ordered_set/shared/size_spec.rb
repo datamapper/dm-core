@@ -11,4 +11,3 @@ end
 shared_examples_for 'DataMapper::OrderedSet#size when more than 1 entry is present' do
   it { should == expected_size }
 end
-

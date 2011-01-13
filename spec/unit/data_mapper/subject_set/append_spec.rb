@@ -3,7 +3,7 @@ require 'dm-core/support/subject_set'
 require 'unit/data_mapper/subject_set/shared/append_spec'
 
 describe 'DataMapper::SubjectSet#<<' do
-  before(:all) do
+  before :all do
 
     class ::Person
       attr_reader :name
@@ -16,16 +16,16 @@ describe 'DataMapper::SubjectSet#<<' do
 
   end
 
-  before(:each) do
+  before do
     @old_size  = set.size
     @old_index = set.entries.index(entry1)
   end
 
   subject { set << entry2 }
 
-  let(:set)    { DataMapper::SubjectSet.new([entry1]) }
-  let(:entry1) { Person.new('snusnu', 'programming')  }
-  let(:entry2) { Person.new('snusnu', 'tabletennis')  }
+  let(:set)    { DataMapper::SubjectSet.new([ entry1 ]) }
+  let(:entry1) { Person.new('snusnu', 'programming')    }
+  let(:entry2) { Person.new('snusnu', 'tabletennis')    }
 
   context 'when appending a not yet included entry' do
     let(:entry2) { Person.new('Alice', 'cryptography') }
@@ -45,4 +45,3 @@ describe 'DataMapper::SubjectSet#<<' do
     end
   end
 end
-

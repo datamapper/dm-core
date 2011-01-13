@@ -7,4 +7,3 @@ end
 shared_examples_for 'DataMapper::OrderedSet#clear when entries are present' do
   it { should be_empty }
 end
-

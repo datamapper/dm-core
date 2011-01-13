@@ -22,4 +22,3 @@ describe 'DataMapper::OrderedSet#clear' do
     it_should_behave_like 'DataMapper::OrderedSet#clear when entries are present'
   end
 end
-

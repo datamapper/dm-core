@@ -193,7 +193,8 @@ module DataMapper
     #
     # @api private
     def [](name)
-      entries.detect { |entry| entry.name.to_s == name.to_s }
+      name = name.to_s
+      entries.detect { |entry| entry.name.to_s == name }
     end
 
     # Iterate over each entry in the set
@@ -249,4 +250,3 @@ module DataMapper
 
   end # class SubjectSet
 end # module DataMapper
-

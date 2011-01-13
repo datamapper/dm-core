@@ -68,7 +68,7 @@ describe DataMapper::Property do
   end
 
   describe 'override property definition in other repository' do
-    before(:all) do
+    before :all do
       module ::Blog
         class Author
           repository(:other) do

@@ -16,8 +16,8 @@ end
 describe 'DataMapper::OrderedSet#==' do
   subject { ordered_set == other }
 
-  let(:original_entry)  { 1                                            }
-  let(:ordered_set)     { DataMapper::OrderedSet.new([original_entry]) }
+  let(:original_entry)  { 1                                              }
+  let(:ordered_set)     { DataMapper::OrderedSet.new([ original_entry ]) }
 
   context 'with the same ordered_set' do
     let(:other) { ordered_set }
@@ -41,7 +41,7 @@ describe 'DataMapper::OrderedSet#==' do
 
   # TODO This probably needs more thought
   context 'with a class that quacks like OrderedSet and is equivalent otherwise' do
-    let(:other) { DataMapper::Specs::OrderedSetDuck.new([original_entry]) }
+    let(:other) { DataMapper::Specs::OrderedSetDuck.new([ original_entry ]) }
 
     it { should be(false) }
 
@@ -51,7 +51,7 @@ describe 'DataMapper::OrderedSet#==' do
   end
 
   context 'with a subclass that is equivalent otherwise' do
-    let(:other) { Class.new(DataMapper::OrderedSet).new([original_entry]) }
+    let(:other) { Class.new(DataMapper::OrderedSet).new([ original_entry ]) }
 
     it { should be(true) }
 
@@ -72,8 +72,8 @@ describe 'DataMapper::OrderedSet#==' do
   end
 
   context 'with different ordered_set' do
-    let(:different_entry) { 2                                             }
-    let(:other)           { DataMapper::OrderedSet.new([different_entry]) }
+    let(:different_entry) { 2                                               }
+    let(:other)           { DataMapper::OrderedSet.new([ different_entry ]) }
 
     it { should be(false) }
 
@@ -82,4 +82,3 @@ describe 'DataMapper::OrderedSet#==' do
     end
   end
 end
-

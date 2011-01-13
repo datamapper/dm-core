@@ -7,4 +7,3 @@ end
 shared_examples_for 'DataMapper::SubjectSet#clear when entries are present' do
   it_should_behave_like 'DataMapper::OrderedSet#clear when entries are present'
 end
-

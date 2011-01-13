@@ -14,22 +14,19 @@ describe 'DataMapper::OrderedSet#initialize' do
     subject { DataMapper::OrderedSet.new(entries) }
 
     context 'and they do not contain duplicates' do
-      let(:entries) { [entry1, entry2] }
-
-      let(:entry1)  { 1                }
-      let(:entry2)  { 2                }
+      let(:entries) { [ entry1, entry2 ] }
+      let(:entry1)  { 1                  }
+      let(:entry2)  { 2                  }
 
       it_should_behave_like 'DataMapper::OrderedSet#initialize when entries are given and they do not contain duplicates'
     end
 
     context 'and they contain duplicates' do
-      let(:entries) { [entry1, entry2] }
-
-      let(:entry1)  { 1                }
-      let(:entry2)  { 1                }
+      let(:entries) { [ entry1, entry2 ] }
+      let(:entry1)  { 1                  }
+      let(:entry2)  { 1                  }
 
       it_should_behave_like 'DataMapper::OrderedSet#initialize when entries are given and they contain duplicates'
     end
   end
 end
-

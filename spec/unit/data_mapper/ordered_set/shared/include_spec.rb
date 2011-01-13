@@ -7,4 +7,3 @@ end
 shared_examples_for 'DataMapper::OrderedSet#include? when the entry is not present' do
   it { should be(false) }
 end
-

@@ -11,4 +11,3 @@ end
 shared_examples_for 'DataMapper::OrderedSet#index when 2 entries are present' do
   it { should == 1 }
 end
-

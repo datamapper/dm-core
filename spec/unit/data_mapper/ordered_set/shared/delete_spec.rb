@@ -23,5 +23,3 @@ shared_examples_for 'DataMapper::OrderedSet#delete when deleting a not yet inclu
     ordered_set.index(entry3).should == 2
   end
 end
-
-
