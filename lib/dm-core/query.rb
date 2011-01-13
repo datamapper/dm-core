@@ -853,14 +853,26 @@ module DataMapper
           conditions.each do |subject, bind_value|
             case subject
               when Symbol, ::String
-                unless subject.to_s.include?('.') || @properties.named?(subject) || @relationships.key?(subject)
-                  raise ArgumentError, "condition #{subject.inspect} does not map to a property or relationship in #{model}"
+                original = subject
+                subject  = subject.to_s
+
+                if subject.include?('.')
+                  unless @relationships.key?(subject[0, subject.index('.')])
+                    raise ArgumentError, "condition #{original.inspect} does not map to a relationship in #{model}"
+                  end
+                elsif !@properties.named?(subject) && !@relationships.key?(subject)
+                  raise ArgumentError, "condition #{original.inspect} does not map to a property or relationship in #{model}"
+                end
+
+              when Property
+                unless @properties.include?(subject)
+                  raise ArgumentError, "condition #{subject.name.inspect} does not map to a property in #{model}, but belongs to #{subject.model}"
                 end
 
               when Operator
                 operator = subject.operator
 
-                unless (Conditions::Comparison.slugs | [ :not ]).include?(operator)
+                unless Conditions::Comparison.slugs.include?(operator) || operator == :not
                   raise ArgumentError, "condition #{subject.inspect} used an invalid operator #{operator}"
                 end
 
@@ -869,11 +881,10 @@ module DataMapper
               when Path
                 assert_valid_links(subject.relationships)
 
-              when Associations::Relationship, Property
-                # TODO: validate that it belongs to the current model, or to any
-                # model in the links
-                #unless @properties.include?(subject)
-                #  raise ArgumentError, "condition #{subject.name.inspect} does not map to a property in #{model}"
+              when Associations::Relationship
+                # TODO: validate that it belongs to the current model
+                #unless subject.source_model.equal?(model)
+                #  raise ArgumentError, "condition #{subject.name.inspect} is not a valid relationship for #{model}, it's source model was #{subject.source_model}"
                 #end
 
               else
@@ -1030,9 +1041,10 @@ module DataMapper
     #
     # @api private
     def normalize_options(options = OPTIONS)
-      (options & [ :order, :fields, :links, :unique ]).each do |option|
-        send("normalize_#{option}")
-      end
+      normalize_order  if options.include? :order
+      normalize_fields if options.include? :fields
+      normalize_links  if options.include? :links
+      normalize_unique if options.include? :unique
     end
 
     # Normalize order elements to Query::Direction instances
@@ -1154,6 +1166,16 @@ module DataMapper
     end
 
     # @api private
+    def equality_operator_for_type(bind_value)
+      case bind_value
+        when Model, String then :eql
+        when Enumerable    then :in
+        when Regexp        then :regexp
+        else                    :eql
+      end
+    end
+
+    # @api private
     def append_property_condition(subject, bind_value, operator)
       negated = operator == :not
 
@@ -1174,15 +1196,6 @@ module DataMapper
       end
 
       add_condition(condition)
-    end
-
-    def equality_operator_for_type(bind_value)
-      case bind_value
-        when Model, String then :eql
-        when Enumerable    then :in
-        when Regexp        then :regexp
-        else                    :eql
-      end
     end
 
     # @api private

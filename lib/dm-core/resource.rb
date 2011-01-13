@@ -1046,7 +1046,7 @@ module DataMapper
     def save_parents(execute_hooks)
       run_once(true) do
         parent_relationships.map do |relationship|
-          parent = relationship.get!(self)
+          parent = relationship.get(self)
 
           if parent.__send__(:save_parents, execute_hooks) && parent.__send__(:save_self, execute_hooks)
             relationship.set(self, parent)  # set the FK values

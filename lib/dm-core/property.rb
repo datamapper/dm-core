@@ -521,19 +521,6 @@ module DataMapper
       !!@unique
     end
 
-    # Returns the hash of the property name
-    #
-    # This is necessary to allow comparisons between different properties
-    # in different models, having the same base model
-    #
-    # @return [Integer]
-    #   the property name hash
-    #
-    # @api semipublic
-    def hash
-      name.hash
-    end
-
     # Returns index name if property has index.
     #
     # @return [Boolean, Symbol, Array]
@@ -543,9 +530,7 @@ module DataMapper
     #   returns false if the property does not belong to any indexes
     #
     # @api public
-    def index
-      @index
-    end
+    attr_reader :index
 
     # Returns true if property has unique index. Serial properties and
     # keys are unique by default.
@@ -557,9 +542,7 @@ module DataMapper
     #   returns false if the property does not belong to any indexes
     #
     # @api public
-    def unique_index
-      @unique_index
-    end
+    attr_reader :unique_index
 
     # Returns whether or not the property is to be lazy-loaded
     #

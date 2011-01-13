@@ -787,6 +787,28 @@ describe DataMapper::Query do
         end
       end
 
+      describe 'that is a Hash with a String key that is a Path and not for a Relationship in the model' do
+        it 'should raise an exception' do
+          lambda {
+            DataMapper::Query.new(@repository, @model, @options.update(:conditions => { 'unknown.id' => 1 }))
+          }.should raise_error(ArgumentError, "condition \"unknown.id\" does not map to a relationship in #{@model}")
+        end
+      end
+
+      describe 'that is a Hash with a Property that does not belong to the model' do
+        before do
+          @alternate_model = DataMapper::Model.new do
+            property :id, DataMapper::Property::Serial
+          end
+        end
+
+        it 'should raise an exception' do
+          lambda {
+            DataMapper::Query.new(@repository, @model, @options.update(:conditions => { @alternate_model.properties[:id] => 1 }))
+          }.should raise_error(ArgumentError, "condition :id does not map to a property in #{@model}, but belongs to #{@alternate_model}")
+        end
+      end
+
       describe 'that is a Hash with a Query::Operator key that is not for a Property in the model' do
         it 'should raise an exception' do
           lambda {
