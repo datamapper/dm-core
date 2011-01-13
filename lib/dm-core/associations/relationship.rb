@@ -388,7 +388,7 @@ module DataMapper
           return @inverse
         end
 
-        relationships = target_model.relationships(relative_target_repository_name).values
+        relationships = target_model.relationships(relative_target_repository_name)
 
         @inverse = relationships.detect { |relationship| inverse?(relationship) } ||
           invert

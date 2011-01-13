@@ -325,7 +325,7 @@ module DataMapper
   def self.finalize_model(model)
     name            = model.name
     repository_name = model.repository_name
-    relationships   = model.relationships(repository_name).values
+    relationships   = model.relationships(repository_name)
 
     if name.to_s.strip.empty?
       raise IncompleteModelError, "#{model.inspect} must have a name"
