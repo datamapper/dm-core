@@ -1,3 +1,5 @@
+require 'dm-core/support/ordered_set'
+
 module DataMapper
   class DescendantSet
     include Enumerable
@@ -11,7 +13,7 @@ module DataMapper
     #
     # @api private
     def initialize(descendants = [])
-      @descendants = descendants.to_ary
+      @descendants = OrderedSet.new(descendants)
     end
 
     # Copy a DescendantSet instance

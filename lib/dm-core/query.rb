@@ -825,7 +825,7 @@ module DataMapper
       links.each do |link|
         case link
           when Symbol, String
-            unless @relationships.key?(link.to_sym)
+            unless @relationships.named?(link.to_sym)
               raise ArgumentError, "+options[:links]+ entry #{link.inspect} does not map to a relationship in #{model}"
             end
 
@@ -857,10 +857,10 @@ module DataMapper
                 subject  = subject.to_s
 
                 if subject.include?('.')
-                  unless @relationships.key?(subject[0, subject.index('.')])
+                  unless @relationships.named?(subject[0, subject.index('.')])
                     raise ArgumentError, "condition #{original.inspect} does not map to a relationship in #{model}"
                   end
-                elsif !@properties.named?(subject) && !@relationships.key?(subject)
+                elsif !@properties.named?(subject) && !@relationships.named?(subject)
                   raise ArgumentError, "condition #{original.inspect} does not map to a property or relationship in #{model}"
                 end
 

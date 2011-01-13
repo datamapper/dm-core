@@ -24,7 +24,7 @@ end
 
 
 describe Hash, 'to_mash' do
-  before :each do
+  before do
     @hash = Hash.new(10)
   end
 

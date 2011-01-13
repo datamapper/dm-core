@@ -852,7 +852,7 @@ module DataMapper
     def clear_subjects
       model_properties = properties
 
-      (model_properties - model_properties.key | relationships.values).each do |subject|
+      (model_properties - model_properties.key | relationships).each do |subject|
         next unless subject.loaded?(self)
         remove_instance_variable(subject.instance_variable_name)
       end
@@ -914,7 +914,7 @@ module DataMapper
     def parent_relationships
       parent_relationships = []
 
-      relationships.each_value do |relationship|
+      relationships.each do |relationship|
         next unless relationship.respond_to?(:resource_for)
         set_default_value(relationship)
         next unless relationship.loaded?(self) && relationship.get!(self)
@@ -934,7 +934,7 @@ module DataMapper
     def child_relationships
       child_relationships = []
 
-      relationships.each_value do |relationship|
+      relationships.each do |relationship|
         next unless relationship.respond_to?(:collection_for)
         set_default_value(relationship)
         next unless relationship.loaded?(self)

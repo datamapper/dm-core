@@ -70,7 +70,7 @@ module DataMapper
       def respond_to?(method, include_private = false)
         super                                                                   ||
         (defined?(@property) && @property.respond_to?(method, include_private)) ||
-        @model.relationships(@repository_name).key?(method)                     ||
+        @model.relationships(@repository_name).named?(method)                   ||
         @model.properties(@repository_name).named?(method)
       end
 
