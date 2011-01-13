@@ -38,29 +38,29 @@ module DataMapper
           !required?
         end
 
-        # Returns a set of keys that identify child model
+        # Returns a set of keys that identify source model
         #
-        # @return   [DataMapper::PropertySet]  a set of properties that identify child model
+        # @return   [DataMapper::PropertySet]  a set of properties that identify source model
         # @api private
         def child_key
           return @child_key if defined?(@child_key)
 
-          model           = child_model
-          repository_name = child_repository_name || parent_repository_name
+          model           = source_model
+          repository_name = source_repository_name || target_repository_name
           properties      = model.properties(repository_name)
 
-          child_key = parent_key.zip(@child_properties || []).map do |parent_property, property_name|
-            property_name ||= "#{name}_#{parent_property.name}".to_sym
+          source_key = target_key.zip(@child_properties || []).map do |target_property, property_name|
+            property_name ||= "#{name}_#{target_property.name}".to_sym
 
             properties[property_name] || begin
               # create the property within the correct repository
               DataMapper.repository(repository_name) do
-                model.property(property_name, parent_property.to_child_key, child_key_options(parent_property))
+                model.property(property_name, target_property.to_child_key, source_key_options(target_property))
               end
             end
           end
 
-          @child_key = properties.class.new(child_key).freeze
+          @child_key = properties.class.new(source_key).freeze
         end
 
         # @api semipublic
@@ -73,15 +73,15 @@ module DataMapper
         #   Hash of conditions that scopes query
         #
         # @api private
-        def source_scope(child)
-          if child.kind_of?(Resource)
-            Query.target_conditions(child, child_key, parent_key)
+        def source_scope(source)
+          if source.kind_of?(Resource)
+            Query.target_conditions(source, source_key, target_key)
           else
             super
           end
         end
 
-        # Returns a Resource for this relationship with a given child
+        # Returns a Resource for this relationship with a given source
         #
         # @param [Resource] source
         #   A Resource to scope the collection with
@@ -92,57 +92,57 @@ module DataMapper
         #   The resource scoped to the relationship, source and query
         #
         # @api private
-        def resource_for(child, other_query = nil)
-          query = query_for(child, other_query)
+        def resource_for(source, other_query = nil)
+          query = query_for(source, other_query)
 
           # If the target key is equal to the model key, we can use the
           # Model#get so the IdentityMap is used
-          if parent_key == parent_model.key
-            parent = parent_model.get(*child_key.get!(child))
-            if query.conditions.matches?(parent)
-              parent
+          if target_key == target_model.key
+            target = target_model.get(*source_key.get!(source))
+            if query.conditions.matches?(target)
+              target
             else
               nil
             end
           else
-            parent_model.first(query)
+            target_model.first(query)
           end
         end
 
-        # Loads and returns association parent (ex.: author) for given child resource
+        # Loads and returns association target (ex.: author) for given source resource
         # (ex.: article)
         #
-        # @param  child  [DataMapper::Resource]
-        #   Child object (ex.: instance of article)
+        # @param  source  [DataMapper::Resource]
+        #   source object (ex.: instance of article)
         # @param  other_query  [DataMapper::Query]
         #   Query options
         #
         # @api semipublic
-        def get(child, query = nil)
-          lazy_load(child)
-          collection = get_collection(child)
+        def get(source, query = nil)
+          lazy_load(source)
+          collection = get_collection(source)
           collection.first(query) if collection
         end
 
-        def get_collection(child)
-          parent = get!(child)
-          parent.collection_for_self if parent
+        def get_collection(source)
+          target = get!(source)
+          target.collection_for_self if target
         end
 
-        # Sets value of association parent (ex.: author) for given child resource
+        # Sets value of association target (ex.: author) for given source resource
         # (ex.: article)
         #
-        # @param child [DataMapper::Resource]
-        #   Child object (ex.: instance of article)
+        # @param source [DataMapper::Resource]
+        #   source object (ex.: instance of article)
         #
-        # @param parent [DataMapper::Resource]
-        #   Parent object (ex.: instance of author)
+        # @param target [DataMapper::Resource]
+        #   target object (ex.: instance of author)
         #
         # @api semipublic
-        def set(child, parent)
-          parent = typecast(parent)
-          child_key.set(child, parent_key.get(parent))
-          set!(child, parent)
+        def set(source, target)
+          target = typecast(target)
+          source_key.set(source, target_key.get(target))
+          set!(source, target)
         end
 
         # @api semipublic
@@ -150,8 +150,8 @@ module DataMapper
           typecast(super)
         end
 
-        # Loads association parent and sets resulting value on
-        # given child resource
+        # Loads association target and sets resulting value on
+        # given source resource
         #
         # @param [Resource] source
         #   the source resource for the association
@@ -159,22 +159,22 @@ module DataMapper
         # @return [undefined]
         #
         # @api private
-        def lazy_load(child)
-          child_key_different = child_key_different?(child)
+        def lazy_load(source)
+          source_key_different = source_key_different?(source)
 
-          if (loaded?(child) && !child_key_different) || !valid_source?(child)
+          if (loaded?(source) && !source_key_different) || !valid_source?(source)
             return
           end
 
           # SEL: load all related resources in the source collection
-          if child.saved? && (collection = child.collection).size > 1
+          if source.saved? && (collection = source.collection).size > 1
             eager_load(collection)
           end
 
-          if !loaded?(child) || (child_key_dirty?(child) && child.saved?)
-            set!(child, resource_for(child))
-          elsif loaded?(child) && child_key_different
-            child_key.set(child, parent_key.get!(get!(child)))
+          if !loaded?(source) || (source_key_dirty?(source) && source.saved?)
+            set!(source, resource_for(source))
+          elsif loaded?(source) && source_key_different
+            source_key.set(source, target_key.get!(get!(source)))
           end
         end
 
@@ -198,11 +198,11 @@ module DataMapper
           super
         end
 
-        # Sets the association parents in the resource
+        # Sets the association targets in the resource
         #
-        # @param [Resource] child
+        # @param [Resource] source
         #   the source to set
-        # @param [Array(Resource)] parents
+        # @param [Array(Resource)] targets
         #   the target resource for the association
         # @param [Query, Hash] query
         #   not used
@@ -210,16 +210,16 @@ module DataMapper
         # @return [undefined]
         #
         # @api private
-        def eager_load_targets(child, parents, query)
-          set(child, parents.first)
+        def eager_load_targets(source, targets, query)
+          set(source, targets.first)
         end
 
         # @api private
-        def typecast(parent)
-          if parent.kind_of?(Hash)
-            parent_model.new(parent)
+        def typecast(target)
+          if target.kind_of?(Hash)
+            target_model.new(target)
           else
-            parent
+            target
           end
         end
 
@@ -238,16 +238,16 @@ module DataMapper
         end
 
         # @api private
-        def child_key_options(parent_property)
-          options = parent_property.options.only(:length, :precision, :scale).update(
+        def source_key_options(target_property)
+          options = target_property.options.only(:length, :precision, :scale).update(
             :index    => name,
             :required => required?,
             :key      => key?
           )
 
-          if parent_property.primitive == Integer
-            min = parent_property.min
-            max = parent_property.max
+          if target_property.primitive == Integer
+            min = target_property.min
+            max = target_property.max
 
             options.update(:min => min, :max => max) if min && max
           end
@@ -257,17 +257,17 @@ module DataMapper
 
         # @api private
         def child_properties
-          child_key.map { |property| property.name }
+          source_key.map { |property| property.name }
         end
 
         # @api private
-        def child_key_different?(child)
-          child_key.get!(child) != parent_key.get!(get!(child))
+        def source_key_different?(source)
+          source_key.get!(source) != target_key.get!(get!(source))
         end
 
         # @api private
-        def child_key_dirty?(child)
-          child.dirty_attributes.keys.any? { |property| child_key.include?(property) }
+        def source_key_dirty?(source)
+          source.dirty_attributes.keys.any? { |property| source_key.include?(property) }
         end
       end # class Relationship
     end # module ManyToOne
