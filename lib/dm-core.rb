@@ -336,8 +336,21 @@ module DataMapper
       raise IncompleteModelError, "#{name} must have at least one property or many to one relationship to be valid"
     end
 
-    # initialize join models and target keys
+    # Initialize join models and target keys
     relationships.each do |relationship|
+
+      # If this relationship points to multiple target resources, we
+      # initialize inverse many to one relationships explicitly before
+      # initializing other relationships. This makes sure that foreign
+      # key properties always appear in the order they were declared.
+      if relationship.max > 1
+        relationship.child_model.relationships.each do |inverse|
+          if inverse.is_a?(Associations::ManyToOne::Relationship)
+            inverse.child_key
+          end
+        end
+      end
+
       relationship.child_key
       relationship.through if relationship.respond_to?(:through)
       relationship.via     if relationship.respond_to?(:via)
