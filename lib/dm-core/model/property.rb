@@ -172,7 +172,7 @@ module DataMapper
 
         descendants.each do |model|
           model.properties(repository_name).each do |property|
-            properties[property.name] ||= property
+            properties << property
           end
         end
 
