@@ -6,13 +6,7 @@ module DataMapper
   # to represent composite keys (esp. for associations)
   # and so on.
   class PropertySet < SubjectSet
-
-    extend Deprecate
     include Enumerable
-
-    deprecate :has_property?, :named?
-    deprecate :slice,         :values_at
-    deprecate :add,           :<<
 
     def <<(property)
       clear_cache
