@@ -36,7 +36,7 @@ module DataMapper
   #   end
   #
   # By default, DataMapper supports the following primitive (Ruby) types
-  # also called core types:
+  # also called core properties:
   #
   # * Boolean
   # * Class (datastore primitive is the same as String. Used for Inheritance)
@@ -49,10 +49,6 @@ module DataMapper
   # * String (default length is 50)
   # * Text (limit of 65k characters by default)
   # * Time
-  #
-  # Other types are known as custom types.
-  #
-  # For more information about available Types, see DataMapper::Type
   #
   # == Limiting Access
   # Property access control is uses the same terminology Ruby does. Properties
@@ -315,12 +311,8 @@ module DataMapper
     module PassThroughLoadDump
       # @api semipublic
       def load(value)
-        unless value.nil?
-          value = type.load(value, self) if type
-          typecast(value)
-        else
-          value
-        end
+        return if value.nil?
+        typecast(value)
       end
 
       # Stub instance method for dumping
@@ -331,11 +323,7 @@ module DataMapper
       #
       # @api semipublic
       def dump(value)
-        if type
-          type.dump(value, self)
-        else
-          value
-        end
+        value
       end
     end
 
@@ -377,7 +365,7 @@ module DataMapper
     INVALID_NAMES = (Resource.instance_methods + Resource.private_instance_methods + Query::OPTIONS.to_a).map { |name| name.to_s }.freeze
 
     attr_reader :primitive, :model, :name, :instance_variable_name,
-      :type, :reader_visibility, :writer_visibility, :options,
+      :reader_visibility, :writer_visibility, :options,
       :default, :repository_name, :allow_nil, :allow_blank, :required
 
     class << self
@@ -387,18 +375,8 @@ module DataMapper
 
       # @api semipublic
       def determine_class(type)
-        if type < DataMapper::Property::Object
-          return type
-        end
-
-        name  = DataMapper::Inflector.demodulize(type.name)
-        klass = find_class(name)
-
-        if !klass && type < DataMapper::Type
-          klass = find_class(type.primitive.name)
-        end
-
-        klass
+        return type if type < DataMapper::Property::Object
+        find_class(DataMapper::Inflector.demodulize(type.name))
       end
 
       # @api semipublic
@@ -464,9 +442,9 @@ module DataMapper
         allow_nil(*args)
       end
 
-      # Gives all the options set on this type
+      # Gives all the options set on this property
       #
-      # @return [Hash] with all options and their values set on this type
+      # @return [Hash] with all options and their values set on this property
       #
       # @api public
       def options
@@ -481,9 +459,9 @@ module DataMapper
 
     accept_options :primitive, *Property::OPTIONS
 
-    # A hook to allow types to extend or modify property it's bound to.
-    # Implementations are not supposed to modify the state of the type class, and
-    # should produce no side-effects on the type class.
+    # A hook to allow properties to extend or modify the model it's bound to.
+    # Implementations are not supposed to modify the state of the property
+    # class, and should produce no side-effects on the property instance.
     def bind
       # no op
     end
@@ -604,16 +582,6 @@ module DataMapper
       @allow_blank
     end
 
-    # Returns whether or not the property is custom (not provided by dm-core)
-    #
-    # @return [Boolean]
-    #   whether or not the property is custom
-    #
-    # @api public
-    def custom?
-      @custom
-    end
-
     # Standardized reader method for the property
     #
     # @param [Resource] resource
@@ -714,9 +682,7 @@ module DataMapper
 
     # @api semipublic
     def typecast(value)
-      if @type && @type.respond_to?(:typecast)
-        @type.typecast(value, self)
-      elsif value.nil? || primitive?(value)
+      if value.nil? || primitive?(value)
         value
       elsif respond_to?(:typecast_to_primitive)
         typecast_to_primitive(value)
@@ -766,7 +732,7 @@ module DataMapper
     end
 
     chainable do
-      def self.new(model, name, options = {}, type = nil)
+      def self.new(model, name, options = {})
         super
       end
     end
@@ -774,13 +740,8 @@ module DataMapper
     protected
 
     # @api semipublic
-    def initialize(model, name, options = {}, type = nil)
+    def initialize(model, name, options = {})
       options = options.to_hash.dup
-
-      if type && !kind_of?(type)
-        warn "#{type} < DataMapper::Type is deprecated, use the new DataMapper::Property API instead (#{caller[2]})"
-        @type = type
-      end
 
       if INVALID_NAMES.include?(name.to_s)
         raise ArgumentError, "+name+ was #{name.inspect}, which cannot be used as a property name since it collides with an existing method or a query option"
@@ -789,7 +750,6 @@ module DataMapper
       assert_valid_options(options)
 
       predefined_options = self.class.options
-      predefined_options.merge!(@type.options) if @type
 
       @repository_name        = model.repository_name
       @model                  = model
@@ -797,8 +757,7 @@ module DataMapper
       @options                = predefined_options.merge(options).freeze
       @instance_variable_name = "@#{@name}".freeze
 
-      @primitive = self.class.primitive || @type.primitive
-      @custom    = !@type.nil?
+      @primitive = self.class.primitive
       @field     = @options[:field].freeze
       @default   = @options[:default]
 
@@ -814,7 +773,7 @@ module DataMapper
 
       determine_visibility
 
-      @type ? @type.bind(self) : bind
+      bind
     end
 
     # @api private

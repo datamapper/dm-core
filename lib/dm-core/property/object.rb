@@ -5,21 +5,12 @@ module DataMapper
 
       # @api semipublic
       def dump(value)
-        return value if value.nil?
-
-        if @type
-          @type.dump(value, self)
-        else
-          [ Marshal.dump(value) ].pack('m')
-        end
+        return if value.nil?
+        [ Marshal.dump(value) ].pack('m')
       end
 
       # @api semipublic
       def load(value)
-        if @type
-          return @type.load(value, self)
-        end
-
         case value
           when ::String
             Marshal.load(value.unpack('m').first)

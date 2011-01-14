@@ -41,12 +41,6 @@ describe DataMapper::Property do
       it 'sets field value using field naming convention on first reference'
     end
 
-    describe '#custom?' do
-      it 'is true for custom type fields (not provided by dm-core)'
-
-      it 'is false for core type fields (provided by dm-core)'
-    end
-
     describe '#default_for' do
       it 'returns default value for non-callables' do
         Image.properties[:format].default_for(Image.new).should == 'jpeg'
@@ -104,10 +98,6 @@ describe DataMapper::Property do
     describe '#initialize' do
       describe 'when tracking strategy is explicitly given' do
         it 'uses tracking strategy from options'
-      end
-
-      describe 'when custom type has tracking stragegy' do
-        it 'uses tracking strategy from type'
       end
     end
 

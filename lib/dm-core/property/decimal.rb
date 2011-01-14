@@ -7,7 +7,7 @@ module DataMapper
 
       protected
 
-      def initialize(model, name, options = {}, type = nil)
+      def initialize(model, name, options = {})
         super
 
         unless @scale.nil?

@@ -31,8 +31,8 @@ module DataMapper
       #
       # @param [Symbol] name
       #   the name for which to call this property
-      # @param [Type] type
-      #   the type to define this property ass
+      # @param [Class] type
+      #   the ruby type to define this property as
       # @param [Hash(Symbol => String)] options
       #   a hash of available options
       #
@@ -55,13 +55,11 @@ module DataMapper
 
         # if the type can be found within Property then
         # use that class rather than the primitive
-        klass = DataMapper::Property.determine_class(type)
-
-        unless klass
+        unless klass = DataMapper::Property.determine_class(type)
           raise ArgumentError, "+type+ was #{type.inspect}, which is not a supported type"
         end
 
-        property = klass.new(self, name, options, type < DataMapper::Type ? type : nil)
+        property = klass.new(self, name, options)
 
         repository_name = self.repository_name
         properties      = properties(repository_name)

@@ -21,7 +21,7 @@ describe DataMapper::Property do
       end
     end
 
-    describe "with custom types" do
+    describe "with property subclasses" do
       before :all do
         module ::CustomProps
           class Property

@@ -637,7 +637,7 @@ describe DataMapper::Query do
           end
         end
 
-        describe 'with a custom Property' do
+        describe 'with a Property subclass' do
           before :all do
             @options[:conditions] = { :password => 'password' }
             @return = DataMapper::Query.new(@repository, @model, @options.freeze)

@@ -27,7 +27,7 @@ module DataMapper
 
       protected
 
-      def initialize(model, name, options = {}, type = nil)
+      def initialize(model, name, options = {})
         super
         @length = @options.fetch(:length, DEFAULT_LENGTH)
       end

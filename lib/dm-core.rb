@@ -81,13 +81,6 @@ require 'dm-core/support/subject'
 
 require 'dm-core/collection'
 
-require 'dm-core/type'
-require 'dm-core/types/boolean'
-require 'dm-core/types/discriminator'
-require 'dm-core/types/text'
-require 'dm-core/types/object'
-require 'dm-core/types/serial'
-
 require 'dm-core/property'
 require 'dm-core/property/object'
 require 'dm-core/property/string'

@@ -170,18 +170,6 @@ share_examples_for 'A public Property' do
     end
   end
 
-  describe "#custom?" do
-    describe "when DM::Type is not provided" do
-      before :all do
-        @property = @type.new(@model, @name)
-      end
-
-      it "should be false" do
-        @property.custom?.should be(false)
-      end
-    end
-  end
-
   describe '#instance_of?' do
     subject { property.instance_of?(klass) }
 

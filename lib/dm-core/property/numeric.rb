@@ -15,7 +15,7 @@ module DataMapper
 
       protected
 
-      def initialize(model, name, options = {}, type = nil)
+      def initialize(model, name, options = {})
         super
 
         if [ BigDecimal, ::Float ].include?(@primitive)

@@ -68,7 +68,7 @@ module DataMapper
 
     # @api semipublic
     def discriminator
-      @discriminator ||= detect { |property| property.kind_of?(Property::Discriminator) || property.type == Types::Discriminator }
+      @discriminator ||= detect { |property| property.kind_of?(Property::Discriminator) }
     end
 
     # @api semipublic

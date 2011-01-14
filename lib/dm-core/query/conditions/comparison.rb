@@ -123,8 +123,8 @@ module DataMapper
         # filtering collections, or the value in the repository when
         # performing queries.
         #
-        # In the case of custom types, this is the value as it is stored in
-        # the repository.
+        # In the case of primitive property, this is the value as it
+        # is stored in the repository.
         #
         # @return [Object]
         #
@@ -136,7 +136,7 @@ module DataMapper
         # The loaded/typecast value
         #
         # In the case of primitive types, this will be the same as +value+,
-        # however when using custom types this stores the loaded value.
+        # however when using primitive property this stores the loaded value.
         #
         # If writing an adapter, you should use +value+, while plugin authors
         # should refer to +loaded_value+.

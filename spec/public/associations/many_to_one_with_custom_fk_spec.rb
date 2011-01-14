@@ -2,7 +2,7 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'spec_hel
 
 # TODO: combine this into many_to_one_spec.rb
 
-describe 'Many to One Associations when foreign key is a custom property' do
+describe 'Many to One Associations when foreign key is a property subclass' do
   before :all do
     class ::CustomPK < DataMapper::Property::String
       key true
