@@ -100,10 +100,7 @@ module DataMapper
 
       # A base class for the various comparison classes.
       class AbstractComparison
-        extend Deprecate
         extend Equalizer
-
-        deprecate :property, :subject
 
         equalize :slug, :subject, :value
 
