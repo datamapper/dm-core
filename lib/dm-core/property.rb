@@ -374,16 +374,15 @@ module DataMapper
         find_class(DataMapper::Inflector.demodulize(type.name))
       end
 
+      # @api private
+      def demodulized_names
+        @demodulized_names ||= {}
+      end
+
       # @api semipublic
       def find_class(name)
-        klass = descendants.detect do |descendant|
-          DataMapper::Inflector.demodulize(descendant.name) == name
-        end
-
-        if !klass && const_defined?(name)
-          klass = const_get(name)
-        end
-
+        klass   = demodulized_names[name]
+        klass ||= const_get(name) if const_defined?(name)
         klass
       end
 
@@ -395,6 +394,14 @@ module DataMapper
       # @api private
       def inherited(descendant)
         descendants << descendant
+
+        # Descendants is a tree rooted in DataMapper::Property that tracks
+        # inheritance.  We pre-calculate each "node"s comparison value
+        # (demodulized class name) to achieve a Hash[]-time lookup.  This saves
+        # us from later having to walk the entire descendant tree to find a node
+        # (#find_class), and from the (expensive, redundant) on-demand
+        # calculation of demodulized node names while searching.
+        Property.demodulized_names[DataMapper::Inflector.demodulize(descendant.name)] = descendant
 
         # inherit accepted options
         descendant.accepted_options.concat(accepted_options)
