@@ -788,7 +788,7 @@ module DataMapper
               raise ArgumentError, "options[:#{key}] must be either true or false"
             end
 
-            if key == :required && (keys & [ :allow_nil, :allow_blank ]).size > 0
+            if key == :required && (keys.include?(:allow_nil) || keys.include?(:allow_blank))
               raise ArgumentError, 'options[:required] cannot be mixed with :allow_nil or :allow_blank'
             end
 
