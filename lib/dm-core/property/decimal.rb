@@ -16,14 +16,12 @@ module DataMapper
           end
         end
 
-        unless @scale.nil?
-          unless @scale >= 0
-            raise ArgumentError, "scale must be equal to or greater than 0, but was #{@scale.inspect}"
-          end
+        unless @scale >= 0
+          raise ArgumentError, "scale must be equal to or greater than 0, but was #{@scale.inspect}"
+        end
 
-          unless @precision >= @scale
-            raise ArgumentError, "precision must be equal to or greater than scale, but was #{@precision.inspect} and scale was #{scale_inspect}"
-          end
+        unless @precision >= @scale
+          raise ArgumentError, "precision must be equal to or greater than scale, but was #{@precision.inspect} and scale was #{scale_inspect}"
         end
       end
 
