@@ -54,5 +54,21 @@ module DataMapper
       named?(name)
     end
 
+    # Check wether this RelationshipSet includes an entry with the given name
+    #
+    # @deprecated use DataMapper::RelationshipSet#named? instead
+    #
+    # @param [#to_s] name
+    #   the name of the entry to look for
+    #
+    # @return [Boolean]
+    #   true if the set contains a relationship with the given name
+    #
+    # @api semipublic
+    def has_key?(name)
+      warn "#{self.class}#has_key? is deprecated. Use #{self.class}#named? instead: #{caller.first}"
+      named?(name)
+    end
+
   end # class RelationshipSet
 end # module DataMapper
