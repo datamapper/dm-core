@@ -18,7 +18,7 @@ module DataMapper
       def initialize(model, name, options = {})
         super
 
-        if [ BigDecimal, ::Float ].include?(@primitive)
+        if @primitive == BigDecimal || @primitive == ::Float
           @precision = @options.fetch(:precision, DEFAULT_PRECISION)
           @scale     = @options.fetch(:scale,     self.class::DEFAULT_SCALE)
 
