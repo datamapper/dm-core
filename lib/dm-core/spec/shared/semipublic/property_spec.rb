@@ -11,9 +11,9 @@ share_examples_for 'A semipublic Property' do
       end
     end
 
-    @model = Blog::Article
-    @property = @type.new(@model, @name)
-    DataMapper.finalize
+    @model      = Blog::Article
+    @options  ||= {}
+    @property   = @type.new(@model, @name, @options)
   end
 
   describe '.new' do
@@ -31,7 +31,7 @@ share_examples_for 'A semipublic Property' do
       end
 
       it 'should set the options to the default' do
-        @property.options.should == @type.options
+        @property.options.should == @options.merge(@type.options)
       end
     end
 
@@ -39,7 +39,7 @@ share_examples_for 'A semipublic Property' do
       [ true, false, :title, [ :title ] ].each do |value|
         describe "when provided #{(options = { attribute => value }).inspect}" do
           before :all do
-            @property = @type.new(@model, @name, options)
+            @property = @type.new(@model, @name, @options.merge(options))
           end
 
           it 'should return a Property' do
@@ -55,7 +55,7 @@ share_examples_for 'A semipublic Property' do
           end
 
           it "should set the options to #{options.inspect}" do
-            @property.options.should == @type.options.merge(options)
+            @property.options.should == @type.options.merge(@options.merge(options))
           end
         end
       end
@@ -64,7 +64,7 @@ share_examples_for 'A semipublic Property' do
         describe "when provided #{(invalid_options = { attribute => value }).inspect}" do
           it 'should raise an exception' do
             lambda {
-              @type.new(@model, @name, invalid_options)
+              @type.new(@model, @name, @options.merge(invalid_options))
             }.should raise_error(ArgumentError, "options[#{attribute.inspect}] must be either true, false, a Symbol or an Array of Symbols")
           end
         end
@@ -125,14 +125,14 @@ share_examples_for 'A semipublic Property' do
 
     describe 'when provide a nil value when required' do
       it 'should return false' do
-        @property = @type.new(@model, @name, :required => true)
+        @property = @type.new(@model, @name, @options.merge(:required => true))
         @property.valid?(nil).should be(false)
       end
     end
 
     describe 'when provide a nil value when not required' do
       it 'should return false' do
-        @property = @type.new(@model, @name, :required => false)
+        @property = @type.new(@model, @name, @options.merge(:required => false))
         @property.valid?(nil).should be(true)
       end
     end

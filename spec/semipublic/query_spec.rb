@@ -18,7 +18,7 @@ describe DataMapper::Query do
 
       property :name,     String,   :key => true
       property :password, Password
-      property :balance,  Decimal
+      property :balance,  Decimal, :precision => 5, :scale => 2
 
       belongs_to :referrer, self, :required => false
       has n, :referrals, self, :inverse => :referrer

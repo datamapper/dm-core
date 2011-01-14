@@ -10,6 +10,12 @@ module DataMapper
       def initialize(model, name, options = {})
         super
 
+        [ :scale, :precision ].each do |key|
+          unless options.key?(key)
+            warn "options[#{key.inspect}] should be set for #{self.class}, defaulting to #{send(key).inspect}"
+          end
+        end
+
         unless @scale.nil?
           unless @scale >= 0
             raise ArgumentError, "scale must be equal to or greater than 0, but was #{@scale.inspect}"

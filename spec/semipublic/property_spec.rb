@@ -53,7 +53,7 @@ describe DataMapper::Property do
         property :id,         Integer, :key => true
         property :name,       String
         property :rating,     Float
-        property :rate,       Decimal
+        property :rate,       Decimal, :precision => 5, :scale => 2
         property :type,       Class
         property :alias,      String
         property :active,     Boolean

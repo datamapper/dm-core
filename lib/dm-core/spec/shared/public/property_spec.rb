@@ -11,7 +11,8 @@ share_examples_for 'A public Property' do
       end
     end
 
-    @model = Blog::Article
+    @model     = Blog::Article
+    @options ||= {}
   end
 
   describe "with a sub-type" do
@@ -70,7 +71,7 @@ share_examples_for 'A public Property' do
           before :all do
             @type.foo true
             @type.bar 1
-            @property = @type.new(@model, @name)
+            @property = @type.new(@model, @name, @options)
           end
 
           it "should set the pre-defined option values" do
@@ -111,7 +112,7 @@ share_examples_for 'A public Property' do
       [true, false].each do |value|
         describe "when created with :#{opt} => #{value}" do
           before :all do
-            @property = @type.new(@model, @name, opt => value)
+            @property = @type.new(@model, @name, @options.merge(opt => value))
           end
 
           it "should return #{value}" do
@@ -123,7 +124,7 @@ share_examples_for 'A public Property' do
       describe "when created with :#{opt} => true and :required => true" do
         it "should fail with ArgumentError" do
           lambda {
-            @property = @type.new(@model, @name, opt => true, :required => true)
+            @property = @type.new(@model, @name, @options.merge(opt => true, :required => true))
           }.should raise_error(ArgumentError,
             "options[:required] cannot be mixed with :allow_nil or :allow_blank")
         end
@@ -137,7 +138,7 @@ share_examples_for 'A public Property' do
         describe "when created with :#{method} => #{value}" do
           before :all do
             opt = method.to_s.chomp('?').to_sym
-            @property = @type.new(@model, @name, opt => value)
+            @property = @type.new(@model, @name, @options.merge(opt => value))
           end
 
           it "should return #{value}" do
@@ -151,7 +152,7 @@ share_examples_for 'A public Property' do
   describe "#lazy?" do
     describe "when created with :lazy => true, :key => false" do
       before :all do
-        @property = @type.new(@model, @name, :lazy => true, :key => false)
+        @property = @type.new(@model, @name, @options.merge(:lazy => true, :key => false))
       end
 
       it "should return true" do
@@ -161,7 +162,7 @@ share_examples_for 'A public Property' do
 
     describe "when created with :lazy => true, :key => true" do
       before :all do
-        @property = @type.new(@model, @name, :lazy => true, :key => true)
+        @property = @type.new(@model, @name, @options.merge(:lazy => true, :key => true))
       end
 
       it "should return false" do
@@ -173,7 +174,7 @@ share_examples_for 'A public Property' do
   describe '#instance_of?' do
     subject { property.instance_of?(klass) }
 
-    let(:property) { @type.new(@model, @name) }
+    let(:property) { @type.new(@model, @name, @options) }
 
     context 'when provided the property class' do
       let(:klass) { @type }
@@ -197,7 +198,7 @@ share_examples_for 'A public Property' do
   describe '#kind_of?' do
     subject { property.kind_of?(klass) }
 
-    let(:property) { @type.new(@model, @name) }
+    let(:property) { @type.new(@model, @name, @options) }
 
     context 'when provided the property class' do
       let(:klass) { @type }
