@@ -465,17 +465,14 @@ module DataMapper
     # @return [String] name of field in data-store
     #
     # @api semipublic
-    def field(repository_name = Undefined)
-      self_repository_name = self.repository_name
-      klass                = self.class
-
-      unless repository_name.equal?(Undefined)
-        raise "Passing in +repository_name+ to #{klass}#field is deprecated (#{caller.first})"
+    def field(repository_name = nil)
+      if repository_name
+        raise "Passing in +repository_name+ to #{self.class}#field is deprecated (#{caller.first})"
       end
 
       # defer setting the field with the adapter specific naming
       # conventions until after the adapter has been setup
-      @field ||= model.field_naming_convention(self_repository_name).call(self).freeze
+      @field ||= model.field_naming_convention(self.repository_name).call(self).freeze
     end
 
     # Returns true if property is unique. Serial properties and keys
