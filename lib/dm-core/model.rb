@@ -13,6 +13,10 @@ module DataMapper
     #
     # If a block is passed, it will be eval'd in the context of the new Model
     #
+    # @param [#to_s] name
+    #   the name of the new model
+    # @param [Object] namespace
+    #   the namespace that will hold the new model
     # @param [Proc] block
     #   a block that will be eval'd in the context of the new Model class
     #
@@ -20,25 +24,12 @@ module DataMapper
     #   the newly created Model class
     #
     # @api semipublic
-    def self.new(storage_name = nil, &block)
-      model = Class.new
+    def self.new(name = nil, namespace = Object, &block)
+      model = name ? namespace.const_set(name, Class.new) : Class.new
 
       model.class_eval <<-RUBY, __FILE__, __LINE__ + 1
         include DataMapper::Resource
-
-        def self.name
-          to_s
-        end
       RUBY
-
-      if storage_name
-        warn "Passing in +storage_name+ to #{name}.new is deprecated (#{caller[0]})"
-        model.class_eval <<-RUBY, __FILE__, __LINE__ + 1
-          def self.default_storage_name
-            #{DataMapper::Inflector.classify(storage_name).inspect}.freeze
-          end
-        RUBY
-      end
 
       model.instance_eval(&block) if block
       model

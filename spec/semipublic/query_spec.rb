@@ -797,9 +797,13 @@ describe DataMapper::Query do
 
       describe 'that is a Hash with a Property that does not belong to the model' do
         before do
-          @alternate_model = DataMapper::Model.new do
+          @alternate_model = DataMapper::Model.new('Alternate') do
             property :id, DataMapper::Property::Serial
           end
+        end
+
+        after do
+          Object.send(:remove_const, 'Alternate')
         end
 
         it 'should raise an exception' do

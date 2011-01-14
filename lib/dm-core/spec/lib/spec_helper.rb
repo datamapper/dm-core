@@ -29,12 +29,9 @@ module DataMapper
         remove_ivars(model)
         model.instance_methods(false).each { |method| model.send(:undef_method, method) }
 
-        DataMapper::Model.descendants.delete(model)
       end
 
-      unless DataMapper::Model.descendants.empty?
-        raise 'DataMapper::Model.descendants is not empty'
-      end
+      DataMapper::Model.descendants.clear
     end
 
     def self.remove_ivars(object, instance_variables = object.instance_variables)

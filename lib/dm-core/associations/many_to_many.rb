@@ -161,7 +161,7 @@ module DataMapper
           if namespace.const_defined?(name)
             namespace.const_get(name)
           else
-            model = Model.new do
+            model = Model.new(name, namespace) do
               # all properties added to the anonymous through model are keys
               def property(name, type, options = {})
                 options[:key] = true
@@ -169,8 +169,6 @@ module DataMapper
                 super
               end
             end
-
-            namespace.const_set(name, model)
           end
         end
 
