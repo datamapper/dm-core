@@ -13,10 +13,6 @@
 module DataMapper
   class Query
     class Direction < Operator
-      extend Deprecate
-
-      deprecate :property,  :target
-      deprecate :direction, :operator
 
       # @api private
       def reverse!
