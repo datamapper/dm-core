@@ -11,20 +11,17 @@ module DataMapper
 
     # @deprecated
     def self.append_inclusions(*inclusions)
-      warn "DataMapper::Resource.append_inclusions is deprecated, use DataMapper::Model.append_inclusions instead (#{caller[0]})"
-      Model.append_inclusions(*inclusions)
+      raise "DataMapper::Resource.append_inclusions is deprecated, use DataMapper::Model.append_inclusions instead (#{caller.first})"
     end
 
     # @deprecated
     def self.extra_inclusions
-      warn "DataMapper::Resource.extra_inclusions is deprecated, use DataMapper::Model.extra_inclusions instead (#{caller[0]})"
-      Model.extra_inclusions
+      raise "DataMapper::Resource.extra_inclusions is deprecated, use DataMapper::Model.extra_inclusions instead (#{caller.first})"
     end
 
     # @deprecated
     def self.descendants
-      warn "DataMapper::Resource.descendants is deprecated, use DataMapper::Model.descendants instead (#{caller[0]})"
-      Model.descendants
+      raise "DataMapper::Resource.descendants is deprecated, use DataMapper::Model.descendants instead (#{caller.first})"
     end
 
     # Return if Resource#save should raise an exception on save failures (per-resource)
@@ -64,19 +61,7 @@ module DataMapper
     #
     # @deprecated
     def update_attributes(attributes = {}, *allowed)
-      model      = self.model
-      call_stack = caller[0]
-
-      warn "#{model}#update_attributes is deprecated, use #{model}#update instead (#{call_stack})"
-
-      if allowed.any?
-        warn "specifying allowed in #{model}#update_attributes is deprecated, " \
-          "use Hash#only to filter the attributes in the caller (#{call_stack})"
-        attributes = attributes.only(*allowed)
-      end
-
-      assert_update_clean_only(:update_attributes)
-      update(attributes)
+      raise "#{model}#update_attributes is deprecated, use #{model}#update instead (#{caller.first})"
     end
 
     # Makes sure a class gets all the methods when it includes Resource

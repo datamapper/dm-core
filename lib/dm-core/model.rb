@@ -707,8 +707,7 @@ module DataMapper
     # @api private
     def const_missing(name)
       if name == :DM
-        warn "#{name} prefix deprecated and no longer necessary (#{caller[0]})"
-        self
+        raise "#{name} prefix deprecated and no longer necessary (#{caller.first})"
       elsif name == :Resource
         Resource
       else

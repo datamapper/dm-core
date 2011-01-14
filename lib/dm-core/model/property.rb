@@ -43,14 +43,10 @@ module DataMapper
       #
       # @api public
       def property(name, type, options = {})
-        caller_method = caller[2]
-
         if TrueClass == type
-          warn "#{type} is deprecated, use Boolean instead at #{caller_method}"
-          type = DataMapper::Property::Boolean
+          raise "#{type} is deprecated, use Boolean instead at #{caller[2]}"
         elsif BigDecimal == type
-          warn "#{type} is deprecated, use Decimal instead at #{caller_method}"
-          type = DataMapper::Property::Decimal
+          raise "#{type} is deprecated, use Decimal instead at #{caller[2]}"
         end
 
         # if the type can be found within Property then

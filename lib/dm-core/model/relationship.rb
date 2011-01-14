@@ -165,15 +165,12 @@ module DataMapper
         options    = extract_options(args)
 
         if options.key?(:through)
-          warn "#{model_name}#belongs_to with :through is deprecated, use 'has 1, :#{name}, #{options.inspect}' in #{model_name} instead (#{caller[0]})"
-          return has(1, name, model, options)
+          raise "#{model_name}#belongs_to with :through is deprecated, use 'has 1, :#{name}, #{options.inspect}' in #{model_name} instead (#{caller.first})"
+        elsif options.key?(:model) && model
+          raise ArgumentError, 'should not specify options[:model] if passing the model in the third argument'
         end
 
         assert_valid_options(options)
-
-        if options.key?(:model) && model
-          raise ArgumentError, 'should not specify options[:model] if passing the model in the third argument'
-        end
 
         model ||= options.delete(:model)
 
@@ -259,8 +256,6 @@ module DataMapper
         # TODO: update to match Query#assert_valid_options
         #   - perform options normalization elsewhere
 
-        caller_method = caller[1]
-
         if options.key?(:min) && options.key?(:max)
           min = options[:min]
           max = options[:max]
@@ -284,15 +279,9 @@ module DataMapper
         end
 
         if options.key?(:class_name)
-          options[:class_name] = options[:class_name].to_str
-          warn "+options[:class_name]+ is deprecated, use :model instead (#{caller_method})"
-          options[:model] = options.delete(:class_name)
-        end
-
-        if options.key?(:remote_name)
-          options[:remote_name] = options[:remote_name].to_sym
-          warn "+options[:remote_name]+ is deprecated, use :via instead (#{caller_method})"
-          options[:via] = options.delete(:remote_name)
+          raise "+options[:class_name]+ is deprecated, use :model instead (#{caller[1]})"
+        elsif options.key?(:remote_name)
+          raise "+options[:remote_name]+ is deprecated, use :via instead (#{caller[1]})"
         end
 
         if options.key?(:through)

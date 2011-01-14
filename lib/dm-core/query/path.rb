@@ -33,10 +33,10 @@ module DataMapper
 
       (Conditions::Comparison.slugs | [ :not ]).each do |slug|
         class_eval <<-RUBY, __FILE__, __LINE__ + 1
-          def #{slug}                                                                                                    # def eql
-            #{"warn \"explicit use of '#{slug}' operator is deprecated (#{caller[0]})\"" if slug == :eql || slug == :in} #   warn "explicit use of 'eql' operator is deprecated (#{caller[0]})"
-            Operator.new(self, #{slug.inspect})                                                                          #   Operator.new(self, :eql)
-          end                                                                                                            # end
+          def #{slug}                                                                                                      # def eql
+            #{"raise \"explicit use of '#{slug}' operator is deprecated (#{caller.first})\"" if slug == :eql || slug == :in}  #   raise "explicit use of 'eql' operator is deprecated (#{caller.first})"
+            Operator.new(self, #{slug.inspect})                                                                            #   Operator.new(self, :eql)
+          end                                                                                                              # end
         RUBY
       end
 

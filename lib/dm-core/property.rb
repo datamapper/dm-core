@@ -438,8 +438,7 @@ module DataMapper
       # @api private
       def nullable(*args)
         # :required is preferable to :allow_nil, but :nullable maps precisely to :allow_nil
-        warn "#nullable is deprecated, use #required instead (#{caller[0]})"
-        allow_nil(*args)
+        raise "#nullable is deprecated, use #required instead (#{caller.first})"
       end
 
       # Gives all the options set on this property
@@ -476,11 +475,7 @@ module DataMapper
       klass                = self.class
 
       unless repository_name.equal?(Undefined)
-        warn "Passing in +repository_name+ to #{klass}#field is deprecated (#{caller[0]})"
-
-        if repository_name != self_repository_name
-          raise ArgumentError, "Mismatching +repository_name+ with #{klass}#repository_name (#{repository_name.inspect} != #{self_repository_name.inspect})"
-        end
+        raise "Passing in +repository_name+ to #{klass}#field is deprecated (#{caller.first})"
       end
 
       # defer setting the field with the adapter specific naming
