@@ -598,7 +598,7 @@ module DataMapper
       dirty_attributes = {}
 
       original_attributes.each_key do |property|
-        next unless property.respond_to?(:value)
+        next unless property.respond_to?(:dump)
         dirty_attributes[property] = property.dump(property.get!(self))
       end
 

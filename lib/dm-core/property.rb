@@ -330,12 +330,7 @@ module DataMapper
     include DataMapper::Assertions
     include Subject
     extend Chainable
-    extend Deprecate
     extend Equalizer
-
-    deprecate :unique,    :unique?
-    deprecate :nullable?, :allow_nil?
-    deprecate :value,     :dump
 
     equalize :model, :name
 

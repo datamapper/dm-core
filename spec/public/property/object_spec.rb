@@ -31,7 +31,7 @@ describe DataMapper::Property, 'Object type' do
     it { should equal(@value) }
   end
 
-  it { should respond_to(:value) }
+  it { should respond_to(:dump) }
 
   describe '#dump' do
     describe 'with a value' do
