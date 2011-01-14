@@ -17,10 +17,6 @@ module DataMapper
   # A Collection is typically returned by the Model#all
   # method.
   class Collection < LazyArray
-    extend Deprecate
-
-    deprecate :add,   :<<
-    deprecate :build, :new
 
     # Returns the Query the Collection is scoped with
     #
