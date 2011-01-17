@@ -343,7 +343,7 @@ module DataMapper
         relationship.via     if relationship.respond_to?(:via)
       else
         # If this is a "one to one" or "one to many" relationship, initialize
-        # the inverse many to one relationships explicitly before initializing
+        # the inverse "many to one" relationships explicitly before initializing
         # other relationships. This makes sure that foreign key properties always
         # appear in the order they were declared.
         relationship.child_model.relationships.each do |remote_relationship|
