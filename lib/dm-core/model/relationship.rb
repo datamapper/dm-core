@@ -44,7 +44,7 @@ module DataMapper
       #
       # @param [Symbol] repository_name
       #   Name of the repository for which relationships set is returned
-      # @return [Mash]  relationships set for given repository
+      # @return [RelationshipSet]  relationships set for given repository
       #
       # @api semipublic
       def relationships(repository_name = default_repository_name)

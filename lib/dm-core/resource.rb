@@ -764,7 +764,7 @@ module DataMapper
 
     # Gets this instance's Model's properties
     #
-    # @return [Array(Property)]
+    # @return [PropertySet]
     #   List of this Resource's Model's properties
     #
     # @api private
@@ -774,7 +774,7 @@ module DataMapper
 
     # Gets this instance's Model's relationships
     #
-    # @return [Array(Associations::Relationship)]
+    # @return [RelationshipSet]
     #   List of this instance's Model's Relationships
     #
     # @api private

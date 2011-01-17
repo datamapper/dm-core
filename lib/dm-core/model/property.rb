@@ -109,7 +109,7 @@ module DataMapper
       #   The name of the repository to use. Uses the default Repository
       #   if none is specified.
       #
-      # @return [Array]
+      # @return [PropertySet]
       #   A list of Properties defined on this Model in the given Repository
       #
       # @api public
