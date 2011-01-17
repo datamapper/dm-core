@@ -22,10 +22,11 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'spec_hel
         class Article
           include DataMapper::Resource
 
-          property :id,       Serial
-          property :title,    String, :required => true
-          property :content,  Text
-          property :subtitle, String
+          property :id,         Serial
+          property :title,      String, :required => true
+          property :content,    Text
+          property :subtitle,   String
+          property :attachment, Object
 
           belongs_to :author, :required => false
           belongs_to :original, self, :required => false

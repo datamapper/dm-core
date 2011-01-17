@@ -566,7 +566,8 @@ share_examples_for 'A public Collection' do
   describe '#new' do
     describe 'when scoped to a property' do
       before :all do
-        @return = @resource = @articles.new
+        @source = @articles.new(:attachment => "A File")
+        @return = @resource = @articles.new(:original => @source)
       end
 
       it 'should return a Resource' do
@@ -583,6 +584,10 @@ share_examples_for 'A public Collection' do
 
       it 'should use the query conditions to set default values' do
         @resource.title.should == 'Sample Article'
+      end
+
+      it 'should use the query conditions to set default values when accessed through a m:1 relationship' do
+        @resource.original.attachment.should == 'A File'
       end
     end
 

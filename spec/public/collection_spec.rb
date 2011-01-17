@@ -12,11 +12,12 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
         class Article
           include DataMapper::Resource
 
-          property :id,       Serial
-          property :title,    String, :required => true
-          property :content,  Text
-          property :subtitle, String
-          property :author,   String, :required => true
+          property :id,         Serial
+          property :title,      String, :required => true
+          property :content,    Text
+          property :subtitle,   String
+          property :author,     String, :required => true
+          property :attachment, Object
 
           belongs_to :original, self, :required => false
           has n, :revisions, self, :child_key => [ :original_id ]

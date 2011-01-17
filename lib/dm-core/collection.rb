@@ -1261,7 +1261,7 @@ module DataMapper
           subject = condition.subject
           next unless model_properties.include?(subject) || (condition.relationship? && subject.source_model == model)
 
-          default_attributes[subject] = condition.value
+          default_attributes[subject] = condition.loaded_value
         end
       end
 
