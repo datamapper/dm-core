@@ -393,15 +393,27 @@ module DataMapper
 
       # @api private
       def inherited(descendant)
+        # Descendants is a tree rooted in DataMapper::Property that tracks
+        # inheritance.  We pre-calculate each comparison value (demodulized
+        # class name) to achieve a Hash[]-time lookup, rather than walk the
+        # entire descendant tree and calculate names on-demand (expensive,
+        # redundant).
+        #
+        # Since the algorithm relegates property class name lookups to a flat
+        # namespace, we need to ensure properties defined outside of DM don't
+        # override built-ins (Serial, String, etc) by merely defining a property
+        # of a same name.  We avoid this by only ever adding to the lookup
+        # table.  Given that DM loads its own property classes first, we can
+        # assume that their names are "reserved" when added to the table.
+        #
+        # External property authors who want to provide "replacements" for
+        # builtins (e.g. in a non-DM-supported adapter) should follow the
+        # convention of wrapping those properties in a module, and include'ing
+        # the module on the model class directly.  This bypasses the DM-hooked
+        # const_missing lookup that would normally check this table.
         descendants << descendant
 
-        # Descendants is a tree rooted in DataMapper::Property that tracks
-        # inheritance.  We pre-calculate each "node"s comparison value
-        # (demodulized class name) to achieve a Hash[]-time lookup.  This saves
-        # us from later having to walk the entire descendant tree to find a node
-        # (#find_class), and from the (expensive, redundant) on-demand
-        # calculation of demodulized node names while searching.
-        Property.demodulized_names[DataMapper::Inflector.demodulize(descendant.name)] = descendant
+        Property.demodulized_names[DataMapper::Inflector.demodulize(descendant.name)] ||= descendant
 
         # inherit accepted options
         descendant.accepted_options.concat(accepted_options)

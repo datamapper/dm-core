@@ -23,10 +23,13 @@ describe DataMapper::Property do
 
     describe "with property subclasses" do
       before :all do
+        Object.send(:remove_const, :CustomProps) if Object.const_defined?(:CustomProps)
+
         module ::CustomProps
-          class Property
-            class Hash  < DataMapper::Property::Object; end
-            class Other < DataMapper::Property::Object; end
+          module Property
+            class Hash   < DataMapper::Property::Object; end
+            class Other  < DataMapper::Property::Object; end
+            class Serial < DataMapper::Property::Object; end
           end
         end
       end
@@ -42,6 +45,28 @@ describe DataMapper::Property do
 
         it { subject.should be(::CustomProps::Property::Other) }
       end
+
+      describe "should always use the DM property when a built-in is referenced indirectly" do
+        subject do
+          Class.new do
+            extend ::DataMapper::Model
+          end
+        end
+
+        it { subject::Serial.should be(::DataMapper::Property::Serial) }
+      end
+
+      describe "should always use the custom property when an overridden built-in is directly attached to the model" do
+        subject do
+          Class.new do
+            extend ::DataMapper::Model
+            include ::CustomProps::Property
+          end
+        end
+
+        it { subject::Serial.should be(::CustomProps::Property::Serial) }
+      end
+
     end
   end
 
