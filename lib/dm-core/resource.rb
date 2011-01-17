@@ -340,7 +340,7 @@ module DataMapper
     # original value, and then removing all the ivars for properties
     # and relationships.  On the next access of those ivars, the
     # resource will eager load what it needs.  While this is more of
-    # a lazy reload, it should result is more consistent behavior
+    # a lazy reload, it should result in more consistent behavior
     # since no cached results will remain from the initial load.
     #
     # @return [Resource]
