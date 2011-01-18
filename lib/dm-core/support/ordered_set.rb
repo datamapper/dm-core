@@ -237,8 +237,8 @@ module DataMapper
     # @param [Integer] index
     #   the index of the desired entry
     #
-    # @return [Object]
-    #   the entry at the given index
+    # @return [Object, nil]
+    #   the entry at the given index, or nil if no entry is present
     #
     # @api private
     def [](index)
