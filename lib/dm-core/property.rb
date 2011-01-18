@@ -464,7 +464,7 @@ module DataMapper
         options = {}
         accepted_options.each do |method|
           value = send(method)
-          options[method] = send(method) unless value.nil?
+          options[method] = value unless value.nil?
         end
         options
       end
