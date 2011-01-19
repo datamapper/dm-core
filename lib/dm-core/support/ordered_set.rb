@@ -31,7 +31,7 @@ module DataMapper
       # the cache object that it uses to
       #
       #     1. keep track of insertion order
-      #     2. to enforce set semantics.
+      #     2. enforce set semantics.
       #
       # Classes including {API} must customize the behavior of the cache in 2 ways:
       #
@@ -43,8 +43,7 @@ module DataMapper
       #
       # They must determine which objects are valid set entries by overwriting the
       # {#valid?} method. The {#valid?} method accepts an arbitrary object as param and
-      # the overwriting method must return either true or false. By default, {#valid?}
-      # always returns true.
+      # the overwriting method must return either true or false.
       #
       # The motivation behind this is that set semantics cannot always be enforced
       # by calling {#eql?} and {#hash} on the set's entries. For example, two entries
