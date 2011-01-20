@@ -589,7 +589,7 @@ module DataMapper
             model     = discriminator && discriminator.load(record[discriminator]) || self
             model_key = model.key(repository_name)
 
-            resource = if model_key.valid?(key_values = record.values_at(*model_key))
+            resource = if model_key.valid?(key_values = load_key_values(record.only(*model_key)))
               identity_map = repository.identity_map(model)
               identity_map[key_values]
             end
@@ -653,6 +653,11 @@ module DataMapper
     # @api semipublic
     def default_order(repository_name = default_repository_name)
       @default_order[repository_name] ||= key(repository_name).map { |property| Query::Direction.new(property) }.freeze
+    end
+
+    # @api private
+    def load_key_values(key_values)
+      key_values.map { |key, value| key.load(value) }
     end
 
     # Get the repository with a given name, or the default one for the current

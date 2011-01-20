@@ -93,4 +93,56 @@ describe DataMapper::Model do
       end
     end
   end
+
+  supported_by :all do
+    describe ".load" do
+      before :all do
+        module DataMapper
+          class Property
+            class StringID < Integer
+              key true
+
+              def custom?
+                true
+              end
+
+              def load(value)
+                value.to_s
+              end
+
+              def dump(value)
+                value.to_i
+              end
+            end
+          end
+        end
+
+        class User
+          include DataMapper::Resource
+
+          property :foo, StringID
+          property :bar, StringID
+        end
+
+        DataMapper.finalize
+        DataMapper.auto_migrate!
+      end
+
+      describe "fetched resource" do
+        let(:user_key) { ["1", "2"] }
+
+        before(:all) { User.create(:foo => user_key.first, :bar => user_key.last) }
+
+        subject { User.first }
+
+        it "should correctly load the resource setting clean state" do
+          subject.persisted_state.should be_kind_of(DataMapper::Resource::State::Clean)
+        end
+
+        it "should use loaded key for IM" do
+          subject.repository.identity_map(User).keys.should include(user_key)
+        end
+      end
+    end
+  end
 end
