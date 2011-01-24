@@ -1134,7 +1134,7 @@ module DataMapper
     # @api private
     def normalize_unique
       unless @options.key?(:unique)
-        @unique = @links.reject {|x| (0..1).include?(x.min) && x.max == 1 }.any?
+        @unique = @links.reject {|x| x.min.between?(0, 1) && x.max == 1 }.any?
       end
     end
 
