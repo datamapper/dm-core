@@ -1052,7 +1052,7 @@ module DataMapper
     # Checks if the resource has unsaved changes
     #
     # @return [Boolean]
-    #  true if the resource has unsaged changes
+    #  true if the resource has unsaved changes
     #
     # @api semipublic
     def dirty_self?
