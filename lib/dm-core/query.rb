@@ -926,7 +926,7 @@ module DataMapper
     #
     # @api private
     def assert_valid_limit(limit)
-      limit = limit.to_int
+      limit = limit.to_i
 
       unless limit >= 0
         raise ArgumentError, "+options[:limit]+ must be greater than or equal to 0, but was #{limit.inspect}"
