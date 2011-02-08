@@ -63,6 +63,13 @@ module DataMapper
 
     # Makes sure a class gets all the methods when it includes Resource
     #
+    # Note that including this module into an anonymous class will leave
+    # the model descendant tracking mechanism with no possibility to reliably
+    # track the anonymous model across code reloads. This means that
+    # {DataMapper::DescendantSet} will currently leak memory in scenarios where
+    # anonymous models are reloaded multiple times (as is the case in dm-rails
+    # development mode for example).
+    #
     # @api private
     def self.included(model)
       model.extend Model

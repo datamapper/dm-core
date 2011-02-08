@@ -9,7 +9,7 @@ module DataMapper
 
     include Enumerable
 
-    # Creates a new Model class with default_storage_name +storage_name+
+    # Creates a new Model class with its constant already set
     #
     # If a block is passed, it will be eval'd in the context of the new Model
     #
@@ -23,7 +23,7 @@ module DataMapper
     # @return [Model]
     #   the newly created Model class
     #
-    # @api semipublic
+    # @api private
     def self.new(name = nil, namespace = Object, &block)
       model = name ? namespace.const_set(name, Class.new) : Class.new
 
