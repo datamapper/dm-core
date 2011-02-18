@@ -12,7 +12,7 @@ group :runtime do # Runtime dependencies (as in the gemspec)
   if ENV['EXTLIB']
     gem 'extlib',        '~> 0.9.15', SOURCE => "#{DATAMAPPER}/extlib#{REPO_POSTFIX}", :require => nil
   else
-    gem 'activesupport', '~> 3.0.3', :require => nil
+    gem 'activesupport', '~> 3.0.4', :require => nil
   end
 
   gem 'addressable',     '~> 2.2'
