@@ -2,7 +2,7 @@ require 'rubygems'
 require 'rake'
 
 begin
-  gem 'jeweler', '~> 1.4.0'
+  gem 'jeweler', '~> 1.5.2'
   require 'jeweler'
 
   Jeweler::Tasks.new do |gem|
@@ -20,7 +20,7 @@ begin
     gem.add_dependency 'addressable', '~> 2.2'
 
     gem.add_development_dependency 'rspec',   '~> 1.3'
-    gem.add_development_dependency 'jeweler', '~> 1.4'
+    gem.add_development_dependency 'jeweler', '~> 1.5'
   end
 
   Jeweler::GemcutterTasks.new

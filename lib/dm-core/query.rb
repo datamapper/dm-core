@@ -1073,7 +1073,7 @@ module DataMapper
 
           when Path
             Direction.new(order.property)
-            
+
         end
       end
     end
