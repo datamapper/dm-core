@@ -24,6 +24,7 @@ module DataMapper
               @adapter    = DataMapper::Spec.adapter(kind)
               @repository = DataMapper.repository(@adapter.name)
 
+
               # create all tables and constraints before each spec
               if @repository.respond_to?(:auto_migrate!)
                 # If we are going to auto-migrate, we must also finalize
