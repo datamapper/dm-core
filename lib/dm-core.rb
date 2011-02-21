@@ -339,9 +339,9 @@ module DataMapper
         relationship.child_key
       when Associations::ManyToMany::Relationship, Associations::OneToOne::Relationship
         relationship.through if relationship.respond_to?(:through)
-      when Associations::ManyToMany::Relationship, Associations::OneToOne::Relationship
+      when Associations::ManyToMany::Relationship
         # Initialize the chain of "many to many" relationships
-        relationship.via  if relationship.respond_to?(:via)
+        relationship.via if relationship.respond_to?(:via)
       else
         # If this is a "one to one" or "one to many" relationship, initialize
         # the inverse "many to one" relationships explicitly before initializing
