@@ -1,3 +1,4 @@
+require 'spec_helper'
 require 'dm-core/core_ext/try_dup'
 
 describe "try_dup" do

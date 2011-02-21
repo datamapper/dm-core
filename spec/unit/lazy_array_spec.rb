@@ -1,3 +1,4 @@
+require 'spec_helper'
 require 'dm-core/support/lazy_array'
 
 # only needed for specs

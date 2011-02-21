@@ -1,3 +1,4 @@
+require 'spec_helper'
 require 'dm-core/core_ext/object'
 
 describe Object do

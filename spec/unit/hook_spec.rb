@@ -1,3 +1,4 @@
+require 'spec_helper'
 require 'dm-core/support/hook'
 
 describe DataMapper::Hook do
