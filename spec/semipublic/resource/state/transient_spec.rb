@@ -1,5 +1,4 @@
-require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'spec_helper'))
-
+require 'spec_helper'
 describe DataMapper::Resource::State::Transient do
   before :all do
     class ::Author

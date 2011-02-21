@@ -1,4 +1,4 @@
-require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
+require 'spec_helper'
 
 # TODO: move these specs into shared specs for #copy
 describe DataMapper::Model do

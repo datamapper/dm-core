@@ -1,4 +1,4 @@
-require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'spec_helper'))
+require 'spec_helper'
 
 share_examples_for 'A Limited Many to Many Collection' do
   describe '#destroy!' do

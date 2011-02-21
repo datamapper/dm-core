@@ -1,5 +1,4 @@
-require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'spec_helper'))
-
+require 'spec_helper'
 describe DataMapper::Query::Conditions::Comparison do
   before :all do
     module ::Blog

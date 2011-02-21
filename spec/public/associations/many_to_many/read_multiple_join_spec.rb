@@ -1,5 +1,4 @@
-require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'spec_helper'))
-
+require 'spec_helper'
 describe 'Many to Many Associations read across multiple join associations' do
   before :all do
     class ::User
