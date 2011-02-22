@@ -1954,7 +1954,7 @@ end
     describe 'an unknown method' do
       action { subject.unknown }
 
-      should_raise_error(NoMethodError)
+      should_raise_error(NameError)
     end
   end
 end
