@@ -332,16 +332,14 @@ module DataMapper
 
     # Initialize all foreign key properties established by relationships
     relationships.each do |relationship|
-      case relationship
-      when Associations::ManyToOne::Relationship
+      if relationship.kind_of?(Associations::ManyToOne::Relationship)
         # Initialize the foreign key property this "many to one"
         # relationship uses to persist itself
         relationship.child_key
-      when Associations::ManyToMany::Relationship, Associations::OneToOne::Relationship
-        relationship.through if relationship.respond_to?(:through)
-      when Associations::ManyToMany::Relationship
-        # Initialize the chain of "many to many" relationships
-        relationship.via if relationship.respond_to?(:via)
+      elsif relationship.kind_of?(Associations::ManyToMany::Relationship)
+        # Initialize the chain for "many to many" relationships
+        relationship.through
+        relationship.via
       else
         # If this is a "one to one" or "one to many" relationship, initialize
         # the inverse "many to one" relationships explicitly before initializing
