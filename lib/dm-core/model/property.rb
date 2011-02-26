@@ -180,6 +180,20 @@ module DataMapper
 
       private
 
+      # Defines the anonymous module that is used to add properties.
+      # Using a single module here prevents having a very large number
+      # of anonymous modules, where each property has their own module.
+      # @api private
+      def property_module
+        @property_module ||= begin
+          mod = Module.new
+          class_eval do
+            include mod
+          end
+          mod
+        end
+      end
+
       # defines the reader method for the property
       #
       # @api private
@@ -187,27 +201,22 @@ module DataMapper
         name                   = property.name.to_s
         reader_visibility      = property.reader_visibility
         instance_variable_name = property.instance_variable_name
-
-        class_eval <<-RUBY, __FILE__, __LINE__ + 1
-          chainable do
-            #{reader_visibility}
-            def #{name}
-              return #{instance_variable_name} if defined?(#{instance_variable_name})
-              property = properties[#{name.inspect}]
-              #{instance_variable_name} = property ? persisted_state.get(property) : nil
-            end
+        property_module.module_eval <<-RUBY, __FILE__, __LINE__ + 1
+          #{reader_visibility}
+          def #{name}
+            return #{instance_variable_name} if defined?(#{instance_variable_name})
+            property = properties[#{name.inspect}]
+            #{instance_variable_name} = property ? persisted_state.get(property) : nil
           end
         RUBY
 
         boolean_reader_name = "#{name}?"
 
         if property.kind_of?(DataMapper::Property::Boolean)
-          class_eval <<-RUBY, __FILE__, __LINE__ + 1
-            chainable do
-              #{reader_visibility}
-              def #{boolean_reader_name}
-                #{name}
-              end
+          property_module.module_eval <<-RUBY, __FILE__, __LINE__ + 1
+            #{reader_visibility}
+            def #{boolean_reader_name}
+              #{name}
             end
           RUBY
         end
@@ -221,15 +230,12 @@ module DataMapper
         writer_visibility = property.writer_visibility
 
         writer_name = "#{name}="
-
-        class_eval <<-RUBY, __FILE__, __LINE__ + 1
-          chainable do
-            #{writer_visibility}
-            def #{writer_name}(value)
-              property = properties[#{name.inspect}]
-              self.persisted_state = persisted_state.set(property, value)
-              persisted_state.get(property)
-            end
+        property_module.module_eval <<-RUBY, __FILE__, __LINE__ + 1
+          #{writer_visibility}
+          def #{writer_name}(value)
+            property = properties[#{name.inspect}]
+            self.persisted_state = persisted_state.set(property, value)
+            persisted_state.get(property)
           end
         RUBY
       end

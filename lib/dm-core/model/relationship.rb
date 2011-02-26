@@ -308,6 +308,20 @@ module DataMapper
         end
       end
 
+      # Defines the anonymous module that is used to add relationships.
+      # Using a single module here prevents having a very large number
+      # of anonymous modules, where each property has their own module.
+      # @api private
+      def relationship_module
+        @relationship_module ||= begin
+          mod = Module.new
+          class_eval do
+            include mod
+          end
+          mod
+        end
+      end
+
       # Dynamically defines reader method
       #
       # @api private
@@ -319,18 +333,16 @@ module DataMapper
 
         reader_visibility = relationship.reader_visibility
 
-        class_eval <<-RUBY, __FILE__, __LINE__ + 1
-          chainable do
-            #{reader_visibility}
-            def #{reader_name}(query = nil)
-              # TODO: when no query is passed in, return the results from
-              #       the ivar directly. This will require that the ivar
-              #       actually hold the resource/collection, and in the case
-              #       of 1:1, the underlying collection is hidden in a
-              #       private ivar, and the resource is in a known ivar
+        relationship_module.module_eval <<-RUBY, __FILE__, __LINE__ + 1
+          #{reader_visibility}
+          def #{reader_name}(query = nil)
+            # TODO: when no query is passed in, return the results from
+            #       the ivar directly. This will require that the ivar
+            #       actually hold the resource/collection, and in the case
+            #       of 1:1, the underlying collection is hidden in a
+            #       private ivar, and the resource is in a known ivar
 
-              persisted_state.get(relationships[#{name.inspect}], query)
-            end
+            persisted_state.get(relationships[#{name.inspect}], query)
           end
         RUBY
       end
@@ -346,14 +358,12 @@ module DataMapper
 
         writer_visibility = relationship.writer_visibility
 
-        class_eval <<-RUBY, __FILE__, __LINE__ + 1
-          chainable do
-            #{writer_visibility}
-            def #{writer_name}(target)
-              relationship = relationships[#{name.inspect}]
-              self.persisted_state = persisted_state.set(relationship, target)
-              persisted_state.get(relationship)
-            end
+        relationship_module.module_eval <<-RUBY, __FILE__, __LINE__ + 1
+          #{writer_visibility}
+          def #{writer_name}(target)
+            relationship = relationships[#{name.inspect}]
+            self.persisted_state = persisted_state.set(relationship, target)
+            persisted_state.get(relationship)
           end
         RUBY
       end
