@@ -234,4 +234,4 @@ nice syntax tweaks DataMapper delivers out of the box...
 
 == Copyright
 
-Copyright (c) 2010 Dan Kubb. See LICENSE for details.
+Copyright (c) 2011 Dan Kubb. See LICENSE for details.
