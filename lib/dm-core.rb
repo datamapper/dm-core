@@ -11,52 +11,19 @@ module DataMapper
   module Undefined; end
 end
 
-begin
+require 'dm-core/as/core_ext/kernel/singleton_class'
+require 'dm-core/as/core_ext/class/inheritable_attributes'
+require 'dm-core/as/core_ext/object/blank'
+require 'dm-core/as/core_ext/hash/except'
+require 'dm-core/as/mash'
+require 'dm-core/as/inflector'
 
-  # Prefer active_support
+require 'dm-core/core_ext/hash'
+require 'dm-core/core_ext/object'
+require 'dm-core/core_ext/string'
 
-  require 'active_support/core_ext/kernel/singleton_class'
-  require 'active_support/core_ext/class/inheritable_attributes'
-  require 'active_support/core_ext/object/blank'
-  require 'active_support/core_ext/hash/except'
-
-  require 'active_support/hash_with_indifferent_access'
-  require 'active_support/inflector'
-
-  Mash = ActiveSupport::HashWithIndifferentAccess
-
-  require 'dm-core/core_ext/hash'
-  require 'dm-core/core_ext/object'
-  require 'dm-core/core_ext/string'
-
-  module DataMapper
-    Inflector = ActiveSupport::Inflector
-  end
-
-rescue LoadError
-
-  # Default to extlib
-
-  require 'extlib/inflection'
-  require 'extlib/mash'
-  require 'extlib/string'
-  require 'extlib/class'
-  require 'extlib/hash'
-  require 'extlib/object'
-  require 'extlib/blank'
-
-  class Object
-    unless respond_to?(:singleton_class)
-      def singleton_class
-        class << self; self end
-      end
-    end
-  end
-
-  module DataMapper
-    Inflector = Extlib::Inflection
-  end
-
+module DataMapper
+  Inflector = ActiveSupport::Inflector
 end
 
 begin

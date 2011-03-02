@@ -1,14 +1,6 @@
 require 'spec_helper'
 require 'dm-core/core_ext/hash'
-
-begin
-  require 'active_support/hash_with_indifferent_access'
-  unless defined?(Mash)
-    Mash = ActiveSupport::HashWithIndifferentAccess
-  end
-rescue LoadError
-  require 'extlib/mash'
-end
+require 'dm-core/as/mash'
 
 describe Hash, "only" do
   before do

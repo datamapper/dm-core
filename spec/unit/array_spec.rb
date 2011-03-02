@@ -1,14 +1,6 @@
 require 'spec_helper'
 require 'dm-core/core_ext/array'
-
-begin
-  require 'active_support/hash_with_indifferent_access'
-  unless defined?(Mash)
-    Mash = ActiveSupport::HashWithIndifferentAccess
-  end
-rescue LoadError
-  require 'extlib/mash'
-end
+require 'dm-core/as/mash'
 
 describe Array do
   before :all do
