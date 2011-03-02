@@ -1952,7 +1952,7 @@ describe DataMapper::Query do
     end
 
     it 'should return expected value' do
-      @return.should == <<-INSPECT.compress_lines
+      @return.should == DataMapper::Ext::String.compress_lines(<<-INSPECT)
         #<DataMapper::Query
           @repository=:default
           @model=User

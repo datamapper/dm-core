@@ -19,7 +19,7 @@ require 'dm-core/as/inflector'
 
 require 'dm-core/core_ext/hash'
 require 'dm-core/core_ext/object'
-require 'dm-core/core_ext/string'
+require 'dm-core/ext/string'
 
 module DataMapper
   Inflector = ActiveSupport::Inflector
