@@ -1,17 +1,15 @@
 require 'spec_helper'
-require 'dm-core/core_ext/array'
+require 'dm-core/ext/array'
 require 'dm-core/as/mash'
 
-describe Array do
+describe DataMapper::Ext::Array do
   before :all do
     @array = [ [ :a, [ 1 ] ], [ :b, [ 2 ] ], [ :c, [ 3 ] ] ].freeze
   end
 
-  it { @array.should respond_to(:to_hash) }
-
-  describe '#to_hash' do
+  describe '.to_hash' do
     before :all do
-      @return = @array.to_hash
+      @return = DataMapper::Ext::Array.to_hash(@array)
     end
 
     it 'should return a Hash' do
@@ -23,11 +21,9 @@ describe Array do
     end
   end
 
-  it { @array.should respond_to(:to_mash) }
-
-  describe '#to_mash' do
+  describe '.to_mash' do
     before :all do
-      @return = @array.to_mash
+      @return = DataMapper::Ext::Array.to_mash(@array)
     end
 
     it 'should return a Mash' do

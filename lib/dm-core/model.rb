@@ -564,7 +564,8 @@ module DataMapper
       discriminator   = properties(repository_name).discriminator
       no_reload       = !query.reload?
 
-      field_map = fields.map { |property| [ property, property.field ] }.to_hash
+      field_map = fields.map { |property| [ property, property.field ] }
+      field_map = DataMapper::Ext::Array.to_hash(field_map)
 
       records.map do |record|
         identity_map = nil

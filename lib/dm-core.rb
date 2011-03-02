@@ -33,7 +33,7 @@ end
 
 require 'dm-core/core_ext/pathname'
 require 'dm-core/core_ext/module'
-require 'dm-core/core_ext/array'
+require 'dm-core/ext/array'
 
 require 'dm-core/support/chainable'
 require 'dm-core/support/deprecate'

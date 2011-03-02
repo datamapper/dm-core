@@ -49,7 +49,8 @@ share_examples_for 'Resource::State::Persisted#get' do
         @resource.should be_dirty
         @resource.save.should be(true)
 
-        @resource = @model.first(@model.key.zip(@resource.key).to_hash.merge(:fields => @model.key))
+        attributes = DataMapper::Ext::Array.to_hash(@model.key.zip(@resource.key))
+        @resource = @model.first(attributes.merge(:fields => @model.key))
         @state    = @state.class.new(@resource)
 
         # make sure the subject is not loaded
