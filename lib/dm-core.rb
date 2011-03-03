@@ -12,7 +12,6 @@ module DataMapper
 end
 
 require 'dm-core/ext/singleton_class'
-require 'dm-core/as/core_ext/class/inheritable_attributes'
 require 'dm-core/as/core_ext/object/blank'
 require 'dm-core/as/core_ext/hash/except'
 require 'dm-core/as/mash'
