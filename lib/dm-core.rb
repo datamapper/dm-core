@@ -18,10 +18,6 @@ require 'dm-core/ext/hash'
 require 'dm-core/ext/object'
 require 'dm-core/ext/string'
 
-module DataMapper
-  Inflector = ActiveSupport::Inflector
-end
-
 begin
   require 'fastthread'
 rescue LoadError
