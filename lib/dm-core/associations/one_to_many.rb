@@ -109,7 +109,7 @@ module DataMapper
 
         # @api semipublic
         def initialize(name, target_model, source_model, options = {})
-          target_model ||= DataMapper::Inflector.camelize(name.to_s.singularize)
+          target_model ||= DataMapper::Inflector.camelize(DataMapper::Inflector.singularize(name.to_s))
           options        = { :min => 0, :max => source_model.n }.update(options)
           super
         end

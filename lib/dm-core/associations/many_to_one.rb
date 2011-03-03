@@ -234,7 +234,13 @@ module DataMapper
         #
         # @api private
         def inverse_name
-          super || DataMapper::Inflector.underscore(DataMapper::Inflector.demodulize(source_model.name)).pluralize.to_sym
+          name = super
+          return name if name
+
+          name = DataMapper::Inflector.demodulize(source_model.name)
+          name = DataMapper::Inflector.underscore(name)
+          name = DataMapper::Inflector.pluralize(name)
+          name.to_sym
         end
 
         # @api private
