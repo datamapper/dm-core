@@ -11,7 +11,7 @@ module DataMapper
   module Undefined; end
 end
 
-require 'dm-core/as/core_ext/kernel/singleton_class'
+require 'dm-core/ext/singleton_class'
 require 'dm-core/as/core_ext/class/inheritable_attributes'
 require 'dm-core/as/core_ext/object/blank'
 require 'dm-core/as/core_ext/hash/except'

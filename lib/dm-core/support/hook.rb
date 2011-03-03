@@ -1,6 +1,5 @@
 require 'dm-core/support/assertions'
 require 'dm-core/support/local_object_space'
-require 'dm-core/as/core_ext/kernel/singleton_class'
 
 module DataMapper
   #
