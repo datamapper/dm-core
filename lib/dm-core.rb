@@ -18,7 +18,7 @@ require 'dm-core/as/mash'
 require 'dm-core/as/inflector'
 
 require 'dm-core/core_ext/hash'
-require 'dm-core/core_ext/object'
+require 'dm-core/ext/object'
 require 'dm-core/ext/string'
 
 module DataMapper
