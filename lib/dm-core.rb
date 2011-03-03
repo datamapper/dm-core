@@ -13,7 +13,6 @@ end
 
 require 'dm-core/ext/singleton_class'
 require 'dm-core/as/core_ext/object/blank'
-require 'dm-core/as/mash'
 require 'dm-core/as/inflector'
 
 require 'dm-core/ext/hash'
@@ -34,6 +33,7 @@ require 'dm-core/core_ext/pathname'
 require 'dm-core/ext/module'
 require 'dm-core/ext/array'
 
+require 'dm-core/support/mash'
 require 'dm-core/support/chainable'
 require 'dm-core/support/deprecate'
 require 'dm-core/support/descendant_set'

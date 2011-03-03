@@ -1,6 +1,6 @@
 require 'spec_helper'
 require 'dm-core/ext/array'
-require 'dm-core/as/mash'
+require 'dm-core/support/mash'
 
 describe DataMapper::Ext::Array do
   before :all do
@@ -27,7 +27,7 @@ describe DataMapper::Ext::Array do
     end
 
     it 'should return a Mash' do
-      @return.should be_kind_of(Mash)
+      @return.should be_kind_of(DataMapper::Mash)
     end
 
     it 'should return expected value' do

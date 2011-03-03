@@ -1,6 +1,6 @@
 require 'spec_helper'
 require 'dm-core/ext/hash'
-require 'dm-core/as/mash'
+require 'dm-core/support/mash'
 
 describe DataMapper::Ext::Hash, "only" do
   before do
