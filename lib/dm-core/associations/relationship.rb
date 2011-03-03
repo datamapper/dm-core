@@ -451,8 +451,8 @@ module DataMapper
         @options                = options.dup.freeze
         @child_repository_name  = @options[:child_repository_name]
         @parent_repository_name = @options[:parent_repository_name]
-        @child_properties       = @options[:child_key].try_dup.freeze
-        @parent_properties      = @options[:parent_key].try_dup.freeze
+        @child_properties       = DataMapper::Ext.try_dup(@options[:child_key]).freeze
+        @parent_properties      = DataMapper::Ext.try_dup(@options[:parent_key]).freeze
         @min                    = @options[:min]
         @max                    = @options[:max]
         @reader_visibility      = @options.fetch(:reader_visibility, :public)

@@ -16,7 +16,7 @@ module DataMapper
       if @default.respond_to?(:call)
         @default.call(resource, self)
       else
-        @default.try_dup
+        DataMapper::Ext.try_dup(@default)
       end
     end
 

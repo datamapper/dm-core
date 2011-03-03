@@ -9,7 +9,7 @@ class Class
           return nil      if self.object_id == #{self.object_id}
           ivar = superclass.#{ivar}
           return nil if ivar.nil?
-          @#{ivar} = ivar.try_dup
+          @#{ivar} = DataMapper::Ext.try_dup(ivar)
         end
       RUBY
 

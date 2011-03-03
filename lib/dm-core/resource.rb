@@ -752,7 +752,7 @@ module DataMapper
     # @api private
     def initialize_copy(original)
       instance_variables.each do |ivar|
-        instance_variable_set(ivar, instance_variable_get(ivar).try_dup)
+        instance_variable_set(ivar, DataMapper::Ext.try_dup(instance_variable_get(ivar)))
       end
 
       self.persisted_state = persisted_state.class.new(self)

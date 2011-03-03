@@ -363,7 +363,7 @@ module DataMapper
       assert_valid_options(@options)
 
       normalize = DataMapper::Ext::Hash.only(other_options, *OPTIONS - [ :conditions ]).map do |attribute, value|
-        instance_variable_set("@#{attribute}", value.try_dup)
+        instance_variable_set("@#{attribute}", DataMapper::Ext.try_dup(value))
         attribute
       end
 
@@ -748,7 +748,7 @@ module DataMapper
       @fields     = @fields.dup
       @links      = @links.dup
       @conditions = @conditions.dup
-      @order      = @order.try_dup
+      @order      = DataMapper::Ext.try_dup(@order)
     end
 
     # Validate the options
