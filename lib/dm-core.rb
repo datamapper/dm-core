@@ -13,11 +13,10 @@ end
 
 require 'dm-core/ext/singleton_class'
 require 'dm-core/as/core_ext/object/blank'
-require 'dm-core/as/core_ext/hash/except'
 require 'dm-core/as/mash'
 require 'dm-core/as/inflector'
 
-require 'dm-core/core_ext/hash'
+require 'dm-core/ext/hash'
 require 'dm-core/ext/object'
 require 'dm-core/ext/string'
 

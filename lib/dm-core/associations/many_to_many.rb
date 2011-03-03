@@ -292,7 +292,7 @@ module DataMapper
 
           options = self.options
 
-          options.only(*OPTIONS - [ :min, :max ]).update(
+          DataMapper::Ext::Hash.only(options, *OPTIONS - [ :min, :max ]).update(
             :through    => through,
             :child_key  => options[:parent_key],
             :parent_key => options[:child_key],

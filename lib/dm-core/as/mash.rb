@@ -1,4 +1,4 @@
-require 'dm-core/as/core_ext/hash/keys'
+#require 'dm-core/as/core_ext/hash/keys'
 
 # This class has dubious semantics and we only have it so that
 # people can write params[:key] instead of params['key']
@@ -123,7 +123,7 @@ module ActiveSupport
 
     def stringify_keys!; self end
     def stringify_keys; dup end
-    undef :symbolize_keys!
+    #undef :symbolize_keys!
     def symbolize_keys; to_hash.symbolize_keys end
     def to_options!; self end
 

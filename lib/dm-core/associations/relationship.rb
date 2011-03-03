@@ -470,7 +470,7 @@ module DataMapper
         #    query as :condition => and_object from self.query
         #  - this should provide the best performance
 
-        @query = @options.except(*self.class::OPTIONS).freeze
+        @query = DataMapper::Ext::Hash.except(@options, *self.class::OPTIONS).freeze
       end
 
       # Set the correct ivars for the named object
@@ -586,7 +586,7 @@ module DataMapper
 
       # @api private
       def inverted_options
-        options.only(*OPTIONS - [ :min, :max ]).update(:inverse => self)
+        DataMapper::Ext::Hash.only(options, *OPTIONS - [ :min, :max ]).update(:inverse => self)
       end
 
       # @api private

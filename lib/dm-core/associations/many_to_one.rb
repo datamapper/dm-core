@@ -239,7 +239,7 @@ module DataMapper
 
         # @api private
         def source_key_options(target_property)
-          options = target_property.options.only(:length, :precision, :scale).update(
+          options = DataMapper::Ext::Hash.only(target_property.options, :length, :precision, :scale).update(
             :index    => name,
             :required => required?,
             :key      => key?

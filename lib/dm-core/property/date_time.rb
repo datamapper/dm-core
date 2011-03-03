@@ -11,7 +11,7 @@ module DataMapper
       # Typecasts an arbitrary value to a DateTime.
       # Handles both Hashes and DateTime instances.
       #
-      # @param [#to_mash, #to_s] value
+      # @param [Hash, #to_mash, #to_s] value
       #   value to be typecast
       #
       # @return [DateTime]
@@ -19,7 +19,7 @@ module DataMapper
       #
       # @api private
       def typecast_to_primitive(value)
-        if value.respond_to?(:to_mash)
+        if value.is_a?(::Hash) || value.respond_to?(:to_mash)
           typecast_hash_to_datetime(value)
         else
           ::DateTime.parse(value.to_s)
@@ -31,7 +31,7 @@ module DataMapper
       # Creates a DateTime instance from a Hash with keys :year, :month, :day,
       # :hour, :min, :sec
       #
-      # @param [#to_mash] value
+      # @param [Hash, #to_mash] value
       #   value to be typecast
       #
       # @return [DateTime]

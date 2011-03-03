@@ -1097,7 +1097,7 @@ share_examples_for 'Finder Interface' do
       end
 
       it 'should be expected Resource' do
-        @resource.attributes.only(*@conditions.keys).should == @conditions
+        DataMapper::Ext::Hash.only(@resource.attributes, *@conditions.keys).should == @conditions
       end
 
       it 'should be a saved Resource' do
@@ -1140,7 +1140,7 @@ share_examples_for 'Finder Interface' do
       end
 
       it 'should be expected Resource' do
-        @resource.attributes.only(*@conditions.keys).should == @conditions
+        DataMapper::Ext::Hash.only(@resource.attributes, *@conditions.keys).should == @conditions
       end
 
       it 'should not be a saved Resource' do

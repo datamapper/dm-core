@@ -362,12 +362,12 @@ module DataMapper
       @options = @options.merge(other_options).freeze
       assert_valid_options(@options)
 
-      normalize = other_options.only(*OPTIONS - [ :conditions ]).map do |attribute, value|
+      normalize = DataMapper::Ext::Hash.only(other_options, *OPTIONS - [ :conditions ]).map do |attribute, value|
         instance_variable_set("@#{attribute}", value.try_dup)
         attribute
       end
 
-      merge_conditions([ other_options.except(*OPTIONS), other_options[:conditions] ])
+      merge_conditions([ DataMapper::Ext::Hash.except(other_options, *OPTIONS), other_options[:conditions] ])
       normalize_options(normalize | [ :links, :unique ])
 
       self
@@ -689,7 +689,7 @@ module DataMapper
     #
     # @api private
     def to_relative_hash
-      to_hash.only(:fields, :order, :unique, :add_reversed, :reload)
+      DataMapper::Ext::Hash.only(to_hash, :fields, :order, :unique, :add_reversed, :reload)
     end
 
     private
@@ -737,7 +737,7 @@ module DataMapper
       @reload       = @options.fetch :reload,       false
       @raw          = false
 
-      merge_conditions([ @options.except(*OPTIONS), @options[:conditions] ])
+      merge_conditions([ DataMapper::Ext::Hash.except(@options, *OPTIONS), @options[:conditions] ])
       normalize_options
     end
 

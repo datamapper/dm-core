@@ -214,7 +214,8 @@ share_examples_for 'A public Resource' do
 
     describe 'with a saved resource' do
       it 'should return the expected values' do
-        @user.attributes.only(:name, :description, :age).should == { :name => 'dbussink', :description => 'Test', :age => 25 }
+        DataMapper::Ext::Hash.only(@user.attributes, :name, :description, :age).should ==
+          { :name => 'dbussink', :description => 'Test', :age => 25 }
       end
     end
   end

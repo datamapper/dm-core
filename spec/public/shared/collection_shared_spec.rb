@@ -123,7 +123,10 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should update the Collection inline' do
-        @articles.each { |resource| resource.attributes.only(:title, :content).should == { :title => 'Sample Article', :content => 'New Content' } }
+        @articles.each { |resource|
+          DataMapper::Ext::Hash.only(resource.attributes, :title, :content).should ==
+            { :title => 'Sample Article', :content => 'New Content' }
+        }
       end
     end
   end
@@ -919,7 +922,7 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should be a Resource with attributes matching the Hash' do
-        @return.first.attributes.only(*@array.first.keys).should == @array.first
+        DataMapper::Ext::Hash.only(@return.first.attributes, *@array.first.keys).should == @array.first
       end
     end
   end
