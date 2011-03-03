@@ -899,7 +899,7 @@ module DataMapper
 
           first_condition = conditions.first
 
-          unless first_condition.kind_of?(String) && !first_condition.blank?
+          unless first_condition.kind_of?(String) && !DataMapper::Ext.blank?(first_condition)
             raise ArgumentError, '+options[:conditions]+ should have a statement for the first entry'
           end
       end

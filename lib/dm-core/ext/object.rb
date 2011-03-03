@@ -7,7 +7,7 @@ module DataMapper; module Ext
       obj, name = ::Object, obj if name.nil?
 
       list = name.split("::")
-      list.shift if list.first.blank?
+      list.shift if DataMapper::Ext.blank?(list.first)
       list.each do |x|
         # This is required because const_get tries to look for constants in the
         # ancestor chain, but we only want constants that are HERE
@@ -24,7 +24,7 @@ module DataMapper; module Ext
       obj, name, value = ::Object, obj, name if value.nil?
 
       list = name.split("::")
-      toplevel = list.first.blank?
+      toplevel = DataMapper::Ext.blank?(list.first)
       list.shift if toplevel
       last = list.pop
       obj = list.empty? ? ::Object : DataMapper::Ext::Object.full_const_get(list.join("::"))

@@ -12,7 +12,7 @@ module DataMapper
 end
 
 require 'dm-core/ext/singleton_class'
-require 'dm-core/as/core_ext/object/blank'
+require 'dm-core/ext/blank'
 
 require 'dm-core/ext/hash'
 require 'dm-core/ext/object'

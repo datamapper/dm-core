@@ -730,6 +730,11 @@ module DataMapper
       super
     end
 
+    # Determines whether the collection is empty.
+    #
+    # @api public
+    alias_method :blank?, :empty?
+
     # Finds the first Resource by conditions, or initializes a new
     # Resource with the attributes if none found
     #
