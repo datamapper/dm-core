@@ -32,7 +32,7 @@ rescue LoadError
 end
 
 require 'dm-core/core_ext/pathname'
-require 'dm-core/core_ext/module'
+require 'dm-core/ext/module'
 require 'dm-core/ext/array'
 
 require 'dm-core/support/chainable'

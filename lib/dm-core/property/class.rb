@@ -15,7 +15,7 @@ module DataMapper
       #
       # @api private
       def typecast_to_primitive(value)
-        model.find_const(value.to_s)
+        DataMapper::Ext::Module.find_const(model, value.to_s)
       rescue NameError
         value
       end
