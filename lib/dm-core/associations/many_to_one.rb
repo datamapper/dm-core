@@ -118,8 +118,12 @@ module DataMapper
         # @api semipublic
         def get(source, query = nil)
           lazy_load(source)
-          collection = get_collection(source)
-          collection.first(query) if collection
+          if query.nil?
+            get!(source)
+          else
+            collection = get_collection(source)
+            collection.first(query) if collection
+          end
         end
 
         def get_collection(source)
