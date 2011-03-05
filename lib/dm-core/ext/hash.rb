@@ -1,51 +1,67 @@
 module DataMapper; module Ext
   module Hash
-    # Create a hash with *only* key/value pairs in receiver and +allowed+
+    # Creates a hash with *only* the specified key/value pairs from +hash+.
     #
-    #   { :one => 1, :two => 2, :three => 3 }.only(:one)    #=> { :one => 1 }
-    #
-    # @param [Array[String, Symbol]] *allowed The hash keys to include.
+    # @param [Hash] hash The hash from which to pick the key/value pairs.
+    # @param [Array] *keys The hash keys to include.
     #
     # @return [Hash] A new hash with only the selected keys.
     #
-    # @api public
-    def self.only(h, *allowed)
-      hash = {}
-      allowed.each {|k| hash[k] = h[k] if h.has_key?(k) }
-      hash
-    end
-
-    # Return a hash that includes everything but the given keys. This is useful for
-    # limiting a set of parameters to everything but a few known toggles:
+    # @example
+    #   hash = { :one => 1, :two => 2, :three => 3 }
+    #   Ext::Hash.only(hash, :one, :two) # => { :one => 1, :two => 2 }
     #
-    #   @person.update_attributes(params[:person].except(:admin))
-    #
-    # If the receiver responds to +convert_key+, the method is called on each of the
-    # arguments. This allows +except+ to play nice with hashes with indifferent access
-    # for instance:
-    #
-    #   {:a => 1}.with_indifferent_access.except(:a)  # => {}
-    #   {:a => 1}.with_indifferent_access.except("a") # => {}
-    #
-    def self.except(h, *keys)
-      self.except!(h.dup, *keys)
-    end
-
-    # Replaces the hash without the given keys.
-    def self.except!(h, *keys)
-      keys.each { |key| h.delete(key) }
+    # @api semipublic
+    def self.only(hash, *keys)
+      h = {}
+      keys.each {|k| h[k] = hash[k] if hash.has_key?(k) }
       h
     end
 
-    # Convert to Mash. This class has semantics of ActiveSupport's
-    # HashWithIndifferentAccess and we only have it so that people can write
-    # params[:key] instead of params['key'].
+    # Returns a hash that includes everything but the given +keys+.
     #
-    # @return [Mash] This hash as a Mash for string or symbol key access.
-    def self.to_mash(h)
-      hash = Mash.new(h)
-      hash.default = h.default
+    # @param [Hash] hash The hash from which to pick the key/value pairs.
+    # @param [Array] *keys The hash keys to exclude.
+    #
+    # @return [Hash] A new hash without the specified keys.
+    #
+    # @example
+    #   hash = { :one => 1, :two => 2, :three => 3 }
+    #   Ext::Hash.except(hash, :one, :two) # => { :three => 3 }
+    #
+    # @api semipublic
+    def self.except(hash, *keys)
+      self.except!(hash.dup, *keys)
+    end
+
+    # Removes the specified +keys+ from the given +hash+.
+    #
+    # @param [Hash] hash The hash to modify.
+    # @param [Array] *keys The hash keys to exclude.
+    #
+    # @return [Hash] +hash+
+    #
+    # @example
+    #   hash = { :one => 1, :two => 2, :three => 3 }
+    #   Ext::Hash.except!(hash, :one, :two)
+    #   hash # => { :three => 3 }
+    #
+    # @api semipublic
+    def self.except!(hash, *keys)
+      keys.each { |key| hash.delete(key) }
       hash
+    end
+
+    # Converts the specified +hash+ to a {Mash}.
+    #
+    # @param [Hash] hash The hash to convert.
+    # @return [Mash] The {Mash} for the specified +hash+.
+    #
+    # @api semipublic
+    def self.to_mash(hash)
+      h = Mash.new(hash)
+      h.default = hash.default
+      h
     end
   end
 end; end
