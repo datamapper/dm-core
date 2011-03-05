@@ -3,12 +3,12 @@ module DataMapper
   # params[:key] instead of params['key'].
   class Mash < Hash
 
-    # @param constructor<Object>
-    #   The default value for the mash. Defaults to an empty hash.
+    # Initializes a new mash.
     #
-    # @details [Alternatives]
-    #   If constructor is a Hash, a new mash will be created based on the keys of
-    #   the hash and no default value will be set.
+    # @param [Hash, Object] constructor
+    #   The default value for the mash. If +constructor+ is a Hash, a new mash
+    #   will be created based on the keys of the hash and no default value will
+    #   be set.
     def initialize(constructor = {})
       if constructor.is_a?(Hash)
         super()
@@ -18,11 +18,12 @@ module DataMapper
       end
     end
 
-    # @param key<Object> The default value for the mash. Defaults to nil.
+    # Gets the default value for the mash.
     #
-    # @details [Alternatives]
-    #   If key is a Symbol and it is a key in the mash, then the default value will
-    #   be set to the value matching the key.
+    # @param [Object] key
+    #   The default value for the mash. If +key+ is a Symbol and it is a key in
+    #   the mash, then the default value will be set to the value matching the
+    #   key.
     def default(key = nil)
       if key.is_a?(Symbol) && include?(key = key.to_s)
         self[key]
@@ -34,17 +35,17 @@ module DataMapper
     alias_method :regular_writer, :[]= unless method_defined?(:regular_writer)
     alias_method :regular_update, :update unless method_defined?(:regular_update)
 
-    # @param key<Object> The key to set.
-    # @param value<Object>
-    #   The value to set the key to.
+    # Sets the +value+ associated with the specified +key+.
     #
-    # @see Mash#convert_key
-    # @see Mash#convert_value
+    # @param [Object] key The key to set.
+    # @param [Object] value The value to set the key to.
     def []=(key, value)
       regular_writer(convert_key(key), convert_value(value))
     end
 
-    # @param other_hash<Hash>
+    # Updates the mash with the key/value pairs from the specified hash.
+    #
+    # @param [Hash] other_hash
     #   A hash to update values in the mash with. The keys and the values will be
     #   converted to Mash format.
     #
@@ -56,43 +57,42 @@ module DataMapper
 
     alias_method :merge!, :update
 
-    # @param key<Object> The key to check for. This will be run through convert_key.
+    # Determines whether the mash contains the specified +key+.
     #
+    # @param [Object] key The key to check for.
     # @return [Boolean] True if the key exists in the mash.
     def key?(key)
       super(convert_key(key))
     end
 
-    # def include? def has_key? def member?
     alias_method :include?, :key?
     alias_method :has_key?, :key?
     alias_method :member?, :key?
 
-    # @param key<Object> The key to fetch. This will be run through convert_key.
-    # @param *extras<Array> Default value.
+    # @param [Object] key The key to fetch.
+    # @param [Array] *extras Default value.
     #
     # @return [Object] The value at key or the default value.
     def fetch(key, *extras)
       super(convert_key(key), *extras)
     end
 
-    # @param *indices<Array>
-    #   The keys to retrieve values for. These will be run through +convert_key+.
+    # @param [Array] *indices
+    #   The keys to retrieve values for.
     #
-    # @return [Array] The values at each of the provided keys
+    # @return [Array] The values at each of the provided keys.
     def values_at(*indices)
       indices.collect {|key| self[convert_key(key)]}
     end
 
-    # @param hash<Hash> The hash to merge with the mash.
+    # @param [Hash] hash The hash to merge with the mash.
     #
     # @return [Mash] A new mash with the hash values merged in.
     def merge(hash)
       self.dup.update(hash)
     end
 
-    # @param key<Object>
-    #   The key to delete from the mash.\
+    # @param [Object] key The key to delete from the mash.
     def delete(key)
       super(convert_key(key))
     end
@@ -143,7 +143,7 @@ module DataMapper
     end
 
     protected
-    # @param key<Object> The key to convert.
+    # @param [Object] key The key to convert.
     #
     # @param [Object]
     #   The converted key. If the key was a symbol, it will be converted to a
@@ -154,7 +154,7 @@ module DataMapper
       key.kind_of?(Symbol) ? key.to_s : key
     end
 
-    # @param value<Object> The value to convert.
+    # @param [Object] value The value to convert.
     #
     # @return [Object]
     #   The converted value. A Hash or an Array of hashes, will be converted to
@@ -163,7 +163,9 @@ module DataMapper
     # @api private
     def convert_value(value)
       if value.class == Hash
-        value.to_mash
+         mash = Mash.new(value)
+         mash.default = value.default
+         mash
       elsif value.is_a?(Array)
         value.collect { |e| convert_value(e) }
       else
