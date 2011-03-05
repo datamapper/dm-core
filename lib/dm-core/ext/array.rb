@@ -12,14 +12,14 @@ module DataMapper; module Ext
     # @return [Hash]
     #   A Hash where each entry in the Array is turned into a key/value.
     #
-    # @api public
+    # @api semipublic
     def self.to_hash(array)
       h = {}
       array.each { |k,v| h[k] = v }
       h
     end
 
-    # Transforms an Array of key/value pairs into a Mash.
+    # Transforms an Array of key/value pairs into a {Mash}.
     #
     # This is a better idiom than using Mash[*array.flatten] in Ruby 1.8.6
     # because it is not possible to limit the flattening to a single
@@ -29,9 +29,9 @@ module DataMapper; module Ext
     #   The array of key/value pairs to transform.
     #
     # @return [Mash]
-    #   A Hash where each entry in the Array is turned into a key/value.
+    #   A {Mash} where each entry in the Array is turned into a key/value.
     #
-    # @api public
+    # @api semipublic
     def self.to_mash(array)
       m = Mash.new
       array.each { |k,v| m[k] = v }
