@@ -1,8 +1,19 @@
 module DataMapper; module Ext
   module Object
-    # @param name<String> The name of the constant to get, e.g. "Merb::Router".
+    # Returns the value of the specified constant.
     #
-    # @return [Object] The constant corresponding to the name.
+    # @overload full_const_get(obj, name)
+    #   Returns the value of the specified constant in +obj+.
+    #   @param [Object] obj The root object used as origin.
+    #   @param [String] name The name of the constant to get, e.g. "Merb::Router".
+    #
+    # @overload full_const_get(name)
+    #   Returns the value of the fully-qualified constant.
+    #   @param [String] name The name of the constant to get, e.g. "Merb::Router".
+    #
+    # @return [Object] The constant corresponding to +name+.
+    #
+    # @api semipublic
     def self.full_const_get(obj, name = nil)
       obj, name = ::Object, obj if name.nil?
 
@@ -16,10 +27,22 @@ module DataMapper; module Ext
       obj
     end
 
-    # @param name<String> The name of the constant to get, e.g. "Merb::Router".
-    # @param value<Object> The value to assign to the constant.
+    # Sets the specified constant to the given +value+.
     #
-    # @return [Object] The constant corresponding to the name.
+    # @overload full_const_set(obj, name)
+    #   Sets the specified constant in +obj+ to the given +value+.
+    #   @param [Object] obj The root object used as origin.
+    #   @param [String] name The name of the constant to set, e.g. "Merb::Router".
+    #   @param [Object] value The value to assign to the constant.
+    #
+    # @overload full_const_set(name)
+    #   Sets the fully-qualified constant to the given +value+.
+    #   @param [String] name The name of the constant to set, e.g. "Merb::Router".
+    #   @param [Object] value The value to assign to the constant.
+    #
+    # @return [Object] The constant corresponding to +name+.
+    #
+    # @api semipublic
     def self.full_const_set(obj, name, value = nil)
       obj, name, value = ::Object, obj, name if value.nil?
 
