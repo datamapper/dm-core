@@ -76,7 +76,7 @@ module DataMapper
       #
       # @api private
       def normalize_options_hash(hash)
-        hash.to_mash
+        DataMapper::Ext::Hash.to_mash(hash)
       end
 
       # Normalize Addressable::URI options into a Mash

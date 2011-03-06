@@ -9,13 +9,6 @@ DM_VERSION     = '~> 1.1.0.rc2'
 DO_VERSION     = '~> 0.10.2'
 DM_DO_ADAPTERS = %w[ sqlite postgres mysql oracle sqlserver ]
 
-if ENV['EXTLIB']
-  gem 'extlib',        '~> 0.9.15', SOURCE => "#{DATAMAPPER}/extlib#{REPO_POSTFIX}", :require => nil
-else
-  gem 'activesupport', '~> 3.0.4', :require => nil
-  gem 'i18n',          '~> 0.5.0'
-end
-
 gem 'addressable', '~> 2.2.4'
 
 group :development do

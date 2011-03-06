@@ -362,12 +362,12 @@ module DataMapper
       @options = @options.merge(other_options).freeze
       assert_valid_options(@options)
 
-      normalize = other_options.only(*OPTIONS - [ :conditions ]).map do |attribute, value|
-        instance_variable_set("@#{attribute}", value.try_dup)
+      normalize = DataMapper::Ext::Hash.only(other_options, *OPTIONS - [ :conditions ]).map do |attribute, value|
+        instance_variable_set("@#{attribute}", DataMapper::Ext.try_dup(value))
         attribute
       end
 
-      merge_conditions([ other_options.except(*OPTIONS), other_options[:conditions] ])
+      merge_conditions([ DataMapper::Ext::Hash.except(other_options, *OPTIONS), other_options[:conditions] ])
       normalize_options(normalize | [ :links, :unique ])
 
       self
@@ -689,7 +689,7 @@ module DataMapper
     #
     # @api private
     def to_relative_hash
-      to_hash.only(:fields, :order, :unique, :add_reversed, :reload)
+      DataMapper::Ext::Hash.only(to_hash, :fields, :order, :unique, :add_reversed, :reload)
     end
 
     private
@@ -737,7 +737,7 @@ module DataMapper
       @reload       = @options.fetch :reload,       false
       @raw          = false
 
-      merge_conditions([ @options.except(*OPTIONS), @options[:conditions] ])
+      merge_conditions([ DataMapper::Ext::Hash.except(@options, *OPTIONS), @options[:conditions] ])
       normalize_options
     end
 
@@ -748,7 +748,7 @@ module DataMapper
       @fields     = @fields.dup
       @links      = @links.dup
       @conditions = @conditions.dup
-      @order      = @order.try_dup
+      @order      = DataMapper::Ext.try_dup(@order)
     end
 
     # Validate the options
@@ -899,7 +899,7 @@ module DataMapper
 
           first_condition = conditions.first
 
-          unless first_condition.kind_of?(String) && !first_condition.blank?
+          unless first_condition.kind_of?(String) && !DataMapper::Ext.blank?(first_condition)
             raise ArgumentError, '+options[:conditions]+ should have a statement for the first entry'
           end
       end

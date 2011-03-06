@@ -234,12 +234,18 @@ module DataMapper
         #
         # @api private
         def inverse_name
-          super || DataMapper::Inflector.underscore(DataMapper::Inflector.demodulize(source_model.name)).pluralize.to_sym
+          name = super
+          return name if name
+
+          name = DataMapper::Inflector.demodulize(source_model.name)
+          name = DataMapper::Inflector.underscore(name)
+          name = DataMapper::Inflector.pluralize(name)
+          name.to_sym
         end
 
         # @api private
         def source_key_options(target_property)
-          options = target_property.options.only(:length, :precision, :scale).update(
+          options = DataMapper::Ext::Hash.only(target_property.options, :length, :precision, :scale).update(
             :index    => name,
             :required => required?,
             :key      => key?

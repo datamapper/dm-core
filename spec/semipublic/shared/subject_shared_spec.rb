@@ -18,7 +18,7 @@ share_examples_for 'A semipublic Subject' do
       subject { @subject_without_default.default_for(@resource) }
 
       it 'should match the default value' do
-        should be_blank
+        DataMapper::Ext.blank?(subject).should == true
       end
 
       it 'should be used as a default for the subject accessor' do

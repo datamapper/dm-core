@@ -87,7 +87,7 @@ module DataMapper
           repository_name = through.relative_target_repository_name
           through_model   = through.target_model
           relationships   = through_model.relationships(repository_name)
-          singular_name   = name.to_s.singularize.to_sym
+          singular_name   = DataMapper::Inflector.singularize(name.to_s).to_sym
 
           @via = relationships[@via] ||
             relationships[name]      ||
@@ -195,7 +195,7 @@ module DataMapper
           if anonymous_through_model?
             namespace = through_model_namespace_name.first
             relationship_name = DataMapper::Inflector.underscore(through_model.name.sub(/\A#{namespace.name}::/, '')).tr('/', '_')
-            relationship_name.pluralize.to_sym
+            DataMapper::Inflector.pluralize(relationship_name).to_sym
           else
             options[:through]
           end
@@ -292,7 +292,7 @@ module DataMapper
 
           options = self.options
 
-          options.only(*OPTIONS - [ :min, :max ]).update(
+          DataMapper::Ext::Hash.only(options, *OPTIONS - [ :min, :max ]).update(
             :through    => through,
             :child_key  => options[:parent_key],
             :parent_key => options[:child_key],

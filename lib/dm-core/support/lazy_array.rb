@@ -1,4 +1,4 @@
-require 'dm-core/core_ext/try_dup'
+require 'dm-core/ext/try_dup'
 
 class LazyArray  # borrowed partially from StrokeDB
   include Enumerable
@@ -358,9 +358,9 @@ class LazyArray  # borrowed partially from StrokeDB
   end
 
   def initialize_copy(original)
-    @head  = @head.try_dup
-    @tail  = @tail.try_dup
-    @array = @array.try_dup
+    @head  = DataMapper::Ext.try_dup(@head)
+    @tail  = DataMapper::Ext.try_dup(@tail)
+    @array = DataMapper::Ext.try_dup(@array)
   end
 
   def lazy_load

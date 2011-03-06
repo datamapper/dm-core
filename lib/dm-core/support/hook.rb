@@ -1,21 +1,6 @@
 require 'dm-core/support/assertions'
 require 'dm-core/support/local_object_space'
 
-# Mainly done here to support spec/unit/hook_spec without
-# needing to require dm-core to setup either extlib or AS
-
-begin
-  require 'active_support/core_ext/object/singleton_class'
-rescue LoadError
-  class Object
-    unless respond_to?(:singleton_class)
-      def singleton_class
-        class << self; self end
-      end
-    end
-  end
-end
-
 module DataMapper
   #
   # TODO: Write more documentation!

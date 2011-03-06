@@ -168,7 +168,7 @@ module DataMapper
       def child_model
         return @child_model if defined?(@child_model)
         child_model_name = self.child_model_name
-        @child_model = (@parent_model || Object).find_const(child_model_name)
+        @child_model = DataMapper::Ext::Module.find_const(@parent_model || Object, child_model_name)
       rescue NameError
         raise NameError, "Cannot find the child_model #{child_model_name} for #{parent_model_name} in #{name}"
       end
@@ -221,7 +221,7 @@ module DataMapper
       def parent_model
         return @parent_model if defined?(@parent_model)
         parent_model_name = self.parent_model_name
-        @parent_model = (@child_model || Object).find_const(parent_model_name)
+        @parent_model = DataMapper::Ext::Module.find_const(@child_model || Object, parent_model_name)
       rescue NameError
         raise NameError, "Cannot find the parent_model #{parent_model_name} for #{child_model_name} in #{name}"
       end
@@ -451,8 +451,8 @@ module DataMapper
         @options                = options.dup.freeze
         @child_repository_name  = @options[:child_repository_name]
         @parent_repository_name = @options[:parent_repository_name]
-        @child_properties       = @options[:child_key].try_dup.freeze
-        @parent_properties      = @options[:parent_key].try_dup.freeze
+        @child_properties       = DataMapper::Ext.try_dup(@options[:child_key]).freeze
+        @parent_properties      = DataMapper::Ext.try_dup(@options[:parent_key]).freeze
         @min                    = @options[:min]
         @max                    = @options[:max]
         @reader_visibility      = @options.fetch(:reader_visibility, :public)
@@ -470,7 +470,7 @@ module DataMapper
         #    query as :condition => and_object from self.query
         #  - this should provide the best performance
 
-        @query = @options.except(*self.class::OPTIONS).freeze
+        @query = DataMapper::Ext::Hash.except(@options, *self.class::OPTIONS).freeze
       end
 
       # Set the correct ivars for the named object
@@ -586,7 +586,7 @@ module DataMapper
 
       # @api private
       def inverted_options
-        options.only(*OPTIONS - [ :min, :max ]).update(:inverse => self)
+        DataMapper::Ext::Hash.only(options, *OPTIONS - [ :min, :max ]).update(:inverse => self)
       end
 
       # @api private

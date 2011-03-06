@@ -1,5 +1,5 @@
 require 'spec_helper'
-require DataMapper.root / 'lib' / 'dm-core' / 'spec' / 'shared' / 'adapter_spec'
+require 'dm-core/spec/shared/adapter_spec'
 
 describe 'Adapter' do
   supported_by :in_memory do

@@ -730,6 +730,11 @@ module DataMapper
       super
     end
 
+    # Determines whether the collection is empty.
+    #
+    # @api public
+    alias_method :blank?, :empty?
+
     # Finds the first Resource by conditions, or initializes a new
     # Resource with the attributes if none found
     #
@@ -1437,7 +1442,7 @@ module DataMapper
 
       if model.respond_to?(method)
         delegate_to_model(method, *args, &block)
-      elsif relationship = relationships[method] || relationships[method.to_s.singularize.to_sym]
+      elsif relationship = relationships[method] || relationships[DataMapper::Inflector.singularize(method.to_s).to_sym]
         delegate_to_relationship(relationship, *args)
       else
         super

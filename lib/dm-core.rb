@@ -11,53 +11,12 @@ module DataMapper
   module Undefined; end
 end
 
-begin
+require 'dm-core/ext/singleton_class'
+require 'dm-core/ext/blank'
 
-  # Prefer active_support
-
-  require 'active_support/core_ext/kernel/singleton_class'
-  require 'active_support/core_ext/class/inheritable_attributes'
-  require 'active_support/core_ext/object/blank'
-  require 'active_support/core_ext/hash/except'
-
-  require 'active_support/hash_with_indifferent_access'
-  require 'active_support/inflector'
-
-  Mash = ActiveSupport::HashWithIndifferentAccess
-
-  require 'dm-core/core_ext/hash'
-  require 'dm-core/core_ext/object'
-  require 'dm-core/core_ext/string'
-
-  module DataMapper
-    Inflector = ActiveSupport::Inflector
-  end
-
-rescue LoadError
-
-  # Default to extlib
-
-  require 'extlib/inflection'
-  require 'extlib/mash'
-  require 'extlib/string'
-  require 'extlib/class'
-  require 'extlib/hash'
-  require 'extlib/object'
-  require 'extlib/blank'
-
-  class Object
-    unless respond_to?(:singleton_class)
-      def singleton_class
-        class << self; self end
-      end
-    end
-  end
-
-  module DataMapper
-    Inflector = Extlib::Inflection
-  end
-
-end
+require 'dm-core/ext/hash'
+require 'dm-core/ext/object'
+require 'dm-core/ext/string'
 
 begin
   require 'fastthread'
@@ -66,9 +25,11 @@ rescue LoadError
 end
 
 require 'dm-core/core_ext/pathname'
-require 'dm-core/core_ext/module'
-require 'dm-core/core_ext/array'
+require 'dm-core/ext/module'
+require 'dm-core/ext/array'
 
+require 'dm-core/support/mash'
+require 'dm-core/support/inflector'
 require 'dm-core/support/chainable'
 require 'dm-core/support/deprecate'
 require 'dm-core/support/descendant_set'

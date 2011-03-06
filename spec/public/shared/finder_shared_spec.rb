@@ -342,7 +342,8 @@ share_examples_for 'Finder Interface' do
 
       describe 'with a collection' do
         before :all do
-          @collection = @article_model.all(@article_model.key.zip(@original.key).to_hash)
+          @collection = @article_model.all(
+            DataMapper::Ext::Array.to_hash(@article_model.key.zip(@original.key)))
 
           @return = @articles.all(:original => @collection)
         end
@@ -479,7 +480,8 @@ share_examples_for 'Finder Interface' do
 
       describe 'with a collection' do
         before :all do
-          @collection = @article_model.all(@article_model.key.zip(@new.key).to_hash)
+          @collection = @article_model.all(
+            DataMapper::Ext::Array.to_hash(@article_model.key.zip(@new.key)))
 
           @return = @articles.all(:previous => @collection)
         end
@@ -615,7 +617,8 @@ share_examples_for 'Finder Interface' do
 
       describe 'with a collection' do
         before :all do
-          @collection = @article_model.all(@article_model.key.zip(@new.key).to_hash)
+          @collection = @article_model.all(
+            DataMapper::Ext::Array.to_hash(@article_model.key.zip(@new.key)))
 
           @return = @articles.all(:revisions => @collection)
         end
@@ -755,7 +758,8 @@ share_examples_for 'Finder Interface' do
 
       describe 'with a collection' do
         before :all do
-          @collection = @publication_model.all(@publication_model.key.zip(@publication.key).to_hash)
+          @collection = @publication_model.all(
+            DataMapper::Ext::Array.to_hash(@publication_model.key.zip(@publication.key)))
 
           @return = @articles.all(:publications => @collection)
         end
@@ -1093,7 +1097,7 @@ share_examples_for 'Finder Interface' do
       end
 
       it 'should be expected Resource' do
-        @resource.attributes.only(*@conditions.keys).should == @conditions
+        DataMapper::Ext::Hash.only(@resource.attributes, *@conditions.keys).should == @conditions
       end
 
       it 'should be a saved Resource' do
@@ -1136,7 +1140,7 @@ share_examples_for 'Finder Interface' do
       end
 
       it 'should be expected Resource' do
-        @resource.attributes.only(*@conditions.keys).should == @conditions
+        DataMapper::Ext::Hash.only(@resource.attributes, *@conditions.keys).should == @conditions
       end
 
       it 'should not be a saved Resource' do

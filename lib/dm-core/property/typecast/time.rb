@@ -7,7 +7,7 @@ module DataMapper
         # Extracts the given args from the hash. If a value does not exist, it
         # uses the value of Time.now.
         #
-        # @param [#to_mash] value
+        # @param [Hash, #to_mash] value
         #   value to extract time args from
         #
         # @return [Array]
@@ -15,7 +15,7 @@ module DataMapper
         #
         # @api private
         def extract_time(value)
-          mash = value.to_mash
+          mash = value.respond_to?(:to_mash) ? value.to_mash : DataMapper::Ext::Hash.to_mash(value)
           now  = ::Time.now
 
           [ :year, :month, :day, :hour, :min, :sec ].map do |segment|
