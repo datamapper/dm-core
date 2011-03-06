@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
 
   s.required_rubygems_version = Gem::Requirement.new("> 1.3.1") if s.respond_to? :required_rubygems_version=
   s.authors = ["Dan Kubb"]
-  s.date = %q{2011-03-02}
+  s.date = %q{2011-03-06}
   s.description = %q{Faster, Better, Simpler.}
   s.email = %q{dan.kubb@gmail.com}
   s.extra_rdoc_files = [
@@ -35,15 +35,17 @@ Gem::Specification.new do |s|
     "lib/dm-core/associations/one_to_one.rb",
     "lib/dm-core/associations/relationship.rb",
     "lib/dm-core/collection.rb",
-    "lib/dm-core/core_ext/array.rb",
-    "lib/dm-core/core_ext/hash.rb",
     "lib/dm-core/core_ext/kernel.rb",
-    "lib/dm-core/core_ext/module.rb",
-    "lib/dm-core/core_ext/object.rb",
     "lib/dm-core/core_ext/pathname.rb",
-    "lib/dm-core/core_ext/string.rb",
     "lib/dm-core/core_ext/symbol.rb",
-    "lib/dm-core/core_ext/try_dup.rb",
+    "lib/dm-core/ext/array.rb",
+    "lib/dm-core/ext/blank.rb",
+    "lib/dm-core/ext/hash.rb",
+    "lib/dm-core/ext/module.rb",
+    "lib/dm-core/ext/object.rb",
+    "lib/dm-core/ext/singleton_class.rb",
+    "lib/dm-core/ext/string.rb",
+    "lib/dm-core/ext/try_dup.rb",
     "lib/dm-core/identity_map.rb",
     "lib/dm-core/model.rb",
     "lib/dm-core/model/hook.rb",
@@ -106,9 +108,14 @@ Gem::Specification.new do |s|
     "lib/dm-core/support/descendant_set.rb",
     "lib/dm-core/support/equalizer.rb",
     "lib/dm-core/support/hook.rb",
+    "lib/dm-core/support/inflections.rb",
+    "lib/dm-core/support/inflector.rb",
+    "lib/dm-core/support/inflector/inflections.rb",
+    "lib/dm-core/support/inflector/methods.rb",
     "lib/dm-core/support/lazy_array.rb",
     "lib/dm-core/support/local_object_space.rb",
     "lib/dm-core/support/logger.rb",
+    "lib/dm-core/support/mash.rb",
     "lib/dm-core/support/naming_conventions.rb",
     "lib/dm-core/support/ordered_set.rb",
     "lib/dm-core/support/subject.rb",
@@ -196,8 +203,11 @@ Gem::Specification.new do |s|
     "spec/semipublic/shared/subject_shared_spec.rb",
     "spec/spec.opts",
     "spec/spec_helper.rb",
+    "spec/support/core_ext/hash.rb",
+    "spec/support/core_ext/inheritable_attributes.rb",
     "spec/support/properties/huge_integer.rb",
     "spec/unit/array_spec.rb",
+    "spec/unit/blank_spec.rb",
     "spec/unit/data_mapper/ordered_set/append_spec.rb",
     "spec/unit/data_mapper/ordered_set/clear_spec.rb",
     "spec/unit/data_mapper/ordered_set/delete_spec.rb",
@@ -252,6 +262,7 @@ Gem::Specification.new do |s|
     "spec/unit/hash_spec.rb",
     "spec/unit/hook_spec.rb",
     "spec/unit/lazy_array_spec.rb",
+    "spec/unit/mash_spec.rb",
     "spec/unit/module_spec.rb",
     "spec/unit/object_spec.rb",
     "spec/unit/try_dup_spec.rb",
@@ -344,8 +355,11 @@ Gem::Specification.new do |s|
     "spec/semipublic/shared/resource_state_shared_spec.rb",
     "spec/semipublic/shared/subject_shared_spec.rb",
     "spec/spec_helper.rb",
+    "spec/support/core_ext/hash.rb",
+    "spec/support/core_ext/inheritable_attributes.rb",
     "spec/support/properties/huge_integer.rb",
     "spec/unit/array_spec.rb",
+    "spec/unit/blank_spec.rb",
     "spec/unit/data_mapper/ordered_set/append_spec.rb",
     "spec/unit/data_mapper/ordered_set/clear_spec.rb",
     "spec/unit/data_mapper/ordered_set/delete_spec.rb",
@@ -400,6 +414,7 @@ Gem::Specification.new do |s|
     "spec/unit/hash_spec.rb",
     "spec/unit/hook_spec.rb",
     "spec/unit/lazy_array_spec.rb",
+    "spec/unit/mash_spec.rb",
     "spec/unit/module_spec.rb",
     "spec/unit/object_spec.rb",
     "spec/unit/try_dup_spec.rb"
@@ -409,18 +424,18 @@ Gem::Specification.new do |s|
     s.specification_version = 3
 
     if Gem::Version.new(Gem::VERSION) >= Gem::Version.new('1.2.0') then
-      s.add_runtime_dependency(%q<addressable>, ["~> 2.2"])
+      s.add_runtime_dependency(%q<addressable>, ["~> 2.2.4"])
       s.add_development_dependency(%q<jeweler>, ["~> 1.5.2"])
       s.add_development_dependency(%q<rake>, ["~> 0.8.7"])
       s.add_development_dependency(%q<rspec>, ["~> 1.3.1"])
     else
-      s.add_dependency(%q<addressable>, ["~> 2.2"])
+      s.add_dependency(%q<addressable>, ["~> 2.2.4"])
       s.add_dependency(%q<jeweler>, ["~> 1.5.2"])
       s.add_dependency(%q<rake>, ["~> 0.8.7"])
       s.add_dependency(%q<rspec>, ["~> 1.3.1"])
     end
   else
-    s.add_dependency(%q<addressable>, ["~> 2.2"])
+    s.add_dependency(%q<addressable>, ["~> 2.2.4"])
     s.add_dependency(%q<jeweler>, ["~> 1.5.2"])
     s.add_dependency(%q<rake>, ["~> 0.8.7"])
     s.add_dependency(%q<rspec>, ["~> 1.3.1"])
