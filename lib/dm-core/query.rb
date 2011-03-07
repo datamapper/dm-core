@@ -855,12 +855,9 @@ module DataMapper
               when Symbol, ::String
                 original = subject
                 subject  = subject.to_s
+                name     = subject[0, subject.index('.') || subject.length]
 
-                if subject.include?('.')
-                  unless @relationships.named?(subject[0, subject.index('.')])
-                    raise ArgumentError, "condition #{original.inspect} does not map to a relationship in #{model}"
-                  end
-                elsif !@properties.named?(subject) && !@relationships.named?(subject)
+                unless @properties.named?(name) || @relationships.named?(name)
                   raise ArgumentError, "condition #{original.inspect} does not map to a property or relationship in #{model}"
                 end
 

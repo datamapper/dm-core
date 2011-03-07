@@ -791,7 +791,7 @@ describe DataMapper::Query do
         it 'should raise an exception' do
           lambda {
             DataMapper::Query.new(@repository, @model, @options.update(:conditions => { 'unknown.id' => 1 }))
-          }.should raise_error(ArgumentError, "condition \"unknown.id\" does not map to a relationship in #{@model}")
+          }.should raise_error(ArgumentError, "condition \"unknown.id\" does not map to a property or relationship in #{@model}")
         end
       end
 
