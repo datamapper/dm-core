@@ -8,5 +8,5 @@ describe 'DataMapper::OrderedSet#hash' do
   let(:ordered_set) { DataMapper::OrderedSet.new([ entry ]) }
 
   it { should be_kind_of(Integer) }
-  it { should == ordered_set.entries.hash }
+  it { should == ordered_set.class.hash ^ ordered_set.entries.hash }
 end

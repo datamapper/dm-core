@@ -978,7 +978,7 @@ module DataMapper
 
     # @api semipublic
     def hash
-      query.hash
+      self.class.hash ^ query.hash
     end
 
     protected

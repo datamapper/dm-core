@@ -414,6 +414,7 @@ module DataMapper
 
       # @api private
       def hash
+        self.class.hash             ^
         name.hash                   ^
         child_repository_name.hash  ^
         parent_repository_name.hash ^

@@ -519,7 +519,7 @@ module DataMapper
     #
     # @api private
     def hash
-      key.hash
+      model.hash ^ key.hash
     end
 
     # Get a Human-readable representation of this Resource instance

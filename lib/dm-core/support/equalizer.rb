@@ -40,7 +40,7 @@ module DataMapper
     def define_hash_method(methods)
       class_eval <<-RUBY, __FILE__, __LINE__ + 1
         def hash
-          #{methods.map { |method| "#{method}.hash" }.join(' ^ ')}
+          self.class.hash ^ #{methods.map { |method| "#{method}.hash" }.join(' ^ ')}
         end
       RUBY
     end
