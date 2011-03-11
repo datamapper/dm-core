@@ -764,7 +764,7 @@ module DataMapper
       @instance_variable_name = "@#{@name}".freeze
 
       @primitive = self.class.primitive
-      @field     = @options[:field].freeze
+      @field     = @options[:field].freeze unless @options[:field].nil?
       @default   = @options[:default]
 
       @serial       = @options.fetch(:serial,       false)
