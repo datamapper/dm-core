@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
 
   s.required_rubygems_version = Gem::Requirement.new("> 1.3.1") if s.respond_to? :required_rubygems_version=
   s.authors = ["Dan Kubb"]
-  s.date = %q{2011-03-06}
+  s.date = %q{2011-03-10}
   s.description = %q{Faster, Better, Simpler.}
   s.email = %q{dan.kubb@gmail.com}
   s.extra_rdoc_files = [
@@ -274,7 +274,7 @@ Gem::Specification.new do |s|
   s.homepage = %q{http://github.com/datamapper/dm-core}
   s.require_paths = ["lib"]
   s.rubyforge_project = %q{datamapper}
-  s.rubygems_version = %q{1.5.2}
+  s.rubygems_version = %q{1.6.2}
   s.summary = %q{An Object/Relational Mapper for Ruby}
   s.test_files = [
     "spec/lib/rspec_immediate_feedback_formatter.rb",
