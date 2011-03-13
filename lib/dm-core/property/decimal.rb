@@ -36,7 +36,6 @@ module DataMapper
       # @api private
       def typecast_to_primitive(value)
         if value.kind_of?(::Integer)
-          # TODO: remove this case when Integer#to_d added by extlib
           value.to_s.to_d
         else
           typecast_to_numeric(value, :to_d)
