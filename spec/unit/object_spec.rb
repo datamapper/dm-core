@@ -1,5 +1,5 @@
 require 'spec_helper'
-require 'dm-core/ext/object'
+require 'dm-core/support/ext/object'
 
 describe DataMapper::Ext::Object do
   before :all do

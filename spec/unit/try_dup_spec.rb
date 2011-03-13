@@ -1,5 +1,5 @@
 require 'spec_helper'
-require 'dm-core/ext/try_dup'
+require 'dm-core/support/ext/try_dup'
 
 describe "try_dup" do
   it "returns a duplicate version on regular objects" do

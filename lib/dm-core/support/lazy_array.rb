@@ -1,5 +1,3 @@
-require 'dm-core/ext/try_dup'
-
 class LazyArray  # borrowed partially from StrokeDB
   include Enumerable
 

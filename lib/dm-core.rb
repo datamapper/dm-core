@@ -11,11 +11,11 @@ module DataMapper
   module Undefined; end
 end
 
-require 'dm-core/ext/blank'
+require 'dm-core/support/ext/blank'
 
-require 'dm-core/ext/hash'
-require 'dm-core/ext/object'
-require 'dm-core/ext/string'
+require 'dm-core/support/ext/hash'
+require 'dm-core/support/ext/object'
+require 'dm-core/support/ext/string'
 
 begin
   require 'fastthread'
@@ -24,8 +24,10 @@ rescue LoadError
 end
 
 require 'dm-core/core_ext/pathname'
-require 'dm-core/ext/module'
-require 'dm-core/ext/array'
+require 'dm-core/support/ext/object'
+require 'dm-core/support/ext/module'
+require 'dm-core/support/ext/array'
+require 'dm-core/support/ext/try_dup'
 
 require 'dm-core/support/mash'
 require 'dm-core/support/inflector'

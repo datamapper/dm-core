@@ -1,5 +1,3 @@
-require 'dm-core/ext/object'
-
 module DataMapper; module Ext
   module Module
 

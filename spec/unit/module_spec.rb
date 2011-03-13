@@ -1,5 +1,5 @@
 require 'spec_helper'
-require 'dm-core/ext/module'
+require 'dm-core/support/ext/module'
 
 describe DataMapper::Ext::Module do
 

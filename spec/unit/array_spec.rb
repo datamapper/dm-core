@@ -1,5 +1,5 @@
 require 'spec_helper'
-require 'dm-core/ext/array'
+require 'dm-core/support/ext/array'
 require 'dm-core/support/mash'
 
 describe DataMapper::Ext::Array do

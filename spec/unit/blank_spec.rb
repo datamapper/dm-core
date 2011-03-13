@@ -1,5 +1,5 @@
 require 'spec_helper'
-require 'dm-core/ext/blank'
+require 'dm-core/support/ext/blank'
 
 describe 'DataMapper::Ext.blank?', Object do
   it 'should be blank if it is nil' do
