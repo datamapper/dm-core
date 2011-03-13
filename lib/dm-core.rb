@@ -11,7 +11,6 @@ module DataMapper
   module Undefined; end
 end
 
-require 'dm-core/ext/singleton_class'
 require 'dm-core/ext/blank'
 
 require 'dm-core/ext/hash'
