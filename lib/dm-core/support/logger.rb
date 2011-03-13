@@ -1,36 +1,36 @@
 require "time" # httpdate
-# ==== Public Extlib Logger API
+# ==== Public DataMapper Logger API
 #
 # To replace an existing logger with a new one:
-#  Extlib::Logger.set_log(log{String, IO},level{Symbol, String})
+#  DataMapper::Logger.set_log(log{String, IO},level{Symbol, String})
 #
 # Available logging levels are
-#   Extlib::Logger::{ Fatal, Error, Warn, Info, Debug }
+#   DataMapper::Logger::{ Fatal, Error, Warn, Info, Debug }
 #
 # Logging via:
-#   Extlib.logger.fatal(message<String>,&block)
-#   Extlib.logger.error(message<String>,&block)
-#   Extlib.logger.warn(message<String>,&block)
-#   Extlib.logger.info(message<String>,&block)
-#   Extlib.logger.debug(message<String>,&block)
+#   DataMapper.logger.fatal(message<String>,&block)
+#   DataMapper.logger.error(message<String>,&block)
+#   DataMapper.logger.warn(message<String>,&block)
+#   DataMapper.logger.info(message<String>,&block)
+#   DataMapper.logger.debug(message<String>,&block)
 #
 # Logging with autoflush:
-#   Extlib.logger.fatal!(message<String>,&block)
-#   Extlib.logger.error!(message<String>,&block)
-#   Extlib.logger.warn!(message<String>,&block)
-#   Extlib.logger.info!(message<String>,&block)
-#   Extlib.logger.debug!(message<String>,&block)
+#   DataMapper.logger.fatal!(message<String>,&block)
+#   DataMapper.logger.error!(message<String>,&block)
+#   DataMapper.logger.warn!(message<String>,&block)
+#   DataMapper.logger.info!(message<String>,&block)
+#   DataMapper.logger.debug!(message<String>,&block)
 #
 # Flush the buffer to
-#   Extlib.logger.flush
+#   DataMapper.logger.flush
 #
 # Remove the current log object
-#   Extlib.logger.close
+#   DataMapper.logger.close
 #
-# ==== Private Extlib Logger API
+# ==== Private DataMapper Logger API
 #
 # To initialize the logger you create a new object, proxies to set_log.
-#   Extlib::Logger.new(log{String, IO},level{Symbol, String})
+#   DataMapper::Logger.new(log{String, IO},level{Symbol, String})
 module DataMapper
 
   class << self
@@ -155,7 +155,7 @@ module DataMapper
     end
     alias_method :push, :<<
 
-    # Generate the logging methods for Extlib.logger for each log level.
+    # Generate the logging methods for DataMapper.logger for each log level.
     Levels.each_pair do |name, number|
       class_eval <<-LEVELMETHODS, __FILE__, __LINE__
 
