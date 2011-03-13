@@ -1,4 +1,3 @@
-require "time" # httpdate
 # ==== Public DataMapper Logger API
 #
 # To replace an existing logger with a new one:
