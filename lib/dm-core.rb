@@ -12,7 +12,6 @@ module DataMapper
 end
 
 require 'dm-core/support/ext/blank'
-
 require 'dm-core/support/ext/hash'
 require 'dm-core/support/ext/object'
 require 'dm-core/support/ext/string'
@@ -24,7 +23,6 @@ rescue LoadError
 end
 
 require 'dm-core/core_ext/pathname'
-require 'dm-core/support/ext/object'
 require 'dm-core/support/ext/module'
 require 'dm-core/support/ext/array'
 require 'dm-core/support/ext/try_dup'
