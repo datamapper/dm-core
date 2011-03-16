@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
 
   s.required_rubygems_version = Gem::Requirement.new("> 1.3.1") if s.respond_to? :required_rubygems_version=
   s.authors = ["Dan Kubb"]
-  s.date = %q{2011-03-12}
+  s.date = %q{2011-03-16}
   s.description = %q{Faster, Better, Simpler.}
   s.email = %q{dan.kubb@gmail.com}
   s.extra_rdoc_files = [
@@ -19,6 +19,7 @@ Gem::Specification.new do |s|
   s.files = [
     ".autotest",
     ".document",
+    ".yardopts",
     "Gemfile",
     "LICENSE",
     "README.rdoc",
@@ -427,17 +428,20 @@ Gem::Specification.new do |s|
       s.add_development_dependency(%q<jeweler>, ["~> 1.5.2"])
       s.add_development_dependency(%q<rake>, ["~> 0.8.7"])
       s.add_development_dependency(%q<rspec>, ["~> 1.3.1"])
+      s.add_development_dependency(%q<yard>, ["~> 0.6"])
     else
       s.add_dependency(%q<addressable>, ["~> 2.2.4"])
       s.add_dependency(%q<jeweler>, ["~> 1.5.2"])
       s.add_dependency(%q<rake>, ["~> 0.8.7"])
       s.add_dependency(%q<rspec>, ["~> 1.3.1"])
+      s.add_dependency(%q<yard>, ["~> 0.6"])
     end
   else
     s.add_dependency(%q<addressable>, ["~> 2.2.4"])
     s.add_dependency(%q<jeweler>, ["~> 1.5.2"])
     s.add_dependency(%q<rake>, ["~> 0.8.7"])
     s.add_dependency(%q<rspec>, ["~> 1.3.1"])
+    s.add_dependency(%q<yard>, ["~> 0.6"])
   end
 end
 
