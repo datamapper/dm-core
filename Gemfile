@@ -16,17 +16,15 @@ group :development do
   gem 'jeweler', '~> 1.5.2'
   gem 'rake',    '~> 0.8.7'
   gem 'rspec',   '~> 1.3.1'
+  gem 'yard',    '~> 0.6'
 
 end
 
-platforms :mri_18 do
-  group :quality do
+group :quality do
 
-    gem 'rcov',      '~> 0.9.9'
-    gem 'yard',      '~> 0.6'
-    gem 'yardstick', '~> 0.2'
+  gem 'yardstick',  '~> 0.2'
+  gem 'rcov',       '~> 0.9.9', :platforms => [:mri_18]
 
-  end
 end
 
 group :datamapper do
