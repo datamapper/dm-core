@@ -3,7 +3,7 @@ require 'spec_helper'
 describe DataMapper::Property::Discriminator do
   before :all do
     module ::Blog
-      class Article
+      class Content
         include DataMapper::Resource
 
         property :id,    Serial
@@ -11,11 +11,13 @@ describe DataMapper::Property::Discriminator do
         property :type,  Discriminator
       end
 
+      class Article < Content; end
       class Announcement < Article; end
       class Release < Announcement; end
     end
     DataMapper.finalize
 
+    @content_model      = Blog::Content
     @article_model      = Blog::Article
     @announcement_model = Blog::Announcement
     @release_model      = Blog::Release
@@ -84,6 +86,10 @@ describe DataMapper::Property::Discriminator do
   end
 
   describe 'Model#default_scope' do
+    it 'should have no default scope for the top level model' do
+      @content_model.default_scope[:type].should be_nil
+    end
+    
     it 'should set the default scope for the grandparent model' do
       @article_model.default_scope[:type].to_a.should =~ [ @article_model, @announcement_model, @release_model ]
     end

@@ -8,8 +8,6 @@ module DataMapper
 
       # @api private
       def bind
-        model.default_scope(repository_name).update(name => model.descendants.dup << model)
-
         model.class_eval <<-RUBY, __FILE__, __LINE__ + 1
           extend Chainable
 
