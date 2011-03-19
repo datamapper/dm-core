@@ -38,6 +38,12 @@ module DataMapper
         end
       end # module UnderscoredAndPluralizedWithoutModule
 
+      module UnderscoredAndPluralizedWithoutLeadingModule
+        def self.call(name)
+          UnderscoredAndPluralized.call(name.to_s.gsub(/^[^:]*::/,''))
+        end
+      end
+
       module Underscored
         def self.call(name)
           DataMapper::Inflector.underscore(name)
