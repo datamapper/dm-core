@@ -311,8 +311,7 @@ module DataMapper
     module PassThroughLoadDump
       # @api semipublic
       def load(value)
-        return if value.nil?
-        typecast(value)
+        typecast(value) unless value.nil?
       end
 
       # Stub instance method for dumping
