@@ -23,7 +23,7 @@ end
 group :quality do
 
   gem 'yardstick',  '~> 0.2'
-  gem 'rcov',       '~> 0.9.9', :platforms => [:mri_18]
+  gem 'rcov',       '~> 0.9.9', :platforms => [ :mri_18 ]
 
 end
 
