@@ -20,9 +20,9 @@ describe DataMapper::Resource::State::Immutable do
   before do
     @parent = @model.create(:name => 'John Doe')
 
-    @resource = @model.create(:name => 'Dan Kubb', :parent => @parent)
-    attributes = DataMapper::Ext::Array.to_hash(@model.key.zip(@resource.key))
-    @resource = @model.first(attributes.merge(:fields => [ :name, :parent_id ]))
+    @resource  = @model.create(:name => 'Dan Kubb', :parent => @parent)
+    attributes = Hash[ @model.key.zip(@resource.key) ]
+    @resource  = @model.first(attributes.merge(:fields => [ :name, :parent_id ]))
 
     @state = @resource.persisted_state
     @state.should be_kind_of(DataMapper::Resource::State::Immutable)

@@ -144,7 +144,7 @@ module DataMapper
 
     # @api private
     def field_map
-      DataMapper::Ext::Array.to_hash(map { |property| [ property.field, property ] })
+      Hash[ map { |property| [ property.field, property ] } ]
     end
 
     def inspect

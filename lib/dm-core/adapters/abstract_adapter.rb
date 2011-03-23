@@ -208,8 +208,7 @@ module DataMapper
       #
       # @api semipublic
       def attributes_as_fields(attributes)
-        pairs = attributes.map { |property, value| [ property.field, property.dump(value) ] }
-        DataMapper::Ext::Array.to_hash(pairs)
+        Hash[ attributes.map { |property, value| [ property.field, property.dump(value) ] } ]
       end
 
       private

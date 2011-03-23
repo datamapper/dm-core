@@ -282,7 +282,8 @@ share_examples_for 'it creates a many accessor' do
 
         # set the model scope to only return the first record
         @model.default_scope.update(
-          DataMapper::Ext::Array.to_hash(@model.key(@repository.name).zip(@expected.key)))
+          Hash[ @model.key(@repository.name).zip(@expected.key) ]
+        )
 
         @return = @car.model.get(*@car.key).__send__(@name)
       end
