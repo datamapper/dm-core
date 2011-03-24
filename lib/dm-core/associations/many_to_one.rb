@@ -4,7 +4,7 @@ module DataMapper
       # Relationship class with implementation specific
       # to n side of 1 to n association
       class Relationship < Associations::Relationship
-        OPTIONS = superclass::OPTIONS.dup << :required << :key
+        OPTIONS = superclass::OPTIONS.dup << :required << :key << :unique
 
         # @api semipublic
         alias_method :source_repository_name, :child_repository_name
@@ -29,6 +29,11 @@ module DataMapper
         # @api semipublic
         def key?
           @key
+        end
+
+        # @api semipublic
+        def unique?
+          !!@unique
         end
 
         # @deprecated
@@ -193,6 +198,7 @@ module DataMapper
 
           @required      = options.fetch(:required, true)
           @key           = options.fetch(:key,      false)
+          @unique        = options.fetch(:unique,   false)
           target_model ||= DataMapper::Inflector.camelize(name)
           options        = { :min => @required ? 1 : 0, :max => 1 }.update(options)
           super
@@ -248,7 +254,8 @@ module DataMapper
           options = DataMapper::Ext::Hash.only(target_property.options, :length, :precision, :scale).update(
             :index    => name,
             :required => required?,
-            :key      => key?
+            :key      => key?,
+            :unique   => @unique
           )
 
           if target_property.primitive == Integer

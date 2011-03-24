@@ -498,6 +498,27 @@ describe DataMapper::Associations do
           end
         end
       end
+
+      describe 'with a :unique option' do
+        let(:unique) { [ :one, :two, :three ] }
+
+        before :all do
+          @relationship = Car.belongs_to("#{@name}_with_unique".to_sym, @model, :unique => unique)
+          DataMapper.finalize
+        end
+
+        it 'should create a foreign key that is unique' do
+          @relationship.child_key.each do |property|
+            property.should be_unique
+          end
+        end
+
+        it 'should create a foreign key that has a unique index' do
+          @relationship.child_key.each do |property|
+            property.unique_index.should equal(unique)
+          end
+        end
+      end
     end
 
     # TODO: refactor these specs into above structure once they pass
