@@ -331,7 +331,7 @@ module DataMapper
     extend Chainable
     extend Equalizer
 
-    equalize :model, :name
+    equalize :model, :name, :options
 
     PRIMITIVES = [
       TrueClass,

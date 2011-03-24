@@ -102,7 +102,7 @@ module DataMapper
       class AbstractComparison
         extend Equalizer
 
-        equalize :slug, :subject, :value
+        equalize :subject, :value
 
         # @api semipublic
         attr_accessor :parent

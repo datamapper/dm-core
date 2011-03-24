@@ -70,7 +70,7 @@ module DataMapper
         include Enumerable
         extend Equalizer
 
-        equalize :slug, :sorted_operands
+        equalize :sorted_operands
 
         # Returns the parent operation
         #
