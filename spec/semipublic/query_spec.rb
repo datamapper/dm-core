@@ -3472,22 +3472,13 @@ describe DataMapper::Query do
       it { should_not be_unique }
     end
 
-    describe 'when 1..n links are provided, but unique is not specified' do
-      before :all do
-        @query.should_not be_unique
-        @query.update(:links => [ :referrals ])
-      end
-
-      it { should be_unique }
-    end
-
-    describe 'when 0..1 links are provided, but unique is not specified' do
+    describe 'when links are provided, but unique is not specified' do
       before :all do
         @query.should_not be_unique
         @query.update(:links => [ :referrer ])
       end
 
-      it { should_not be_unique }
+      it { should be_unique }
     end
 
     describe 'when links are provided, but unique is false' do

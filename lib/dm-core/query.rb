@@ -1120,19 +1120,12 @@ module DataMapper
 
     # Normalize the unique attribute
     #
-    # If any links are present, and the unique attribute was not explicitly
-    # specified, then make sure the query is marked as unique. The exception
-    # to this rule is links where there is known to be 0..1 records on the
-    # the other side, such as belongs_to or a has 1. In this case, there
-    # is no need to explicitly mark the query unique. This in turn allows
-    # sane ordering on fields of the links, since no redundant GROUP BY
-    # clause will be generated.
+    # If any links are present, and the unique attribute was not
+    # explicitly specified, then make sure the query is marked as unique
     #
     # @api private
     def normalize_unique
-      unless @options.key?(:unique)
-        @unique = @links.reject {|x| x.min.between?(0, 1) && x.max == 1 }.any?
-      end
+      @unique = links.any? unless @options.key?(:unique)
     end
 
     # Append conditions to this Query
