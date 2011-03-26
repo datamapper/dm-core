@@ -50,7 +50,7 @@ group :datamapper do
   end
 
   adapters.each do |adapter|
-    gem "dm-#{adapter}-adapter", DM_VERSION, SOURCE => "#{DATAMAPPER}/dm-#{adapter}-adapter#{REPO_POSTFIX}"
+    gem "dm-#{adapter}-adapter", ENV.fetch('ADAPTER_VERSION', DM_VERSION), SOURCE => "#{DATAMAPPER}/dm-#{adapter}-adapter#{REPO_POSTFIX}"
   end
 
   plugins = ENV['PLUGINS'] || ENV['PLUGIN']
