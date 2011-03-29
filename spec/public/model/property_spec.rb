@@ -33,6 +33,12 @@ describe DataMapper::Model::Property do
       }.should raise_error(ArgumentError, '+name+ was :key, which cannot be used as a property name since it collides with an existing method or a query option')
     end
 
+    it 'should raise an exception if the property is boolean and method with question mark already exists' do
+      lambda {
+        ModelPropertySpecs.property(:destroyed, DataMapper::Property::Boolean)
+      }.should raise_error(ArgumentError, '+name+ was :destroyed, which cannot be used as a property name since it collides with an existing method or a query option')
+    end
+
     it 'should raise an exception if the name is the same as one of the query options' do
       lambda {
         ModelPropertySpecs.property(:order, String)

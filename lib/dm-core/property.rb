@@ -356,7 +356,10 @@ module DataMapper
     VISIBILITY_OPTIONS = [ :public, :protected, :private ].to_set.freeze
 
     # Invalid property names
-    INVALID_NAMES = (Resource.instance_methods + Resource.private_instance_methods + Query::OPTIONS.to_a).map { |name| name.to_s }.freeze
+    INVALID_NAMES = (Resource.instance_methods +
+                     Resource.private_instance_methods +
+                     Query::OPTIONS.to_a
+                    ).map { |name| name.to_s }
 
     attr_reader :primitive, :model, :name, :instance_variable_name,
       :reader_visibility, :writer_visibility, :options,
@@ -748,8 +751,9 @@ module DataMapper
     def initialize(model, name, options = {})
       options = options.to_hash.dup
 
-      if INVALID_NAMES.include?(name.to_s)
-        raise ArgumentError, "+name+ was #{name.inspect}, which cannot be used as a property name since it collides with an existing method or a query option"
+      if INVALID_NAMES.include?(name.to_s) || (kind_of?(Boolean) && INVALID_NAMES.include?("#{name}?"))
+        raise ArgumentError,
+          "+name+ was #{name.inspect}, which cannot be used as a property name since it collides with an existing method or a query option"
       end
 
       assert_valid_options(options)
