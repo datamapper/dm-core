@@ -1,6 +1,3 @@
-require 'dm-core/resource'
-require 'dm-core/query'
-
 module DataMapper
   # = Properties
   # Properties for a model are not derived from a database structure, but

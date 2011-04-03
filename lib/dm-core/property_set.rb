@@ -1,5 +1,3 @@
-require 'dm-core/support/subject_set'
-
 module DataMapper
   # Set of Property objects, used to associate
   # queries with set of fields it performed over,

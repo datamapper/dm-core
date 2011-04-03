@@ -1,5 +1,3 @@
-require 'dm-core/support/equalizer'
-
 module DataMapper
 
   # An ordered set of things

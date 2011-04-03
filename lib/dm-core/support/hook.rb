@@ -1,6 +1,3 @@
-require 'dm-core/support/assertions'
-require 'dm-core/support/local_object_space'
-
 module DataMapper
   #
   # TODO: Write more documentation!

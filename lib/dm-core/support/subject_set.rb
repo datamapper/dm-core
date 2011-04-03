@@ -1,5 +1,3 @@
-require 'dm-core/support/ordered_set'
-
 module DataMapper
 
   # An insertion ordered set of named objects

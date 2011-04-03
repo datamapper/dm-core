@@ -1,5 +1,3 @@
-require 'dm-core/support/subject_set'
-
 module DataMapper
   class DescendantSet
     include Enumerable

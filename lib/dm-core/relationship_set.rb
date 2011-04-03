@@ -1,5 +1,3 @@
-require 'dm-core/support/subject_set'
-
 module DataMapper
 
   # A {SubjectSet} that keeps track of relationships defined in a {Model}

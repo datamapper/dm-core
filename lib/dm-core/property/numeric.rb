@@ -1,5 +1,3 @@
-require 'dm-core/property/typecast/numeric'
-
 module DataMapper
   class Property
     class Numeric < Object

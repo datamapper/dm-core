@@ -1,5 +1,3 @@
-require 'dm-core/property/typecast/time'
-
 module DataMapper
   class Property
     class DateTime < Object

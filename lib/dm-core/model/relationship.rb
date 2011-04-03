@@ -1,8 +1,6 @@
 # TODO: update Model#respond_to? to return true if method_method missing
 # would handle the message
 
-require 'dm-core/relationship_set'
-
 module DataMapper
   module Model
     module Relationship
