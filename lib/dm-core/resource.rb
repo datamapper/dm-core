@@ -1,6 +1,3 @@
-# TODO: DRY up raise_on_save_failure with attr_accessor_with_default
-# once AS branch is merged in
-
 module DataMapper
   module Resource
     include DataMapper::Assertions

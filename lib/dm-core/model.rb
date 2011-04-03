@@ -1,8 +1,3 @@
-# TODO: add Model#create!, Model#update, Model#update!, Model#destroy and Model#destroy!
-
-# TODO: DRY up raise_on_save_failure with attr_accessor_with_default
-# once AS branch is merged in
-
 module DataMapper
   module Model
     extend Chainable
