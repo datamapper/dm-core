@@ -15,14 +15,19 @@ module DataMapper
         #
         # @api private
         def extract_time(value)
-          mash = value.respond_to?(:to_mash) ? value.to_mash : DataMapper::Ext::Hash.to_mash(value)
+          mash = if value.respond_to?(:to_mash)
+                   value.to_mash
+                 else
+                   DataMapper::Ext::Hash.to_mash(value)
+                 end
+
           now  = ::Time.now
 
           [ :year, :month, :day, :hour, :min, :sec ].map do |segment|
             typecast_to_numeric(mash.fetch(segment, now.send(segment)), :to_i)
           end
         end
-      end # Numeric
+      end # Time
     end # Typecast
   end # Property
 end # DataMapper
