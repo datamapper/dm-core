@@ -5,6 +5,9 @@ module DataMapper
 
       primitive ::TrueClass
 
+      TRUE_VALUES  = [ 1, '1', 't', 'T', 'true',  'TRUE'  ].to_set.freeze
+      FALSE_VALUES = [ 0, '0', 'f', 'F', 'false', 'FALSE' ].to_set.freeze
+
       def primitive?(value)
         value == true || value == false
       end
@@ -19,16 +22,13 @@ module DataMapper
       #
       # @api private
       def typecast_to_primitive(value)
-        if value.kind_of?(::Integer)
-          return true  if value == 1
-          return false if value == 0
-        elsif value.respond_to?(:to_str)
-          string_value = value.to_str.downcase
-          return true  if %w[ true  1 t ].include?(string_value)
-          return false if %w[ false 0 f ].include?(string_value)
+        if TRUE_VALUES.include?(value)
+          true
+        elsif FALSE_VALUES.include?(value)
+          false
+        else
+          value
         end
-
-        value
       end
     end # class Boolean
   end # class Property
