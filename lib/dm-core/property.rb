@@ -176,44 +176,40 @@ module DataMapper
   #
   # == Inferred Validations
   # If you require the dm-validations plugin, auto-validations will
-  # automatically be mixed-in in to your model classes:
-  # validation rules that are inferred when properties are declared with
-  # specific column restrictions.
+  # automatically be mixed-in in to your model classes: validation rules that
+  # are inferred when properties are declared with specific column restrictions.
   #
-  #  class Post
-  #    include DataMapper::Resource
+  #   class Post
+  #     include DataMapper::Resource
   #
-  #    property :title, String, :length => 250
-  #      # => infers 'validates_length :title,
-  #             :minimum => 0, :maximum => 250'
+  #     property :title, String, :length => 250, :min => 0, :max => 250
+  #     # => infers 'validates_length :title'
   #
-  #    property :title, String, :required => true
-  #      # => infers 'validates_present :title
+  #     property :title, String, :required => true
+  #     # => infers 'validates_present :title'
   #
-  #    property :email, String, :format => :email_address
-  #      # => infers 'validates_format :email, :with => :email_address
+  #     property :email, String, :format => :email_address
+  #     # => infers 'validates_format :email, :with => :email_address'
   #
-  #    property :title, String, :length => 255, :required => true
-  #      # => infers both 'validates_length' as well as
-  #      #    'validates_present'
-  #      #    better: property :title, String, :length => 1..255
-  #
-  #  end
+  #     property :title, String, :length => 255, :required => true
+  #     # => infers both 'validates_length' as well as 'validates_present'
+  #     #    better: property :title, String, :length => 1..255
+  #   end
   #
   # This functionality is available with the dm-validations gem. For more information
   # about validations, check the documentation for dm-validations.
   #
   # == Default Values
-  # To set a default for a property, use the <tt>:default</tt> key.  The
+  # To set a default for a property, use the <tt>:default</tt> key. The
   # property will be set to the value associated with that key the first time
   # it is accessed, or when the resource is saved if it hasn't been set with
-  # another value already.  This value can be a static value, such as 'hello'
+  # another value already. This value can be a static value, such as 'hello'
   # but it can also be a proc that will be evaluated when the property is read
-  # before its value has been set.  The property is set to the return of the
-  # proc.  The proc is passed two values, the resource the property is being set
+  # before its value has been set. The property is set to the return of the
+  # proc. The proc is passed two values, the resource the property is being set
   # for and the property itself.
   #
-  #   property :display_name, String, :default => { |resource, property| resource.login }
+  #   property :display_name, String, :default => lambda { |resource, property| resource.login }
   #
   # Word of warning.  Don't try to read the value of the property you're setting
   # the default for in the proc.  An infinite loop will ensue.
@@ -267,9 +263,6 @@ module DataMapper
   #                       Only makes sense for float type properties. Must be > 0.
   #                       Default is nil for Float type and 10 for BigDecimal
   #
-  #  All other keys you pass to +property+ method are stored and available
-  #  as options[:extra_keys].
-  #
   # == Overriding default Property options
   #
   # There is the ability to reconfigure a Property and it's subclasses by explicitly
@@ -288,7 +281,7 @@ module DataMapper
   #   DataMapper::Property.auto_validation(false)
   #
   #   # set all mutator methods to be private by default
-  #   DataMapper::Property.writer(false)
+  #   DataMapper::Property.writer(:private)
   #
   # Please note that this has no effect when a subclass has explicitly
   # defined it's own option. For example, setting the String length to
