@@ -149,7 +149,7 @@ describe DataMapper::Query::Conditions::EqualToComparison do
       end
 
       describe 'with a Relationship subject' do
-        describe 'with a Relationship subject and a nil value' do
+        describe 'with a nil value' do
           before do
             @parent = @model.create(:title => 'Parent')
             @child  = @parent.children.create(:title => 'Child')
@@ -182,7 +182,7 @@ describe DataMapper::Query::Conditions::EqualToComparison do
           end
         end
 
-        describe 'with a Relationship subject and a Hash value' do
+        describe 'with a Hash value' do
           before do
             @parent = @model.create(:title => 'Parent')
             @child  = @parent.children.create(:title => 'Child')
@@ -215,7 +215,7 @@ describe DataMapper::Query::Conditions::EqualToComparison do
           end
         end
 
-        describe 'with a Relationship subject and new Resource value' do
+        describe 'with new Resource value' do
           before do
             @parent = @model.create(:title => 'Parent')
             @child  = @parent.children.create(:title => 'Child')
@@ -250,7 +250,7 @@ describe DataMapper::Query::Conditions::EqualToComparison do
           end
         end
 
-        describe 'with a Relationship subject and saved Resource value' do
+        describe 'with a saved Resource value' do
           before do
             @parent = @model.create(:title => 'Parent')
             @child  = @parent.children.create(:title => 'Child')
