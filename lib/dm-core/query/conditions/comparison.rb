@@ -797,6 +797,7 @@ module DataMapper
         #
         # @api semipublic
         def matches?(record)
+          return false if expected.nil?
           record_value = record_value(record)
           !record_value.nil? && record_value > expected
         end
@@ -827,6 +828,7 @@ module DataMapper
         #
         # @api semipublic
         def matches?(record)
+          return false if expected.nil?
           record_value = record_value(record)
           !record_value.nil? && record_value < expected
         end
@@ -857,6 +859,7 @@ module DataMapper
         #
         # @api semipublic
         def matches?(record)
+          return false if expected.nil?
           record_value = record_value(record)
           !record_value.nil? && record_value >= expected
         end
@@ -885,6 +888,7 @@ module DataMapper
         #
         # @api semipublic
         def matches?(record)
+          return false if expected.nil?
           record_value = record_value(record)
           !record_value.nil? && record_value <= expected
         end
