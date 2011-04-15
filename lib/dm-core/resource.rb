@@ -279,7 +279,8 @@ module DataMapper
     #
     # @api public
     def attribute_set(name, value)
-      self.persisted_state = persisted_state.set(properties[name], value)
+      property = properties[name]
+      self.persisted_state = persisted_state.set(property, value) if property
     end
 
     alias_method :[]=, :attribute_set

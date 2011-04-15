@@ -244,5 +244,41 @@ describe DataMapper::Resource do
         end
       end
     end
+
+    describe '#attribute_set' do
+      subject { object.attribute_set(name, value) }
+
+      let(:object) { @user.dup }
+
+      context 'with a known property' do
+        let(:name)  { :name   }
+        let(:value) { 'dkubb' }
+
+        it 'sets the attribute' do
+          expect { subject }.to change { object.name }.
+            from('dbussink').
+            to('dkubb')
+        end
+
+        it 'makes the object dirty' do
+          expect { subject }.to change { object.dirty? }.
+            from(false).
+            to(true)
+        end
+      end
+
+      context 'with an unknown property' do
+        let(:name)  { :unknown              }
+        let(:value) { mock('Unknown Value') }
+
+        it 'does not set the attribute' do
+          expect { subject }.to_not change { object.attributes.dup }
+        end
+
+        it 'does not make the object dirty' do
+          expect { subject }.to_not change { object.dirty? }
+        end
+      end
+    end
   end
 end
