@@ -222,5 +222,27 @@ describe DataMapper::Resource do
         end
       end
     end
+
+    describe '#attribute_get' do
+      subject { object.attribute_get(name) }
+
+      let(:object) { @user }
+
+      context 'with a known property' do
+        let(:name) { :name }
+
+        it 'returns the attribute value' do
+          should == 'dbussink'
+        end
+      end
+
+      context 'with an unknown property' do
+        let(:name) { :unknown }
+
+        it 'returns nil' do
+          should be_nil
+        end
+      end
+    end
   end
 end

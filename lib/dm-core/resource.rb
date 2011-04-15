@@ -237,7 +237,8 @@ module DataMapper
     #
     # @api public
     def attribute_get(name)
-      persisted_state.get(properties[name])
+      property = properties[name]
+      persisted_state.get(property) if property
     end
 
     alias_method :[], :attribute_get
