@@ -1,5 +1,19 @@
 require 'spec_helper'
 
+shared_examples_for "a correct property declaration" do
+  it 'should define a name accessor' do
+    @model.should_not be_method_defined(@property_name)
+    subject
+    @model.should be_method_defined(@property_name)
+  end
+
+  it 'should define a name= mutator' do
+    @model.should_not be_method_defined(:"#{@property_name}=")
+    subject
+    @model.should be_method_defined(:"#{@property_name}=")
+  end
+end
+
 describe DataMapper::Model::Property do
   before do
     Object.send(:remove_const, :ModelPropertySpecs) if defined?(ModelPropertySpecs)
@@ -12,19 +26,45 @@ describe DataMapper::Model::Property do
   end
 
   describe '#property' do
+    context "using default repository" do
+      before do
+        Object.send(:remove_const, :UserDefault) if defined?(::UserDefault)
 
-    subject { ModelPropertySpecs.property(:name, String) }
+        class ::UserDefault
+          include DataMapper::Resource
+          property :id, Serial
+        end
 
-    it 'should define a name accessor' do
-      ModelPropertySpecs.should_not be_method_defined(:name)
-      subject
-      ModelPropertySpecs.should be_method_defined(:name)
+        @model         = ::UserDefault
+        @property_name = :name
+      end
+
+      subject do
+        ::UserDefault.property(:name, String)
+      end
+
+      it_should_behave_like "a correct property declaration"
     end
 
-    it 'should define a name= mutator' do
-      ModelPropertySpecs.should_not be_method_defined(:name=)
-      subject
-      ModelPropertySpecs.should be_method_defined(:name=)
+    context "using alternate repository" do
+      before do
+        Object.send(:remove_const, :UserAlternate) if defined?(::UserAlternate)
+
+        class ::UserAlternate
+          include DataMapper::Resource
+          property :id, Serial
+          repository(:alternate) { property :age, Integer }
+        end
+
+        @model         = UserAlternate
+        @property_name = :alt_name
+      end
+
+      subject do
+        ::UserAlternate.property(:alt_name, String)
+      end
+
+      it_should_behave_like "a correct property declaration"
     end
 
     it 'should raise an exception if the method exists' do

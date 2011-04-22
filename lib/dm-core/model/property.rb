@@ -64,13 +64,16 @@ module DataMapper
 
         # Add property to the other mappings as well if this is for the default
         # repository.
+
         if repository_name == default_repository_name
-          DataMapper::Ext::Hash.except(@properties, default_repository_name).each do |other_repository_name, properties|
+          other_repository_properties = DataMapper::Ext::Hash.except(@properties, default_repository_name)
+
+          other_repository_properties.each do |other_repository_name, properties|
             next if properties.named?(name)
 
             # make sure the property is created within the correct repository scope
             DataMapper.repository(other_repository_name) do
-              properties << klass.new(self, name, options, type)
+              properties << klass.new(self, name, options)
             end
           end
         end
