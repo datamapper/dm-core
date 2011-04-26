@@ -350,7 +350,7 @@ module DataMapper
     #
     # @api private
     def include?(entry)
-      entries.include?(entry)
+      @cache.include?(entry) && entries[@cache[entry]] == entry
     end
 
     # Return the index for the entry in the set
