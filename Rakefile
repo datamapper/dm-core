@@ -12,7 +12,6 @@ begin
     gem.email       = 'dan.kubb@gmail.com'
     gem.homepage    = 'http://github.com/datamapper/%s' % gem.name
     gem.authors     = [ 'Dan Kubb' ]
-    gem.has_rdoc    = 'yard'
 
     gem.rubyforge_project = 'datamapper'
   end
