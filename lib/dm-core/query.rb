@@ -517,6 +517,7 @@ module DataMapper
     #
     # @api semipublic
     def sort_records(records)
+      return records if order.nil?
       sort_order = order.map { |direction| [ direction.target, direction.operator == :asc ] }
 
       records.sort_by do |record|
