@@ -42,11 +42,12 @@ module DataMapper
       end
 
       def require_spec_adapter
-        if ENV['ADAPTER'] == 'in_memory'
+        desired_adapter = ENV['ADAPTER']
+        if desired_adapter.nil? || desired_adapter == 'in_memory'
           ENV['ADAPTER_SUPPORTS'] = 'all'
           Adapters.use(Adapters::InMemoryAdapter)
         else
-          require "dm-#{ENV['ADAPTER']}-adapter/spec/setup"
+          require "dm-#{desired_adapter}-adapter/spec/setup"
         end
       end
 
