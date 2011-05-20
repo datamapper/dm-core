@@ -6,25 +6,22 @@ module DataMapper
     module Property
       Model.append_extensions self, DataMapper::Property::Lookup
 
-      extend Chainable
-
       def self.extended(model)
         model.instance_variable_set(:@properties,               {})
         model.instance_variable_set(:@field_naming_conventions, {})
       end
 
-      chainable do
-        def inherited(model)
-          model.instance_variable_set(:@properties,               {})
-          model.instance_variable_set(:@field_naming_conventions, @field_naming_conventions.dup)
 
-          @properties.each do |repository_name, properties|
-            model_properties = model.properties(repository_name)
-            properties.each { |property| model_properties << property }
-          end
+      def inherited(model)
+        model.instance_variable_set(:@properties,               {})
+        model.instance_variable_set(:@field_naming_conventions, @field_naming_conventions.dup)
 
-          super
+        @properties.each do |repository_name, properties|
+          model_properties = model.properties(repository_name)
+          properties.each { |property| model_properties << property }
         end
+
+        super
       end
 
       # Defines a Property on the Resource
@@ -181,7 +178,7 @@ module DataMapper
         Hash[ self.key(repository.name).zip(key.nil? ? [] : key) ]
       end
 
-      private
+    private
 
       # Defines the anonymous module that is used to add properties.
       # Using a single module here prevents having a very large number
@@ -243,15 +240,13 @@ module DataMapper
         RUBY
       end
 
-      chainable do
-        # @api public
-        def method_missing(method, *args, &block)
-          if property = properties(repository_name)[method]
-            return property
-          end
-
-          super
+      # @api public
+      def method_missing(method, *args, &block)
+        if property = properties(repository_name)[method]
+          return property
         end
+
+        super
       end
     end # module Property
   end # module Model

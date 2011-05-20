@@ -1,7 +1,6 @@
 module DataMapper
   module Resource
     include DataMapper::Assertions
-    extend Chainable
 
     # @deprecated
     def self.append_inclusions(*inclusions)
