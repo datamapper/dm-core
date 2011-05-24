@@ -9,13 +9,18 @@ module DataMapper
       extend Chainable
 
       def self.extended(model)
-        model.instance_variable_set(:@properties,               {})
-        model.instance_variable_set(:@field_naming_conventions, {})
+        model.instance_eval do
+          @properties               ||= {}
+          @field_naming_conventions ||= {}
+        end
       end
 
       chainable do
         def inherited(model)
-          model.instance_variable_set(:@properties,               {})
+          model.instance_eval do
+            @properties ||= {}
+          end
+
           model.instance_variable_set(:@field_naming_conventions, @field_naming_conventions.dup)
 
           @properties.each do |repository_name, properties|

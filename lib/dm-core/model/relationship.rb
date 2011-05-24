@@ -18,7 +18,9 @@ module DataMapper
       #
       # @api private
       def self.extended(model)
-        model.instance_variable_set(:@relationships, {})
+        model.instance_eval do
+          @relationships ||= {}
+        end
       end
 
       chainable do
@@ -27,7 +29,9 @@ module DataMapper
         #
         # @api private
         def inherited(model)
-          model.instance_variable_set(:@relationships, {})
+          model.instance_eval do
+            @relationships ||= {}
+          end
 
           @relationships.each do |repository_name, relationships|
             model_relationships = model.relationships(repository_name)
