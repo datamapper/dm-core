@@ -28,7 +28,7 @@ share_examples_for 'An Adapter' do
     # To support adapters which need own resource mixins we do not include DataMapper::Resource
     # in the Heffalump directly. Adapters like dm-mongo-adapter can set @dm_resource_module in a before 
     # block. Same with the :id Property
-    dm_resource_module = @dm_resource_property || DataMapper::Resource 
+    dm_resource_module = @dm_resource_module || DataMapper::Resource 
     dm_serial_property = @dm_serial_property || DataMapper::Property::Serial 
 
     class ::Heffalump; end
