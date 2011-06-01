@@ -22,30 +22,30 @@ share_examples_for 'An Adapter' do
     end
   end
 
+
   before :all do
-    raise '+@adapter+ should be defined in before block' unless instance_variable_get('@adapter')
-    # NOTICE: this is a hack
-    # To support adapters which need own resource mixins we do not include DataMapper::Resource
-    # in the Heffalump directly. Adapters like dm-mongo-adapter can set @dm_resource_module in a before 
-    # block. Same with the :id Property
-    dm_resource_module = @dm_resource_module || DataMapper::Resource 
-    dm_serial_property = @dm_serial_property || DataMapper::Property::Serial 
+    raise '+#adapter+ should be defined in a let(:adapter) block' unless respond_to?(:adapter)
+    raise '+#repository+ should be defined in a let(:repository) block' unless respond_to?(:repository)
 
-    class ::Heffalump; end
-
-    Heffalump.send :include,dm_resource_module
-    Heffalump.property :id, dm_serial_property
-
-    class ::Heffalump
-      property :color,     String
-      property :num_spots, Integer
-      property :striped,   Boolean
+    if respond_to?(:heffalump_model)
+      Object.const_set 'Heffalump', heffalump_model
+    else
+      # This is the default Heffalup model. You can replace it with your own 
+      # (using let/let!) # but # be shure the replacement provides the required 
+      # properties.
+      class Heffalump
+        include DataMapper::Resource
+        property :id,        Serial
+        property :color,     String
+        property :num_spots, Integer
+        property :striped,   Boolean
+      end
     end
 
     DataMapper.finalize
 
     # create all tables and constraints before each spec
-    if @repository.respond_to?(:auto_migrate!)
+    if repository.respond_to?(:auto_migrate!)
       Heffalump.auto_migrate!
     end
   end
@@ -249,8 +249,8 @@ share_examples_for 'An Adapter' do
 
         describe 'regexp' do
           before do
-            if (defined?(DataMapper::Adapters::SqliteAdapter) && @adapter.kind_of?(DataMapper::Adapters::SqliteAdapter) ||
-                defined?(DataMapper::Adapters::SqlserverAdapter) && @adapter.kind_of?(DataMapper::Adapters::SqlserverAdapter))
+            if (defined?(DataMapper::Adapters::SqliteAdapter) && adapter.kind_of?(DataMapper::Adapters::SqliteAdapter) ||
+                defined?(DataMapper::Adapters::SqlserverAdapter) && adapter.kind_of?(DataMapper::Adapters::SqlserverAdapter))
               pending 'delegate regexp matches to same system that the InMemory and YAML adapters use'
             end
           end
