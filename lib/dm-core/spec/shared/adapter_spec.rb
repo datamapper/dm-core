@@ -33,7 +33,7 @@ share_examples_for 'An Adapter' do
       # This is the default Heffalup model. You can replace it with your own 
       # (using let/let!) # but # be shure the replacement provides the required 
       # properties.
-      class Heffalump
+      class ::Heffalump
         include DataMapper::Resource
         property :id,        Serial
         property :color,     String
@@ -48,6 +48,10 @@ share_examples_for 'An Adapter' do
     if repository.respond_to?(:auto_migrate!)
       Heffalump.auto_migrate!
     end
+  end
+
+  after :all do
+    Object.send(:remove_const,'Heffalump')
   end
 
   if adapter_supports?(:create)
