@@ -51,7 +51,7 @@ share_examples_for 'An Adapter' do
   end
 
   after :all do
-    Object.send(:remove_const,'Heffalump')
+    Object.send(:remove_const,'Heffalump') if defined? ::Heffalump
   end
 
   if adapter_supports?(:create)
