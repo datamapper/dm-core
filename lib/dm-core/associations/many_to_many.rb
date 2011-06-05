@@ -18,12 +18,15 @@ module DataMapper
           repository_name = child_repository_name || parent_repository_name
           properties      = child_model.properties(repository_name)
 
-          @child_key = if @child_properties
-            child_key = properties.values_at(*@child_properties)
-            properties.class.new(child_key).freeze
-          else
-            properties.key
-          end
+          # @child_key = if @child_properties
+          #   child_key = properties.values_at(*@child_properties)
+          #   properties.class.new(child_key).freeze
+          # else
+          #   properties.key
+          # end
+          
+          # here we may need only to test the through model on the child_key, but not the target
+          @child_key = properties.key
         end
 
         # @api semipublic
@@ -88,6 +91,9 @@ module DataMapper
           through_model   = through.target_model
           relationships   = through_model.relationships(repository_name)
           singular_name   = DataMapper::Inflector.singularize(name.to_s).to_sym
+          
+          # if we add via to the association, we seem to wanna use this name as the property of the trough model
+          via_name        = @via ? DataMapper::Inflector.singularize(@via.to_s).to_sym : singular_name
 
           @via = relationships[@via] ||
             relationships[name]      ||
@@ -95,7 +101,7 @@ module DataMapper
 
           @via ||= if anonymous_through_model?
             DataMapper.repository(repository_name) do
-              through_model.belongs_to(singular_name, target_model, many_to_one_options)
+              through_model.belongs_to(via_name, target_model, many_to_one_options)
             end
           else
             raise UnknownRelationshipError, "No relationships named #{name} or #{singular_name} in #{through_model}"
@@ -258,7 +264,11 @@ module DataMapper
         # @api semipublic
         chainable do
           def one_to_many_options
-            { :parent_key => source_key.map { |property| property.name } }
+            {
+              :parent_key => source_key.map { |property| property.name },
+              # if we add the child_key name, we'll likely want to use it as the property in the through model
+              :child_key => options[:child_key]
+            }
           end
         end
 
