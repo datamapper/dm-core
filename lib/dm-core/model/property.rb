@@ -10,7 +10,7 @@ module DataMapper
 
       def self.extended(model)
         model.instance_eval do
-          @properties               ||= {}
+          @properties               =   {}
           @field_naming_conventions ||= {}
         end
       end
