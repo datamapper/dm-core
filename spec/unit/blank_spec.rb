@@ -60,3 +60,14 @@ describe 'DataMapper::Ext.blank?', String do
     DataMapper::Ext.blank?(' a ').should == false
   end
 end
+
+describe 'DataMapper::Ext.blank?', 'object with #blank?' do
+  subject { DataMapper::Ext.blank?(object) }
+
+  let(:return_value) { mock('Return Value')                    }
+  let(:object)       { mock('Object', :blank? => return_value) }
+
+  it 'returns the object#blank? result if supported' do
+    should equal(return_value)
+  end
+end
