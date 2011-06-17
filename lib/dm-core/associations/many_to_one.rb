@@ -69,6 +69,14 @@ module DataMapper
         # @api semipublic
         alias_method :source_key, :child_key
 
+        # Initialize the foreign key property this "many to one"
+        # relationship uses to persist itself
+        # 
+        # @api private
+        def finalize
+          child_key
+        end
+
         # Returns a hash of conditions that scopes query that fetches
         # target object
         #

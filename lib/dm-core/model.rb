@@ -127,6 +127,31 @@ module DataMapper
       @raise_on_save_failure = raise_on_save_failure
     end
 
+    # TODO: can this become @api semipublic?
+    #   it could be very useful for extensions
+    # @api private
+    def finalize
+      name            = self.name
+      repository_name = self.repository_name
+      relationships   = self.relationships(repository_name)
+
+      if name.to_s.strip.empty?
+        raise IncompleteModelError, "#{self.inspect} must have a name"
+      end
+
+      if properties(repository_name).empty? &&
+        !relationships.any? { |relationship| relationship.kind_of?(Associations::ManyToOne::Relationship) }
+        raise IncompleteModelError, "#{name} must have at least one property or many to one relationship to be valid"
+      end
+
+      # Initialize all foreign key properties established by relationships
+      relationships.each { |relationship| relationship.finalize }
+
+      if key(repository_name).empty?
+        raise IncompleteModelError, "#{name} must have a key to be valid"
+      end
+    end
+
     # Appends a module for inclusion into the model class after Resource.
     #
     # This is a useful way to extend Resource while still retaining a

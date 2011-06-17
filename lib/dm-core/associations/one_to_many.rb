@@ -100,6 +100,19 @@ module DataMapper
           end
         end
 
+        # initialize the inverse "many to one" relationships explicitly before
+        # initializing other relationships. This makes sure that foreign key
+        # properties always appear in the order they were declared.
+        # 
+        # @api private
+        def finalize
+          child_model.relationships.each do |remote_relationship|
+            if remote_relationship.kind_of?(Associations::ManyToOne::Relationship)
+              remote_relationship.child_key
+            end
+          end
+        end
+
         # @api semipublic
         def default_for(source)
           collection_for(source).replace(Array(super))

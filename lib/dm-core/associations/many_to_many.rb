@@ -124,6 +124,14 @@ module DataMapper
           @links.freeze
         end
 
+        # Initialize the chain for "many to many" relationships
+        # 
+        # @api private
+        def finalize
+          through
+          via
+        end
+
         # @api private
         def source_scope(source)
           { through.inverse => source }
