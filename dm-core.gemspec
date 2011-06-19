@@ -8,8 +8,8 @@ Gem::Specification.new do |s|
   s.version = "1.1.1"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
-  s.authors = ["Dan Kubb"]
-  s.date = %q{2011-05-05}
+  s.authors = [%q{Dan Kubb}]
+  s.date = %q{2011-06-19}
   s.description = %q{Faster, Better, Simpler.}
   s.email = %q{dan.kubb@gmail.com}
   s.extra_rdoc_files = [
@@ -271,9 +271,9 @@ Gem::Specification.new do |s|
     "tasks/yardstick.rake"
   ]
   s.homepage = %q{http://github.com/datamapper/dm-core}
-  s.require_paths = ["lib"]
+  s.require_paths = [%q{lib}]
   s.rubyforge_project = %q{datamapper}
-  s.rubygems_version = %q{1.7.2}
+  s.rubygems_version = %q{1.8.5}
   s.summary = %q{An Object/Relational Mapper for Ruby}
   s.test_files = [
     "spec/lib/rspec_immediate_feedback_formatter.rb",
