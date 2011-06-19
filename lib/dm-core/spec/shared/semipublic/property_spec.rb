@@ -31,7 +31,7 @@ share_examples_for 'A semipublic Property' do
       end
 
       it 'should set the options to the default' do
-        @property.options.should == @options.merge(@type.options)
+        @property.options.should == @type.options.merge(@options)
       end
     end
 
