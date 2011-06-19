@@ -8,13 +8,13 @@ describe DataMapper::Property::Class do
     class ::Foo; end
     class ::Bar; end
 
-    @name  = :type
-    @type  = DataMapper::Property::Class
-    @primitive = Class
-    @value = Foo
-    @other_value = Bar
+    @name          = :type
+    @type          = described_class
+    @primitive     = Class
+    @value         = Foo
+    @other_value   = Bar
     @invalid_value = 1
   end
 
-  it_should_behave_like "A public Property"
+  it_should_behave_like 'A public Property'
 end

@@ -2,14 +2,14 @@ require 'spec_helper'
 
 describe DataMapper::Property::Float do
   before :all do
-    @name  = :rating
-    @type  = DataMapper::Property::Float
-    @value = 0.1
-    @other_value = 0.2
+    @name          = :rating
+    @type          = described_class
+    @value         = 0.1
+    @other_value   = 0.2
     @invalid_value = '1'
   end
 
-  it_should_behave_like "A semipublic Property"
+  it_should_behave_like 'A semipublic Property'
 
   describe '#typecast_to_primitive' do
     it 'returns same value if a float' do

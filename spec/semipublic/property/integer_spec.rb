@@ -2,14 +2,14 @@ require 'spec_helper'
 
 describe DataMapper::Property::Integer do
   before :all do
-    @name  = :age
-    @type  = DataMapper::Property::Integer
-    @value = 1
-    @other_value = 2
+    @name          = :age
+    @type          = described_class
+    @value         = 1
+    @other_value   = 2
     @invalid_value = '1'
   end
 
-  it_should_behave_like "A semipublic Property"
+  it_should_behave_like 'A semipublic Property'
 
   describe '#typecast_to_primitive' do
     it 'returns same value if an integer' do

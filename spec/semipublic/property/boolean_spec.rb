@@ -2,14 +2,14 @@ require 'spec_helper'
 
 describe DataMapper::Property::Boolean do
   before :all do
-    @name  = :active
-    @type  = DataMapper::Property::Boolean
-    @value = true
-    @other_value = false
+    @name          = :active
+    @type          = described_class
+    @value         = true
+    @other_value   = false
     @invalid_value = 1
   end
 
-  it_should_behave_like "A semipublic Property"
+  it_should_behave_like 'A semipublic Property'
 
   describe '#load' do
     before :all do

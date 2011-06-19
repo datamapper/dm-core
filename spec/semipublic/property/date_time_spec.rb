@@ -2,14 +2,14 @@ require 'spec_helper'
 
 describe DataMapper::Property::DateTime do
   before :all do
-    @name  = :created_at
-    @type  = DataMapper::Property::DateTime
-    @value = DateTime.now
-    @other_value = DateTime.now+15
+    @name          = :created_at
+    @type          = described_class
+    @value         = DateTime.now
+    @other_value   = DateTime.now + 15
     @invalid_value = 1
   end
 
-  it_should_behave_like "A semipublic Property"
+  it_should_behave_like 'A semipublic Property'
 
   describe '#typecast_to_primitive' do
     describe 'and value given as a hash with keys like :year, :month, etc' do
