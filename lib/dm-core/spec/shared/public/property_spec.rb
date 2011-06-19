@@ -22,6 +22,14 @@ share_examples_for 'A public Property' do
       @type.accept_options :foo, :bar
     end
 
+    before :all do
+      @original = @type.accepted_options.dup
+    end
+
+    after :all do
+      @type.accepted_options.replace(@original - [ :foo, :bar ])
+    end
+
     describe "predefined options" do
       before :all do
         class ::ChildSubType < @subtype

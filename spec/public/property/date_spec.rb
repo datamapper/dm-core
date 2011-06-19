@@ -11,4 +11,12 @@ describe DataMapper::Property::Date do
   end
 
   it_should_behave_like 'A public Property'
+
+  describe '.options' do
+    subject { described_class.options }
+
+    it { should be_kind_of(Hash) }
+
+    it { should eql(:primitive => @primitive) }
+  end
 end

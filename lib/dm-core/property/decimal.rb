@@ -3,7 +3,11 @@ module DataMapper
     class Decimal < Numeric
       primitive BigDecimal
 
-      DEFAULT_SCALE = 0
+      DEFAULT_PRECISION = 10
+      DEFAULT_SCALE     = 0
+
+      precision(DEFAULT_PRECISION)
+      scale(DEFAULT_SCALE)
 
       protected
 

@@ -454,9 +454,8 @@ module DataMapper
       # @api public
       def options
         options = {}
-        accepted_options.each do |method|
-          value = send(method)
-          options[method] = value unless value.nil?
+        accepted_options.each do |name|
+          options[name] = send(name) if instance_variable_defined?("@#{name}")
         end
         options
       end

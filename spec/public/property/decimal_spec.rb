@@ -12,4 +12,12 @@ describe DataMapper::Property::Decimal do
   end
 
   it_should_behave_like 'A public Property'
+
+  describe '.options' do
+    subject { described_class.options }
+
+    it { should be_kind_of(Hash) }
+
+    it { should eql(:primitive => @primitive, :precision => 10, :scale => 0) }
+  end
 end
