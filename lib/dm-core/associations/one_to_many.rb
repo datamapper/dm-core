@@ -106,9 +106,11 @@ module DataMapper
         # 
         # @api public
         def finalize
-          child_model.relationships.each do |remote_relationship|
-            if remote_relationship.kind_of?(Associations::ManyToOne::Relationship)
-              remote_relationship.child_key
+          child_model.relationships.each do |relationship|
+            # TODO: should this check #inverse?
+            #   relationship.child_key if inverse?(relationship)
+            if relationship.kind_of?(Associations::ManyToOne::Relationship)
+              relationship.child_key
             end
           end
         end
