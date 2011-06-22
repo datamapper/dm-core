@@ -276,54 +276,8 @@ module DataMapper
   #
   # @api public
   def self.finalize
-    Model.descendants.each do |model|
-      finalize_model(model)
-    end
+    Model.descendants.each { |model| model.finalize }
     self
   end
 
-  private
-
-  # @api private
-  def self.finalize_model(model)
-    name            = model.name
-    repository_name = model.repository_name
-    relationships   = model.relationships(repository_name)
-
-    if name.to_s.strip.empty?
-      raise IncompleteModelError, "#{model.inspect} must have a name"
-    end
-
-    if model.properties(repository_name).empty? &&
-      !relationships.any? { |relationship| relationship.kind_of?(Associations::ManyToOne::Relationship) }
-      raise IncompleteModelError, "#{name} must have at least one property or many to one relationship to be valid"
-    end
-
-    # Initialize all foreign key properties established by relationships
-    relationships.each do |relationship|
-      if relationship.kind_of?(Associations::ManyToOne::Relationship)
-        # Initialize the foreign key property this "many to one"
-        # relationship uses to persist itself
-        relationship.child_key
-      elsif relationship.kind_of?(Associations::ManyToMany::Relationship)
-        # Initialize the chain for "many to many" relationships
-        relationship.through
-        relationship.via
-      else
-        # If this is a "one to one" or "one to many" relationship, initialize
-        # the inverse "many to one" relationships explicitly before initializing
-        # other relationships. This makes sure that foreign key properties always
-        # appear in the order they were declared.
-        relationship.child_model.relationships.each do |remote_relationship|
-          if remote_relationship.kind_of?(Associations::ManyToOne::Relationship)
-            remote_relationship.child_key
-          end
-        end
-      end
-    end
-
-    if model.key(repository_name).empty?
-      raise IncompleteModelError, "#{name} must have a key to be valid"
-    end
-  end
 end # module DataMapper

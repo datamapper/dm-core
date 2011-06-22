@@ -42,6 +42,20 @@ module DataMapper
           set(source, target)
         end
 
+        # If this is a "one to one" or "one to many" relationship, initialize
+        # the inverse "many to one" relationships explicitly before initializing
+        # other relationships. This makes sure that foreign key properties always
+        # appear in the order they were declared.
+        # 
+        # @api public
+        def finalize
+          child_model.relationships.each do |inverse_relationship|
+            if inverse_relationship.kind_of?(Associations::ManyToOne::Relationship)
+              inverse_relationship.child_key
+            end
+          end
+        end
+
         # @api semipublic
         def default_for(source)
           relationship.default_for(source).first
