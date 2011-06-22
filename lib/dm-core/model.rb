@@ -127,7 +127,7 @@ module DataMapper
       @raise_on_save_failure = raise_on_save_failure
     end
 
-    # @api private
+    # @api public
     def finalize
       name            = self.name
       repository_name = self.repository_name

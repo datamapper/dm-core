@@ -47,7 +47,7 @@ module DataMapper
         # other relationships. This makes sure that foreign key properties always
         # appear in the order they were declared.
         # 
-        # @api private
+        # @api public
         def finalize
           child_model.relationships.each do |inverse_relationship|
             if inverse_relationship.kind_of?(Associations::ManyToOne::Relationship)
