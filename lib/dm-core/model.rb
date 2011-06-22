@@ -127,8 +127,6 @@ module DataMapper
       @raise_on_save_failure = raise_on_save_failure
     end
 
-    # TODO: can this become @api semipublic?
-    #   it could be very useful for extensions
     # @api private
     def finalize
       name            = self.name
