@@ -318,7 +318,6 @@ module DataMapper
 
     include DataMapper::Assertions
     include Subject
-    extend Chainable
     extend Equalizer
 
     equalize :model, :name, :options
@@ -728,13 +727,7 @@ module DataMapper
       value.kind_of?(primitive)
     end
 
-    chainable do
-      def self.new(model, name, options = {})
-        super
-      end
-    end
-
-    protected
+  protected
 
     # @api semipublic
     def initialize(model, name, options = {})

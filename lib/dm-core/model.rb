@@ -1,6 +1,5 @@
 module DataMapper
   module Model
-    extend Chainable
 
     include Enumerable
 
@@ -229,15 +228,13 @@ module DataMapper
     end
 
     # @api private
-    chainable do
-      def inherited(descendant)
-        descendants << descendant
+    def inherited(descendant)
+      descendants << descendant
 
-        descendant.instance_variable_set(:@valid,         false)
-        descendant.instance_variable_set(:@base_model,    base_model)
-        descendant.instance_variable_set(:@storage_names, @storage_names.dup)
-        descendant.instance_variable_set(:@default_order, @default_order.dup)
-      end
+      descendant.instance_variable_set(:@valid,         false)
+      descendant.instance_variable_set(:@base_model,    base_model)
+      descendant.instance_variable_set(:@storage_names, @storage_names.dup)
+      descendant.instance_variable_set(:@default_order, @default_order.dup)
     end
 
     # Gets the name of the storage receptacle for this resource in the given
