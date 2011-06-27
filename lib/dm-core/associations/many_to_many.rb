@@ -256,15 +256,13 @@ module DataMapper
           target_key.valid?(source_key.get(source))
         end
 
-        # @api semipublic
         chainable do
+          # @api semipublic
           def many_to_one_options
             { :parent_key => target_key.map { |property| property.name } }
           end
-        end
 
-        # @api semipublic
-        chainable do
+          # @api semipublic
           def one_to_many_options
             { :parent_key => source_key.map { |property| property.name } }
           end
