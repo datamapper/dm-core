@@ -80,10 +80,13 @@ module DataMapper
   #    property :title, String
   #
   #    def title=(new_title)
-  #      raise ArgumentError if new_title != 'Luke is Awesome'
+  #      super
+  #      raise ArgumentError if new_title != 'Lee is l337'
   #      @title = new_title
   #    end
   #  end
+  #
+  # Calling super ensures that any validators defined for the property are kept active.  
   #
   # == Lazy Loading
   # By default, some properties are not loaded when an object is fetched in
