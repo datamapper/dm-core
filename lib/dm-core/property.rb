@@ -107,7 +107,7 @@ module DataMapper
   #
   # If you want to over-ride the lazy loading on any field you can set it to a
   # context or false to disable it with the :lazy option. Contexts allow
-  # multipule lazy properties to be loaded at one time. If you set :lazy to
+  # multiple lazy properties to be loaded at one time. If you set :lazy to
   # true, it is placed in the :default context
   #
   #  class Post
