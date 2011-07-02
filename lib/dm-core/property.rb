@@ -82,7 +82,7 @@ module DataMapper
   #    def title=(new_title)
   #      super
   #      raise ArgumentError if new_title != 'Lee is l337'
-  #      @title = new_title
+  #      super(new_title)
   #    end
   #  end
   #
