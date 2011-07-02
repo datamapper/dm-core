@@ -80,7 +80,6 @@ module DataMapper
   #    property :title, String
   #
   #    def title=(new_title)
-  #      super
   #      raise ArgumentError if new_title != 'Lee is l337'
   #      super(new_title)
   #    end
