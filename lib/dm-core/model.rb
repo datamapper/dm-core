@@ -1,7 +1,9 @@
 module DataMapper
   module Model
-
     include Enumerable
+
+    WRITER_METHOD_REGEXP   = /=\z/.freeze
+    INVALID_WRITER_METHODS = %w[ == === []= taguri= attributes= collection= persisted_state= raise_on_save_failure= ].to_set.freeze
 
     # Creates a new Model class with its constant already set
     #
@@ -708,6 +710,19 @@ module DataMapper
     # @api private
     def repositories
       [ repository ].to_set + @properties.keys.map { |repository_name| DataMapper.repository(repository_name) }
+    end
+
+    # The list of writer methods that can be mass-assigned to in #attributes=
+    #
+    # @return [Set]
+    #
+    # @api private
+    def allowed_writer_methods
+      @allowed_writer_methods ||= begin
+        methods  = public_instance_methods.map { |method| method.to_s }.grep(WRITER_METHOD_REGEXP).to_set
+        methods -= INVALID_WRITER_METHODS
+        methods.freeze
+      end
     end
 
     private

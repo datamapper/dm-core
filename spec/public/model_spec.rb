@@ -422,5 +422,25 @@ describe DataMapper::Model do
         end
       end
     end
+
+    it 'A model should respond to allowed_writer_methods' do
+      @article_model.should respond_to(:allowed_writer_methods)
+    end
+
+    describe '#allowed_writer_methods' do
+      subject { @article_model.allowed_writer_methods }
+
+      it { should be_kind_of(Set) }
+
+      it { should be_all { |method| method.kind_of?(String) } }
+
+      it { should be_frozen }
+
+      it 'is idempotent' do
+        should equal(instance_eval(&self.class.subject))
+      end
+
+      it { should eql(%w[ original_id= id= publications= original= title= article_publications= revisions= subtitle= content= previous= ].to_set) }
+    end
   end
 end

@@ -328,7 +328,7 @@ module DataMapper
       attributes.each do |name, value|
         case name
           when String, Symbol
-            if model.public_method_defined?(setter = "#{name}=")
+            if model.allowed_writer_methods.include?(setter = "#{name}=")
               __send__(setter, value)
             else
               raise ArgumentError, "The attribute '#{name}' is not accessible in #{model}"
