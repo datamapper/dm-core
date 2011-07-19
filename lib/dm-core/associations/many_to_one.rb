@@ -71,7 +71,7 @@ module DataMapper
 
         # Initialize the foreign key property this "many to one"
         # relationship uses to persist itself
-        # 
+        #
         # @api public
         def finalize
           child_key

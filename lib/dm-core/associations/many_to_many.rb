@@ -125,7 +125,7 @@ module DataMapper
         end
 
         # Initialize the chain for "many to many" relationships
-        # 
+        #
         # @api public
         def finalize
           through

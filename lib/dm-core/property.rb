@@ -85,7 +85,7 @@ module DataMapper
   #    end
   #  end
   #
-  # Calling super ensures that any validators defined for the property are kept active.  
+  # Calling super ensures that any validators defined for the property are kept active.
   #
   # == Lazy Loading
   # By default, some properties are not loaded when an object is fetched in

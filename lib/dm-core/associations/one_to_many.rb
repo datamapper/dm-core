@@ -103,7 +103,7 @@ module DataMapper
         # initialize the inverse "many to one" relationships explicitly before
         # initializing other relationships. This makes sure that foreign key
         # properties always appear in the order they were declared.
-        # 
+        #
         # @api public
         def finalize
           child_model.relationships.each do |relationship|
