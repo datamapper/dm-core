@@ -135,6 +135,7 @@ module DataMapper
     # @api public
     def finalize
       finalize_relationships
+      finalize_allowed_writer_methods
       assert_valid_name
       assert_valid_properties
       assert_valid_key
@@ -642,6 +643,13 @@ module DataMapper
     # @api semipublic
     attr_reader :base_model
 
+    # The list of writer methods that can be mass-assigned to in #attributes=
+    #
+    # @return [Set]
+    #
+    # @api private
+    attr_reader :allowed_writer_methods
+
     # @api semipublic
     def default_repository_name
       Repository.default_name
@@ -699,19 +707,6 @@ module DataMapper
     # @api private
     def repositories
       [ repository ].to_set + @properties.keys.map { |repository_name| DataMapper.repository(repository_name) }
-    end
-
-    # The list of writer methods that can be mass-assigned to in #attributes=
-    #
-    # @return [Set]
-    #
-    # @api private
-    def allowed_writer_methods
-      @allowed_writer_methods ||= begin
-        methods  = public_instance_methods.map { |method| method.to_s }.grep(WRITER_METHOD_REGEXP).to_set
-        methods -= INVALID_WRITER_METHODS
-        methods.freeze
-      end
     end
 
     private
@@ -785,6 +780,17 @@ module DataMapper
     # @api private
     def finalize_relationships
       relationships(repository_name).each { |relationship| relationship.finalize }
+    end
+
+    # Initialize the list of allowed writer methods
+    #
+    # @return [undefined]
+    #
+    # @api private
+    def finalize_allowed_writer_methods
+      @allowed_writer_methods  = public_instance_methods.map { |method| method.to_s }.grep(WRITER_METHOD_REGEXP).to_set
+      @allowed_writer_methods -= INVALID_WRITER_METHODS
+      @allowed_writer_methods.freeze
     end
 
     # @api private

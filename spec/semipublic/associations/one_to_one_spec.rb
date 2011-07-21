@@ -24,6 +24,8 @@ describe 'One to One Associations' do
     @article_model = Blog::Article
     @author_model  = Blog::Author
 
+    DataMapper.finalize
+
     @default_value          = @author_model.new(:name => 'Dan Kubb')
     @default_value_callable = @author_model.new(:name => 'John Doe')
 

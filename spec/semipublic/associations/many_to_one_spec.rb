@@ -23,6 +23,8 @@ describe 'Many to One Associations' do
     @user_model    = User
     @comment_model = Comment
 
+    DataMapper.finalize
+
     @default_value          = @user_model.new(:name => 'dkubb', :age => 34, :description => 'Test')
     @default_value_callable = @user_model.new(:name => 'jdoe',  :age => 21, :description => 'Test')
 
