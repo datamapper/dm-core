@@ -36,6 +36,11 @@ describe DataMapper::Model do
 
     describe '#copy' do
       with_alternate_adapter do
+        before :all do
+          # force the article model to be available in the alternate repository
+          @article_model.auto_migrate!(@adapter.name)
+        end
+
         describe 'between identical models' do
           before :all do
             @return = @resources = @article_model.copy(@repository.name, @adapter.name)

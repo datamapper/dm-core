@@ -164,6 +164,11 @@ share_examples_for 'A semipublic Resource' do
     end
 
     with_alternate_adapter do
+      before :all do
+        # force the user model to be available in the alternate repository
+        @user_model.auto_migrate!(@adapter.name)
+      end
+
       it 'should return the default repository when nothing is specified' do
         default_repository = DataMapper.repository(:default)
         @user_model.create(:name => 'carl').repository.should == default_repository
