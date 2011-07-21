@@ -110,9 +110,10 @@ module DataMapper
             # TODO: should this check #inverse?
             #   relationship.child_key if inverse?(relationship)
             if relationship.kind_of?(Associations::ManyToOne::Relationship)
-              relationship.child_key
+              relationship.finalize
             end
           end
+          inverse.finalize
         end
 
         # @api semipublic
