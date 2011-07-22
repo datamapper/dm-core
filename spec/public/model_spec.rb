@@ -37,8 +37,10 @@ describe DataMapper::Model do
     describe '#copy' do
       with_alternate_adapter do
         before :all do
-          # force the article model to be available in the alternate repository
-          @article_model.auto_migrate!(@adapter.name)
+          if @article_model.respond_to?(:auto_migrate!)
+            # force the article model to be available in the alternate repository
+            @article_model.auto_migrate!(@adapter.name)
+          end
         end
 
         describe 'between identical models' do

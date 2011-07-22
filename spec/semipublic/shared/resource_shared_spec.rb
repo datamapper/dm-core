@@ -165,8 +165,10 @@ share_examples_for 'A semipublic Resource' do
 
     with_alternate_adapter do
       before :all do
-        # force the user model to be available in the alternate repository
-        @user_model.auto_migrate!(@adapter.name)
+        if @user_model.respond_to?(:auto_migrate!)
+          # force the user model to be available in the alternate repository
+          @user_model.auto_migrate!(@adapter.name)
+        end
       end
 
       it 'should return the default repository when nothing is specified' do
