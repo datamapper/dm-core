@@ -3,7 +3,7 @@ module DataMapper
     include Enumerable
 
     WRITER_METHOD_REGEXP   = /=\z/.freeze
-    INVALID_WRITER_METHODS = %w[ == != === []= taguri= attributes= collection= persisted_state= raise_on_save_failure= ].to_set.freeze
+    INVALID_WRITER_METHODS = %w[ == != === []= taguri= attributes= collection= persistence_state= raise_on_save_failure= ].to_set.freeze
 
     # Creates a new Model class with its constant already set
     #

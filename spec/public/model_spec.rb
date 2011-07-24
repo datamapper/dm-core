@@ -437,6 +437,11 @@ describe DataMapper::Model do
     describe '#allowed_writer_methods' do
       subject { @article_model.allowed_writer_methods }
 
+      let(:expected_writer_methods) do
+        %w[ original= revisions= previous= publications= article_publications=
+            id= title= content= subtitle= original_id= persisted_state= ].to_set
+      end
+
       it { should be_kind_of(Set) }
 
       it { should be_all { |method| method.kind_of?(String) } }
@@ -447,7 +452,7 @@ describe DataMapper::Model do
         should equal(instance_eval(&self.class.subject))
       end
 
-      it { should eql(%w[ original_id= id= publications= original= title= article_publications= revisions= subtitle= content= previous= ].to_set) }
+      it { should eql(expected_writer_methods) }
     end
   end
 end
