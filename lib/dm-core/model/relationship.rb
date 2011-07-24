@@ -337,7 +337,7 @@ module DataMapper
             #       of 1:1, the underlying collection is hidden in a
             #       private ivar, and the resource is in a known ivar
 
-            persisted_state.get(relationships[#{name.inspect}], query)
+            persistence_state.get(relationships[#{name.inspect}], query)
           end
         RUBY
       end
@@ -357,8 +357,8 @@ module DataMapper
           #{writer_visibility}
           def #{writer_name}(target)
             relationship = relationships[#{name.inspect}]
-            self.persisted_state = persisted_state.set(relationship, target)
-            persisted_state.get(relationship)
+            self.persistence_state = persistence_state.set(relationship, target)
+            persistence_state.get(relationship)
           end
         RUBY
       end

@@ -52,13 +52,13 @@ require 'dm-core/query/path'
 require 'dm-core/query/sort'
 
 require 'dm-core/resource'
-require 'dm-core/resource/state'
-require 'dm-core/resource/state/transient'
-require 'dm-core/resource/state/immutable'
-require 'dm-core/resource/state/persisted'
-require 'dm-core/resource/state/clean'
-require 'dm-core/resource/state/deleted'
-require 'dm-core/resource/state/dirty'
+require 'dm-core/resource/persistence_state'
+require 'dm-core/resource/persistence_state/transient'
+require 'dm-core/resource/persistence_state/immutable'
+require 'dm-core/resource/persistence_state/persisted'
+require 'dm-core/resource/persistence_state/clean'
+require 'dm-core/resource/persistence_state/deleted'
+require 'dm-core/resource/persistence_state/dirty'
 
 require 'dm-core/property'
 require 'dm-core/property/typecast/numeric'
@@ -107,6 +107,8 @@ require 'dm-core/version'
 
 require 'dm-core/core_ext/kernel'             # TODO: do not load automatically
 require 'dm-core/core_ext/symbol'             # TODO: do not load automatically
+
+require 'dm-core/backwards'                   # TODO: do not load automatically
 
 # A logger should always be present. Lets be consistent with DO
 DataMapper::Logger.new(StringIO.new, :fatal)

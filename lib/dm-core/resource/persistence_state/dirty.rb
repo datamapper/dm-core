@@ -1,6 +1,6 @@
 module DataMapper
   module Resource
-    class State
+    class PersistenceState
 
       # a persisted/dirty resource
       class Dirty < Persisted
@@ -91,6 +91,6 @@ module DataMapper
         end
 
       end # class Dirty
-    end # class State
+    end # class PersistenceState
   end # module Resource
 end # module DataMapper

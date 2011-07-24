@@ -2,7 +2,7 @@ module DataMapper
   module Resource
 
     # the state of the resource (abstract)
-    class State
+    class PersistenceState
       extend Equalizer
 
       equalize :resource
@@ -70,6 +70,6 @@ module DataMapper
         set(relationship, get(relationship))
       end
 
-    end # class State
+    end # class PersistenceState
   end # module Resource
 end # module DataMapper

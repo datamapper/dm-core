@@ -76,24 +76,24 @@ module DataMapper
 
     # Get the persisted state for the resource
     #
-    # @return [Resource::State]
+    # @return [Resource::PersistenceState]
     #   the current persisted state for the resource
     #
     # @api private
-    def persisted_state
-      @_state ||= Resource::State::Transient.new(self)
+    def persistence_state
+      @_persistence_state ||= Resource::PersistenceState::Transient.new(self)
     end
 
     # Set the persisted state for the resource
     #
-    # @param [Resource::State]
+    # @param [Resource::PersistenceState]
     #   the new persisted state for the resource
     #
     # @return [undefined]
     #
     # @api private
-    def persisted_state=(state)
-      @_state = state
+    def persistence_state=(state)
+      @_persistence_state = state
     end
 
     # Test if the persisted state is set
@@ -102,8 +102,8 @@ module DataMapper
     #   true if the persisted state is set
     #
     # @api private
-    def persisted_state?
-      defined?(@_state) ? true : false
+    def persistence_state?
+      defined?(@_persistence_state) ? true : false
     end
 
     # Repository this resource belongs to in the context of this collection
@@ -149,7 +149,7 @@ module DataMapper
     #
     # @api public
     def new?
-      persisted_state.kind_of?(State::Transient)
+      persistence_state.kind_of?(PersistenceState::Transient)
     end
 
     # Checks if this Resource instance is saved
@@ -159,7 +159,7 @@ module DataMapper
     #
     # @api public
     def saved?
-      persisted_state.kind_of?(State::Persisted)
+      persistence_state.kind_of?(PersistenceState::Persisted)
     end
 
     # Checks if this Resource instance is destroyed
@@ -179,7 +179,8 @@ module DataMapper
     #
     # @api public
     def clean?
-      persisted_state.kind_of?(State::Clean) || persisted_state.kind_of?(State::Immutable)
+      persistence_state.kind_of?(PersistenceState::Clean) ||
+        persistence_state.kind_of?(PersistenceState::Immutable)
     end
 
     # Checks if the resource has unsaved changes
@@ -201,7 +202,7 @@ module DataMapper
     #
     # @api public
     def readonly?
-      persisted_state.kind_of?(State::Immutable)
+      persistence_state.kind_of?(PersistenceState::Immutable)
     end
 
     # Returns the value of the attribute.
@@ -237,7 +238,7 @@ module DataMapper
     # @api public
     def attribute_get(name)
       property = properties[name]
-      persisted_state.get(property) if property
+      persistence_state.get(property) if property
     end
 
     alias_method :[], :attribute_get
@@ -279,7 +280,7 @@ module DataMapper
     # @api public
     def attribute_set(name, value)
       property = properties[name]
-      self.persisted_state = persisted_state.set(property, value) if property
+      self.persistence_state = persistence_state.set(property, value) if property
     end
 
     alias_method :[]=, :attribute_set
@@ -334,7 +335,7 @@ module DataMapper
               raise ArgumentError, "The attribute '#{name}' is not accessible in #{model}"
             end
           when Associations::Relationship, Property
-            self.persisted_state = persisted_state.set(name, value)
+            self.persistence_state = persistence_state.set(name, value)
         end
       end
     end
@@ -358,7 +359,7 @@ module DataMapper
         clear_subjects
       end
 
-      self.persisted_state = persisted_state.rollback
+      self.persistence_state = persistence_state.rollback
 
       self
     end
@@ -550,8 +551,8 @@ module DataMapper
     #
     # @api semipublic
     def original_attributes
-      if persisted_state.respond_to?(:original_attributes)
-        persisted_state.original_attributes.dup.freeze
+      if persistence_state.respond_to?(:original_attributes)
+        persistence_state.original_attributes.dup.freeze
       else
         {}.freeze
       end
@@ -753,7 +754,7 @@ module DataMapper
         instance_variable_set(ivar, DataMapper::Ext.try_dup(instance_variable_get(ivar)))
       end
 
-      self.persisted_state = persisted_state.class.new(self)
+      self.persistence_state = persistence_state.class.new(self)
     end
 
     # Returns name of the repository this object
@@ -952,7 +953,7 @@ module DataMapper
     #
     # @api private
     def _persist
-      self.persisted_state = persisted_state.commit
+      self.persistence_state = persistence_state.commit
     end
 
     # This method executes the hooks before and after resource creation
@@ -995,7 +996,7 @@ module DataMapper
     #
     # @api private
     def _destroy(execute_hooks = true)
-      self.persisted_state = persisted_state.delete
+      self.persistence_state = persistence_state.delete
       _persist
     end
 
@@ -1125,8 +1126,8 @@ module DataMapper
 
     # @api private
     def set_default_value(subject)
-      return unless persisted_state.respond_to?(:set_default_value, true)
-      persisted_state.__send__(:set_default_value, subject)
+      return unless persistence_state.respond_to?(:set_default_value, true)
+      persistence_state.__send__(:set_default_value, subject)
     end
 
     # Execute all the queued up hooks for a given type and name

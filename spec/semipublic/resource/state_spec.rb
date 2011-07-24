@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe DataMapper::Resource::State do
+describe DataMapper::Resource::PersistenceState do
   before :all do
     class ::Author
       include DataMapper::Resource
@@ -20,13 +20,13 @@ describe DataMapper::Resource::State do
   before do
     @resource = @model.new(:name => 'Dan Kubb')
 
-    @state = DataMapper::Resource::State.new(@resource)
+    @state = DataMapper::Resource::PersistenceState.new(@resource)
   end
 
   describe '.new' do
-    subject { DataMapper::Resource::State.new(@resource) }
+    subject { DataMapper::Resource::PersistenceState.new(@resource) }
 
-    it { should be_kind_of(DataMapper::Resource::State) }
+    it { should be_kind_of(DataMapper::Resource::PersistenceState) }
   end
 
   describe '#==' do
@@ -35,7 +35,7 @@ describe DataMapper::Resource::State do
     supported_by :all do
       describe 'with the same class and resource' do
         before do
-          @other = DataMapper::Resource::State.new(@resource)
+          @other = DataMapper::Resource::PersistenceState.new(@resource)
         end
 
         it { should be(true) }
@@ -47,7 +47,7 @@ describe DataMapper::Resource::State do
 
       describe 'with the same class and different resource' do
         before do
-          @other = DataMapper::Resource::State.new(@model.new)
+          @other = DataMapper::Resource::PersistenceState.new(@model.new)
         end
 
         it { should be(false) }
@@ -59,7 +59,7 @@ describe DataMapper::Resource::State do
 
       describe 'with a different class and the same resource' do
         before do
-          @other = DataMapper::Resource::State::Clean.new(@resource)
+          @other = DataMapper::Resource::PersistenceState::Clean.new(@resource)
         end
 
         it 'should be true for a subclass' do
@@ -73,7 +73,7 @@ describe DataMapper::Resource::State do
 
       describe 'with a different class and different resource' do
         before do
-          @other = DataMapper::Resource::State::Clean.new(@model.new)
+          @other = DataMapper::Resource::PersistenceState::Clean.new(@model.new)
         end
 
         it { should be(false) }
@@ -90,7 +90,7 @@ describe DataMapper::Resource::State do
       subject { @state.send(method) }
 
       it 'should raise an exception' do
-        method(:subject).should raise_error(NotImplementedError, "DataMapper::Resource::State##{method} should be implemented")
+        method(:subject).should raise_error(NotImplementedError, "DataMapper::Resource::PersistenceState##{method} should be implemented")
       end
     end
   end
@@ -101,7 +101,7 @@ describe DataMapper::Resource::State do
     supported_by :all do
       describe 'with the same class and resource' do
         before do
-          @other = DataMapper::Resource::State.new(@resource)
+          @other = DataMapper::Resource::PersistenceState.new(@resource)
         end
 
         it { should be(true) }
@@ -113,7 +113,7 @@ describe DataMapper::Resource::State do
 
       describe 'with the same class and different resource' do
         before do
-          @other = DataMapper::Resource::State.new(@model.new)
+          @other = DataMapper::Resource::PersistenceState.new(@model.new)
         end
 
         it { should be(false) }
@@ -125,7 +125,7 @@ describe DataMapper::Resource::State do
 
       describe 'with a different class and the same resource' do
         before do
-          @other = DataMapper::Resource::State::Clean.new(@resource)
+          @other = DataMapper::Resource::PersistenceState::Clean.new(@resource)
         end
 
         it { should be(false) }
@@ -137,7 +137,7 @@ describe DataMapper::Resource::State do
 
       describe 'with a different class and different resource' do
         before do
-          @other = DataMapper::Resource::State::Clean.new(@model.new)
+          @other = DataMapper::Resource::PersistenceState::Clean.new(@model.new)
         end
 
         it { should be(false) }
@@ -202,7 +202,7 @@ describe DataMapper::Resource::State do
       end
 
       it 'should return a state object' do
-        should be_kind_of(DataMapper::Resource::State)
+        should be_kind_of(DataMapper::Resource::PersistenceState)
       end
 
       it 'should change the object attributes' do
@@ -218,7 +218,7 @@ describe DataMapper::Resource::State do
         end
 
         it 'should return a state object' do
-          should be_kind_of(DataMapper::Resource::State)
+          should be_kind_of(DataMapper::Resource::PersistenceState)
         end
 
         it 'should change the object relationship' do

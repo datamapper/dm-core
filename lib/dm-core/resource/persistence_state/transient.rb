@@ -1,9 +1,9 @@
 module DataMapper
   module Resource
-    class State
+    class PersistenceState
 
       # a not-persisted/modifiable resource
-      class Transient < State
+      class Transient < PersistenceState
         def get(subject, *args)
           set_default_value(subject)
           super
@@ -73,6 +73,6 @@ module DataMapper
         end
 
       end # class Transient
-    end # class State
+    end # class PersistenceState
   end # module Resource
 end # module DataMapper

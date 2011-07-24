@@ -365,7 +365,7 @@ module DataMapper
           end
 
           each do |resource|
-            resource.persisted_state = Resource::State::Immutable.new(resource)
+            resource.persistence_state = Resource::PersistenceState::Immutable.new(resource)
           end
 
           clear

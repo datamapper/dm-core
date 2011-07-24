@@ -1,9 +1,9 @@
 module DataMapper
   module Resource
-    class State
+    class PersistenceState
 
       # a persisted resource (abstract)
-      class Persisted < State
+      class Persisted < PersistenceState
         def get(subject, *args)
           lazy_load(subject)
           super
@@ -24,6 +24,6 @@ module DataMapper
         end
 
       end # class Persisted
-    end # class State
+    end # class PersistenceState
   end # module Resource
 end # module DataMapper

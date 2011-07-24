@@ -206,7 +206,7 @@ module DataMapper
           def #{name}
             return #{instance_variable_name} if defined?(#{instance_variable_name})
             property = properties[#{name.inspect}]
-            #{instance_variable_name} = property ? persisted_state.get(property) : nil
+            #{instance_variable_name} = property ? persistence_state.get(property) : nil
           end
         RUBY
 
@@ -234,8 +234,8 @@ module DataMapper
           #{writer_visibility}
           def #{writer_name}(value)
             property = properties[#{name.inspect}]
-            self.persisted_state = persisted_state.set(property, value)
-            persisted_state.get(property)
+            self.persistence_state = persistence_state.set(property, value)
+            persistence_state.get(property)
           end
         RUBY
       end

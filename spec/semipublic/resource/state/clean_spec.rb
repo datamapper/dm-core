@@ -1,5 +1,5 @@
 require 'spec_helper'
-describe DataMapper::Resource::State::Clean do
+describe DataMapper::Resource::PersistenceState::Clean do
   before :all do
     class ::Author
       include DataMapper::Resource
@@ -20,8 +20,8 @@ describe DataMapper::Resource::State::Clean do
   before do
     @resource = @model.create(:name => 'Dan Kubb')
 
-    @state = @resource.persisted_state
-    @state.should be_kind_of(DataMapper::Resource::State::Clean)
+    @state = @resource.persistence_state
+    @state.should be_kind_of(DataMapper::Resource::PersistenceState::Clean)
   end
 
   after do
@@ -45,13 +45,13 @@ describe DataMapper::Resource::State::Clean do
 
     supported_by :all do
       it 'should return a Deleted state' do
-        should eql(DataMapper::Resource::State::Deleted.new(@resource))
+        should eql(DataMapper::Resource::PersistenceState::Deleted.new(@resource))
       end
     end
   end
 
   describe '#get' do
-    it_should_behave_like 'Resource::State::Persisted#get'
+    it_should_behave_like 'Resource::PersistenceState::Persisted#get'
   end
 
   describe '#set' do
@@ -67,7 +67,7 @@ describe DataMapper::Resource::State::Clean do
         it_should_behave_like 'A method that delegates to the superclass #set'
 
         it 'should return a Dirty state' do
-          should eql(DataMapper::Resource::State::Dirty.new(@resource))
+          should eql(DataMapper::Resource::PersistenceState::Dirty.new(@resource))
         end
       end
 
