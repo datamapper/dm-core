@@ -3,14 +3,14 @@ require 'spec_helper'
 describe DataMapper::Property::Decimal do
   before :all do
     @name          = :rate
-    @type          = DataMapper::Property::Decimal
+    @type          = described_class
     @options       = { :precision => 5, :scale => 2 }
     @value         = BigDecimal('1.0')
     @other_value   = BigDecimal('2.0')
     @invalid_value = true
   end
 
-  it_should_behave_like "A semipublic Property"
+  it_should_behave_like 'A semipublic Property'
 
   describe '#typecast_to_primitive' do
     it 'returns same value if a decimal' do

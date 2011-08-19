@@ -80,10 +80,12 @@ module DataMapper
   #    property :title, String
   #
   #    def title=(new_title)
-  #      raise ArgumentError if new_title != 'Luke is Awesome'
-  #      @title = new_title
+  #      raise ArgumentError if new_title != 'Lee is l337'
+  #      super(new_title)
   #    end
   #  end
+  #
+  # Calling super ensures that any validators defined for the property are kept active.
   #
   # == Lazy Loading
   # By default, some properties are not loaded when an object is fetched in
@@ -104,7 +106,7 @@ module DataMapper
   #
   # If you want to over-ride the lazy loading on any field you can set it to a
   # context or false to disable it with the :lazy option. Contexts allow
-  # multipule lazy properties to be loaded at one time. If you set :lazy to
+  # multiple lazy properties to be loaded at one time. If you set :lazy to
   # true, it is placed in the :default context
   #
   #  class Post
@@ -318,7 +320,6 @@ module DataMapper
 
     include DataMapper::Assertions
     include Subject
-    extend Chainable
     extend Equalizer
 
     equalize :model, :name, :options
@@ -454,9 +455,8 @@ module DataMapper
       # @api public
       def options
         options = {}
-        accepted_options.each do |method|
-          value = send(method)
-          options[method] = value unless value.nil?
+        accepted_options.each do |name|
+          options[name] = send(name) if instance_variable_defined?("@#{name}")
         end
         options
       end
@@ -729,13 +729,7 @@ module DataMapper
       value.kind_of?(primitive)
     end
 
-    chainable do
-      def self.new(model, name, options = {})
-        super
-      end
-    end
-
-    protected
+  protected
 
     # @api semipublic
     def initialize(model, name, options = {})

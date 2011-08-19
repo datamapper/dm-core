@@ -1,9 +1,9 @@
 module DataMapper
   module Resource
-    class State
+    class PersistenceState
 
       # a not-persisted/unmodifiable resource
-      class Immutable < State
+      class Immutable < PersistenceState
         def get(subject, *args)
           unless subject.loaded?(resource) || subject.kind_of?(Associations::Relationship)
             raise ImmutableError, 'Immutable resource cannot be lazy loaded'
@@ -29,6 +29,6 @@ module DataMapper
         end
 
       end # class Immutable
-    end # class State
+    end # class PersistenceState
   end # module Resource
 end # module DataMapper

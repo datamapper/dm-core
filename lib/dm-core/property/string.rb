@@ -8,6 +8,7 @@ module DataMapper
       accept_options :length
 
       DEFAULT_LENGTH = 50
+      length(DEFAULT_LENGTH)
 
       # Returns maximum property length (if applicable).
       # This usually only makes sense when property is of
@@ -29,7 +30,7 @@ module DataMapper
 
       def initialize(model, name, options = {})
         super
-        @length = @options.fetch(:length, DEFAULT_LENGTH)
+        @length = @options.fetch(:length)
       end
 
       # Typecast a value to a String

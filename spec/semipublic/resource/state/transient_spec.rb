@@ -1,5 +1,5 @@
 require 'spec_helper'
-describe DataMapper::Resource::State::Transient do
+describe DataMapper::Resource::PersistenceState::Transient do
   before :all do
     class ::Author
       include DataMapper::Resource
@@ -26,8 +26,8 @@ describe DataMapper::Resource::State::Transient do
     @parent   = @model.create(:name => 'John Doe')
     @resource = @model.new(:name => 'Dan Kubb', :coding => false, :parent => @parent)
 
-    @state = @resource.persisted_state
-    @state.should be_kind_of(DataMapper::Resource::State::Transient)
+    @state = @resource.persistence_state
+    @state.should be_kind_of(DataMapper::Resource::PersistenceState::Transient)
   end
 
   after do
@@ -39,7 +39,7 @@ describe DataMapper::Resource::State::Transient do
 
     supported_by :all do
       it 'should return the expected Clean state' do
-        should eql(DataMapper::Resource::State::Clean.new(@resource))
+        should eql(DataMapper::Resource::PersistenceState::Clean.new(@resource))
       end
 
       it 'should set the serial property' do
@@ -80,7 +80,7 @@ describe DataMapper::Resource::State::Transient do
         }
 
         expect do
-          @resource.persisted_state = subject
+          @resource.persistence_state = subject
         end.should change { @resource.original_attributes.dup }.from(original_attributes).to({})
       end
 

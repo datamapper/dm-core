@@ -23,6 +23,14 @@ describe DataMapper::Property::Discriminator do
     @release_model      = Blog::Release
   end
 
+  describe '.options' do
+    subject { described_class.options }
+
+    it { should be_kind_of(Hash) }
+
+    it { should include(:primitive => Class, :required => true) }
+  end
+
   it 'should typecast to a Model' do
     @article_model.properties[:type].typecast('Blog::Release').should equal(@release_model)
   end

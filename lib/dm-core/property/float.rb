@@ -3,7 +3,11 @@ module DataMapper
     class Float < Numeric
       primitive ::Float
 
-      DEFAULT_SCALE = nil
+      DEFAULT_PRECISION = 10
+      DEFAULT_SCALE     = nil
+
+      precision(DEFAULT_PRECISION)
+      scale(DEFAULT_SCALE)
 
       protected
 

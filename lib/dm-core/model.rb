@@ -1,8 +1,9 @@
 module DataMapper
   module Model
-    extend Chainable
-
     include Enumerable
+
+    WRITER_METHOD_REGEXP   = /=\z/.freeze
+    INVALID_WRITER_METHODS = %w[ == != === []= taguri= attributes= collection= persistence_state= raise_on_save_failure= ].to_set.freeze
 
     # Creates a new Model class with its constant already set
     #
@@ -127,6 +128,19 @@ module DataMapper
       @raise_on_save_failure = raise_on_save_failure
     end
 
+    # Finish model setup and verify it is valid
+    #
+    # @return [undefined]
+    #
+    # @api public
+    def finalize
+      finalize_relationships
+      finalize_allowed_writer_methods
+      assert_valid_name
+      assert_valid_properties
+      assert_valid_key
+    end
+
     # Appends a module for inclusion into the model class after Resource.
     #
     # This is a useful way to extend Resource while still retaining a
@@ -206,15 +220,13 @@ module DataMapper
     end
 
     # @api private
-    chainable do
-      def inherited(descendant)
-        descendants << descendant
+    def inherited(descendant)
+      descendants << descendant
 
-        descendant.instance_variable_set(:@valid,         false)
-        descendant.instance_variable_set(:@base_model,    base_model)
-        descendant.instance_variable_set(:@storage_names, @storage_names.dup)
-        descendant.instance_variable_set(:@default_order, @default_order.dup)
-      end
+      descendant.instance_variable_set(:@valid,         false)
+      descendant.instance_variable_set(:@base_model,    base_model)
+      descendant.instance_variable_set(:@storage_names, @storage_names.dup)
+      descendant.instance_variable_set(:@default_order, @default_order.dup)
     end
 
     # Gets the name of the storage receptacle for this resource in the given
@@ -615,13 +627,13 @@ module DataMapper
         resource.instance_variable_set(:@_repository, repository)
 
         if identity_map
-          resource.persisted_state = Resource::State::Clean.new(resource) unless resource.persisted_state?
+          resource.persistence_state = Resource::PersistenceState::Clean.new(resource) unless resource.persistence_state?
 
           # defer setting the IdentityMap so second level caches can
           # record the state of the resource after loaded
           identity_map[key_values] = resource
         else
-          resource.persisted_state = Resource::State::Immutable.new(resource)
+          resource.persistence_state = Resource::PersistenceState::Immutable.new(resource)
         end
 
         resource
@@ -630,6 +642,13 @@ module DataMapper
 
     # @api semipublic
     attr_reader :base_model
+
+    # The list of writer methods that can be mass-assigned to in #attributes=
+    #
+    # @return [Set]
+    #
+    # @api private
+    attr_reader :allowed_writer_methods
 
     # @api semipublic
     def default_repository_name
@@ -754,32 +773,32 @@ module DataMapper
       end
     end
 
+    # Initialize all foreign key properties established by relationships
+    #
+    # @return [undefined]
+    #
+    # @api private
+    def finalize_relationships
+      relationships(repository_name).each { |relationship| relationship.finalize }
+    end
+
+    # Initialize the list of allowed writer methods
+    #
+    # @return [undefined]
+    #
+    # @api private
+    def finalize_allowed_writer_methods
+      @allowed_writer_methods  = public_instance_methods.map { |method| method.to_s }.grep(WRITER_METHOD_REGEXP).to_set
+      @allowed_writer_methods -= INVALID_WRITER_METHODS
+      @allowed_writer_methods.freeze
+    end
+
     # @api private
     # TODO: Remove this once appropriate warnings can be added.
     def assert_valid(force = false) # :nodoc:
       return if @valid && !force
       @valid = true
-
-      name            = self.name
-      repository_name = self.repository_name
-
-      if properties(repository_name).empty? &&
-        !relationships(repository_name).any? { |(relationship_name, relationship)| relationship.kind_of?(Associations::ManyToOne::Relationship) }
-        raise IncompleteModelError, "#{name} must have at least one property or many to one relationship to be valid"
-      end
-
-      if key(repository_name).empty?
-        raise IncompleteModelError, "#{name} must have a key to be valid"
-      end
-
-      # initialize join models and target keys
-      @relationships.values.each do |relationships|
-        relationships.each do |relationship|
-          relationship.child_key
-          relationship.through if relationship.respond_to?(:through)
-          relationship.via     if relationship.respond_to?(:via)
-        end
-      end
+      finalize
     end
 
     # Raises an exception if #get receives the wrong number of arguments
@@ -801,5 +820,50 @@ module DataMapper
         raise ArgumentError, "The number of arguments for the key is invalid, expected #{expected_key_size} but was #{actual_key_size}"
       end
     end
+
+    # Test if the model name is valid
+    #
+    # @return [undefined]
+    #
+    # @api private
+    def assert_valid_name
+      if name.to_s.strip.empty?
+        raise IncompleteModelError, "#{inspect} must have a name"
+      end
+    end
+
+    # Test if the model has properties
+    #
+    # A model may also be valid if it has at least one m:1 relationships which
+    # will add inferred foreign key properties.
+    #
+    # @return [undefined]
+    #
+    # @raise [IncompleteModelError]
+    #   raised if the model has no properties
+    #
+    # @api private
+    def assert_valid_properties
+      repository_name = self.repository_name
+      if properties(repository_name).empty? &&
+        !relationships(repository_name).any? { |relationship| relationship.kind_of?(Associations::ManyToOne::Relationship) }
+        raise IncompleteModelError, "#{name} must have at least one property or many to one relationship to be valid"
+      end
+    end
+
+    # Test if the model has a valid key
+    #
+    # @return [undefined]
+    #
+    # @raise [IncompleteModelError]
+    #   raised if the model does not have a valid key
+    #
+    # @api private
+    def assert_valid_key
+      if key(repository_name).empty?
+        raise IncompleteModelError, "#{name} must have a key to be valid"
+      end
+    end
+
   end # module Model
 end # module DataMapper

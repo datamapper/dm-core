@@ -54,6 +54,8 @@ describe 'Many to Many Associations' do
     @article_model = Blog::Article
     @author_model  = Blog::Author
 
+    DataMapper.finalize
+
     n = @article_model.n
 
     @default_value          = [ @author_model.new(:name => 'Dan Kubb') ]

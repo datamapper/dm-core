@@ -159,7 +159,6 @@ end
       @author_model      = Blog::Author
       @article_model     = Blog::Article
       @publication_model = Blog::Publication
-      DataMapper.finalize
 
       @join_model = Blog::Site
     end

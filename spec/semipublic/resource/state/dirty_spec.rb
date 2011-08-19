@@ -1,5 +1,5 @@
 require 'spec_helper'
-describe DataMapper::Resource::State::Dirty do
+describe DataMapper::Resource::PersistenceState::Dirty do
   before :all do
     class ::Author
       include DataMapper::Resource
@@ -24,8 +24,8 @@ describe DataMapper::Resource::State::Dirty do
     @resource = @model.create(:id => 2, :name => 'Dan Kubb', :parent => @parent)
     @resource.attributes = { :name => 'John Doe' }
 
-    @state = @resource.persisted_state
-    @state.should be_kind_of(DataMapper::Resource::State::Dirty)
+    @state = @resource.persistence_state
+    @state.should be_kind_of(DataMapper::Resource::PersistenceState::Dirty)
   end
 
   after do
@@ -44,7 +44,7 @@ describe DataMapper::Resource::State::Dirty do
         end
 
         it 'should return a Clean state' do
-          should eql(DataMapper::Resource::State::Clean.new(@resource))
+          should eql(DataMapper::Resource::PersistenceState::Clean.new(@resource))
         end
 
         it 'should set the child key if the parent key changes' do
@@ -91,7 +91,7 @@ describe DataMapper::Resource::State::Dirty do
       it_should_behave_like 'It resets resource state'
 
       it 'should return a Deleted state' do
-        should eql(DataMapper::Resource::State::Deleted.new(@resource))
+        should eql(DataMapper::Resource::PersistenceState::Deleted.new(@resource))
       end
     end
   end
@@ -101,7 +101,7 @@ describe DataMapper::Resource::State::Dirty do
       @loaded_value = 'John Doe'
     end
 
-    it_should_behave_like 'Resource::State::Persisted#get'
+    it_should_behave_like 'Resource::PersistenceState::Persisted#get'
   end
 
   describe '#rollback' do
@@ -115,7 +115,7 @@ describe DataMapper::Resource::State::Dirty do
       it_should_behave_like 'It resets resource state'
 
       it 'should return a Clean state' do
-        should eql(DataMapper::Resource::State::Clean.new(@resource))
+        should eql(DataMapper::Resource::PersistenceState::Clean.new(@resource))
       end
     end
   end
@@ -148,7 +148,7 @@ describe DataMapper::Resource::State::Dirty do
         it_should_behave_like 'A method that delegates to the superclass #set'
 
         it 'should return a Clean state' do
-          should eql(DataMapper::Resource::State::Clean.new(@resource))
+          should eql(DataMapper::Resource::PersistenceState::Clean.new(@resource))
         end
       end
     end

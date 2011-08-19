@@ -1,6 +1,6 @@
 module DataMapper
   module Resource
-    class State
+    class PersistenceState
 
       # a persisted/unmodified resource
       class Clean < Persisted
@@ -8,10 +8,10 @@ module DataMapper
           if not_modified?(subject, value)
             self
           else
-            # assign to persisted_state so that if Dirty#set calls
+            # assign to persistence_state so that if Dirty#set calls
             # a Relationship#set, which modifies a Property, the same
             # Dirty state instance will be reused.
-            state = resource.persisted_state = Dirty.new(resource)
+            state = resource.persistence_state = Dirty.new(resource)
             state.set(subject, value)
           end
         end
@@ -35,6 +35,6 @@ module DataMapper
         end
 
       end # class Clean
-    end # class State
+    end # class PersistenceState
   end # module Resource
 end # module DataMapper

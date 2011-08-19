@@ -7,7 +7,6 @@ module DataMapper
       Model.append_extensions self
 
       include DataMapper::Assertions
-      extend Chainable
 
       # Initializes relationships hash for extended model
       # class.
@@ -21,21 +20,19 @@ module DataMapper
         model.instance_variable_set(:@relationships, {})
       end
 
-      chainable do
-        # When DataMapper model is inherited, relationships
-        # of parent are duplicated and copied to subclass model
-        #
-        # @api private
-        def inherited(model)
-          model.instance_variable_set(:@relationships, {})
+      # When DataMapper model is inherited, relationships
+      # of parent are duplicated and copied to subclass model
+      #
+      # @api private
+      def inherited(model)
+        model.instance_variable_set(:@relationships, {})
 
-          @relationships.each do |repository_name, relationships|
-            model_relationships = model.relationships(repository_name)
-            relationships.each { |relationship| model_relationships << relationship }
-          end
-
-          super
+        @relationships.each do |repository_name, relationships|
+          model_relationships = model.relationships(repository_name)
+          relationships.each { |relationship| model_relationships << relationship }
         end
+
+        super
       end
 
       # Returns copy of relationships set in given repository.
@@ -192,7 +189,7 @@ module DataMapper
         relationship
       end
 
-      private
+    private
 
       # Extract the model from an Array of arguments
       #
@@ -340,7 +337,7 @@ module DataMapper
             #       of 1:1, the underlying collection is hidden in a
             #       private ivar, and the resource is in a known ivar
 
-            persisted_state.get(relationships[#{name.inspect}], query)
+            persistence_state.get(relationships[#{name.inspect}], query)
           end
         RUBY
       end
@@ -360,22 +357,21 @@ module DataMapper
           #{writer_visibility}
           def #{writer_name}(target)
             relationship = relationships[#{name.inspect}]
-            self.persisted_state = persisted_state.set(relationship, target)
-            persisted_state.get(relationship)
+            self.persistence_state = persistence_state.set(relationship, target)
+            persistence_state.get(relationship)
           end
         RUBY
       end
 
-      chainable do
-        # @api public
-        def method_missing(method, *args, &block)
-          if relationship = relationships(repository_name)[method]
-            return Query::Path.new([ relationship ])
-          end
-
-          super
+      # @api public
+      def method_missing(method, *args, &block)
+        if relationship = relationships(repository_name)[method]
+          return Query::Path.new([ relationship ])
         end
+
+        super
       end
+
     end # module Relationship
   end # module Model
 end # module DataMapper

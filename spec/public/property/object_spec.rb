@@ -19,6 +19,14 @@ describe DataMapper::Property, 'Object type' do
 
   subject { @property }
 
+  describe '.options' do
+    subject { described_class.options }
+
+    it { should be_kind_of(Hash) }
+
+    it { should be_empty }
+  end
+
   it { should respond_to(:typecast) }
 
   describe '#typecast' do

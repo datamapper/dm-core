@@ -1,5 +1,5 @@
 require 'spec_helper'
-describe DataMapper::Resource::State::Immutable do
+describe DataMapper::Resource::PersistenceState::Immutable do
   before :all do
     class ::Author
       include DataMapper::Resource
@@ -24,8 +24,8 @@ describe DataMapper::Resource::State::Immutable do
     attributes = Hash[ @model.key.zip(@resource.key) ]
     @resource  = @model.first(attributes.merge(:fields => [ :name, :parent_id ]))
 
-    @state = @resource.persisted_state
-    @state.should be_kind_of(DataMapper::Resource::State::Immutable)
+    @state = @resource.persistence_state
+    @state.should be_kind_of(DataMapper::Resource::PersistenceState::Immutable)
   end
 
   after do

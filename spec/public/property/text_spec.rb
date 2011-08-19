@@ -2,15 +2,23 @@ require 'spec_helper'
 
 describe DataMapper::Property::Text do
   before :all do
-    @name  = :title
-    @type  = DataMapper::Property::Text
-    @primitive = String
-    @value = 'value'
-    @other_value = 'return value'
+    @name          = :title
+    @type          = described_class
+    @primitive     = String
+    @value         = 'value'
+    @other_value   = 'return value'
     @invalid_value = 1
   end
 
-  it_should_behave_like "A public Property"
+  it_should_behave_like 'A public Property'
+
+  describe '.options' do
+    subject { described_class.options }
+
+    it { should be_kind_of(Hash) }
+
+    it { should eql(:primitive => @primitive, :length => 65535, :lazy => true) }
+  end
 
   describe 'migration with an index' do
     supported_by :all do

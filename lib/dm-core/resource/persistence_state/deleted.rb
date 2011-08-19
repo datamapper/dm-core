@@ -1,6 +1,6 @@
 module DataMapper
   module Resource
-    class State
+    class PersistenceState
 
       # a persisted/deleted resource
       class Deleted < Persisted
@@ -25,6 +25,6 @@ module DataMapper
         end
 
       end # class Deleted
-    end # class State
+    end # class PersistenceState
   end # module Resource
 end # module DataMapper

@@ -1,5 +1,5 @@
 require 'spec_helper'
-describe DataMapper::Resource::State::Deleted do
+describe DataMapper::Resource::PersistenceState::Deleted do
   before :all do
     class ::Author
       include DataMapper::Resource
@@ -20,7 +20,7 @@ describe DataMapper::Resource::State::Deleted do
   before do
     @resource = @model.create(:name => 'Dan Kubb')
 
-    @state = DataMapper::Resource::State::Deleted.new(@resource)
+    @state = DataMapper::Resource::PersistenceState::Deleted.new(@resource)
   end
 
   after do
@@ -32,7 +32,7 @@ describe DataMapper::Resource::State::Deleted do
 
     supported_by :all do
       it 'should return an Immutable state' do
-        should eql(DataMapper::Resource::State::Immutable.new(@resource))
+        should eql(DataMapper::Resource::PersistenceState::Immutable.new(@resource))
       end
 
       it 'should delete the resource' do
@@ -58,7 +58,7 @@ describe DataMapper::Resource::State::Deleted do
   end
 
   describe '#get' do
-    it_should_behave_like 'Resource::State::Persisted#get'
+    it_should_behave_like 'Resource::PersistenceState::Persisted#get'
   end
 
   describe '#set' do

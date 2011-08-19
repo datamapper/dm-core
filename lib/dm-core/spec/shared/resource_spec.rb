@@ -101,6 +101,13 @@ share_examples_for 'A public Resource' do
       end
 
       with_alternate_adapter do
+        before :all do
+          if @user_model.respond_to?(:auto_migrate!)
+            # force the user model to be available in the alternate repository
+            @user_model.auto_migrate!(@adapter.name)
+          end
+        end
+
         describe 'when comparing to a resource with a different repository, but the same properties' do
           before :all do
             rescue_if @skip do
@@ -489,6 +496,13 @@ share_examples_for 'A public Resource' do
     end
 
     with_alternate_adapter do
+      before :all do
+        if @user_model.respond_to?(:auto_migrate!)
+          # force the user model to be available in the alternate repository
+          @user_model.auto_migrate!(@adapter.name)
+        end
+      end
+
       describe 'when comparing to a resource with a different repository, but the same properties' do
         before :all do
           rescue_if @skip do

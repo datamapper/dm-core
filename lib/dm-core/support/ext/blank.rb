@@ -7,6 +7,7 @@ module DataMapper
     #
     # @api semipublic
     def self.blank?(value)
+      return value.blank? if value.respond_to?(:blank?)
       case value
       when ::NilClass, ::FalseClass
         true

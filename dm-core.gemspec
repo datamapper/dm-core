@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Dan Kubb"]
-  s.date = %q{2011-05-05}
+  s.date = %q{2011-07-25}
   s.description = %q{Faster, Better, Simpler.}
   s.email = %q{dan.kubb@gmail.com}
   s.extra_rdoc_files = [
@@ -35,6 +35,7 @@ Gem::Specification.new do |s|
     "lib/dm-core/associations/one_to_many.rb",
     "lib/dm-core/associations/one_to_one.rb",
     "lib/dm-core/associations/relationship.rb",
+    "lib/dm-core/backwards.rb",
     "lib/dm-core/collection.rb",
     "lib/dm-core/core_ext/kernel.rb",
     "lib/dm-core/core_ext/pathname.rb",
@@ -76,13 +77,13 @@ Gem::Specification.new do |s|
     "lib/dm-core/relationship_set.rb",
     "lib/dm-core/repository.rb",
     "lib/dm-core/resource.rb",
-    "lib/dm-core/resource/state.rb",
-    "lib/dm-core/resource/state/clean.rb",
-    "lib/dm-core/resource/state/deleted.rb",
-    "lib/dm-core/resource/state/dirty.rb",
-    "lib/dm-core/resource/state/immutable.rb",
-    "lib/dm-core/resource/state/persisted.rb",
-    "lib/dm-core/resource/state/transient.rb",
+    "lib/dm-core/resource/persistence_state.rb",
+    "lib/dm-core/resource/persistence_state/clean.rb",
+    "lib/dm-core/resource/persistence_state/deleted.rb",
+    "lib/dm-core/resource/persistence_state/dirty.rb",
+    "lib/dm-core/resource/persistence_state/immutable.rb",
+    "lib/dm-core/resource/persistence_state/persisted.rb",
+    "lib/dm-core/resource/persistence_state/transient.rb",
     "lib/dm-core/spec/lib/adapter_helpers.rb",
     "lib/dm-core/spec/lib/collection_helpers.rb",
     "lib/dm-core/spec/lib/counter_adapter.rb",
@@ -273,7 +274,7 @@ Gem::Specification.new do |s|
   s.homepage = %q{http://github.com/datamapper/dm-core}
   s.require_paths = ["lib"]
   s.rubyforge_project = %q{datamapper}
-  s.rubygems_version = %q{1.7.2}
+  s.rubygems_version = %q{1.6.2}
   s.summary = %q{An Object/Relational Mapper for Ruby}
   s.test_files = [
     "spec/lib/rspec_immediate_feedback_formatter.rb",

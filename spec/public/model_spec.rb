@@ -36,6 +36,13 @@ describe DataMapper::Model do
 
     describe '#copy' do
       with_alternate_adapter do
+        before :all do
+          if @article_model.respond_to?(:auto_migrate!)
+            # force the article model to be available in the alternate repository
+            @article_model.auto_migrate!(@adapter.name)
+          end
+        end
+
         describe 'between identical models' do
           before :all do
             @return = @resources = @article_model.copy(@repository.name, @adapter.name)
@@ -421,6 +428,31 @@ describe DataMapper::Model do
           }
         end
       end
+    end
+
+    it 'A model should respond to allowed_writer_methods' do
+      @article_model.should respond_to(:allowed_writer_methods)
+    end
+
+    describe '#allowed_writer_methods' do
+      subject { @article_model.allowed_writer_methods }
+
+      let(:expected_writer_methods) do
+        %w[ original= revisions= previous= publications= article_publications=
+            id= title= content= subtitle= original_id= persisted_state= ].to_set
+      end
+
+      it { should be_kind_of(Set) }
+
+      it { should be_all { |method| method.kind_of?(String) } }
+
+      it { should be_frozen }
+
+      it 'is idempotent' do
+        should equal(instance_eval(&self.class.subject))
+      end
+
+      it { should eql(expected_writer_methods) }
     end
   end
 end
