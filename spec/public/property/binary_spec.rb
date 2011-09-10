@@ -19,4 +19,21 @@ describe DataMapper::Property::Binary do
 
     it { should eql(:primitive => @primitive, :length => 50) }
   end
+
+  describe 'encoding' do
+    let(:model) do
+      Class.new do
+        include ::DataMapper::Resource
+        property :bin_data, ::DataMapper::Property::Binary
+      end
+    end
+
+    it 'should always dump with BINARY' do
+      model.bin_data.dump("foo").encoding.names.should include("BINARY")
+    end
+
+    it 'should always load with BINARY' do
+      model.bin_data.load("foo").encoding.names.should include("BINARY")
+    end
+  end
 end
