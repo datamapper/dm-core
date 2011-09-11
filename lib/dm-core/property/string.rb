@@ -1,9 +1,7 @@
 module DataMapper
   class Property
     class String < Object
-      include PassThroughLoadDump
-
-      primitive ::String
+      load_as ::String
 
       accept_options :length
 

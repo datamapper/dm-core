@@ -1,8 +1,6 @@
 module DataMapper
   class Property
     class Discriminator < Class
-      include PassThroughLoadDump
-
       default   lambda { |resource, property| resource.model }
       required  true
 

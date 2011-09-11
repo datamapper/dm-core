@@ -300,24 +300,6 @@ module DataMapper
   # * You may declare a Property with the data-type of <tt>Class</tt>.
   #   see SingleTableInheritance for more on how to use <tt>Class</tt> columns.
   class Property
-    module PassThroughLoadDump
-      # @api semipublic
-      def load(value)
-        typecast(value) unless value.nil?
-      end
-
-      # Stub instance method for dumping
-      #
-      # @param value     [Object, nil]    value to dump
-      #
-      # @return [Object] Dumped object
-      #
-      # @api semipublic
-      def dump(value)
-        value
-      end
-    end
-
     include DataMapper::Assertions
     include Subject
     extend Equalizer
@@ -337,6 +319,7 @@ module DataMapper
     ].to_set.freeze
 
     OPTIONS = [
+      :load_as, :dump_as,
       :accessor, :reader, :writer,
       :lazy, :default, :key, :field,
       :index, :unique_index,
@@ -352,7 +335,7 @@ module DataMapper
                      Query::OPTIONS.to_a
                     ).map { |name| name.to_s }
 
-    attr_reader :primitive, :model, :name, :instance_variable_name,
+    attr_reader :load_as, :dump_as, :model, :name, :instance_variable_name,
       :reader_visibility, :writer_visibility, :options,
       :default, :repository_name, :allow_nil, :allow_blank, :required
 
@@ -460,9 +443,14 @@ module DataMapper
         end
         options
       end
+
+      # @api deprecated
+      def primitive
+        load_as
+      end
     end
 
-    accept_options :primitive, *Property::OPTIONS
+    accept_options *Property::OPTIONS
 
     # A hook to allow properties to extend or modify the model it's bound to.
     # Implementations are not supposed to modify the state of the property
@@ -680,7 +668,7 @@ module DataMapper
 
     # @api semipublic
     def typecast(value)
-      if value.nil? || primitive?(value)
+      if value.nil? || value_loaded?(value)
         value
       elsif respond_to?(:typecast_to_primitive)
         typecast_to_primitive(value)
@@ -702,7 +690,7 @@ module DataMapper
       if required? && dumped_value.nil?
         negated || false
       else
-        primitive?(dumped_value) || (dumped_value.nil? && (allow_nil? || negated))
+        value_dumped?(dumped_value) || (dumped_value.nil? && (allow_nil? || negated))
       end
     end
 
@@ -726,7 +714,23 @@ module DataMapper
     #
     # @api semipublic
     def primitive?(value)
-      value.kind_of?(primitive)
+      #warn "#primitive? is deprecated, use #dumped? instead (#{caller.first})"
+      dumped_value?(value)
+    end
+
+    def primitive
+      #warn "#primitive is deprecated, use #dump_as instead (#{caller.first})"
+      dump_as
+    end
+
+    # @api semipublic
+    def value_dumped?(value)
+      value.kind_of?(dump_as)
+    end
+
+    # @api semipublic
+    def value_loaded?(value)
+      value.kind_of?(load_as)
     end
 
   protected
@@ -750,7 +754,8 @@ module DataMapper
       @options                = predefined_options.merge(options).freeze
       @instance_variable_name = "@#{@name}".freeze
 
-      @primitive = self.class.primitive
+      @load_as   = self.class.load_as
+      @dump_as   = @options.fetch(:dump_as, @load_as)
       @field     = @options[:field].freeze unless @options[:field].nil?
       @default   = @options[:default]
 

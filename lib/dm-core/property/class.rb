@@ -1,9 +1,7 @@
 module DataMapper
   class Property
     class Class < Object
-      include PassThroughLoadDump
-
-      primitive ::Class
+      load_as ::Class
 
       # Typecast a value to a Class
       #

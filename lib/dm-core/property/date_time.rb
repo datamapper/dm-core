@@ -1,10 +1,9 @@
 module DataMapper
   class Property
     class DateTime < Object
-      include PassThroughLoadDump
       include Typecast::Time
 
-      primitive ::DateTime
+      load_as ::DateTime
 
       # Typecasts an arbitrary value to a DateTime.
       # Handles both Hashes and DateTime instances.

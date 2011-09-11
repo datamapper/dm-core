@@ -1,16 +1,15 @@
 module DataMapper
   class Property
     class Boolean < Object
-      include PassThroughLoadDump
-
-      primitive ::TrueClass
+      load_as ::TrueClass
 
       TRUE_VALUES  = [ 1, '1', 't', 'T', 'true',  'TRUE'  ].freeze
       FALSE_VALUES = [ 0, '0', 'f', 'F', 'false', 'FALSE' ].freeze
       BOOLEAN_MAP  = Hash[
         TRUE_VALUES.product([ true ]) + FALSE_VALUES.product([ false ]) ].freeze
 
-      def primitive?(value)
+      # @api semipublic
+      def value_dumped?(value)
         value == true || value == false
       end
 

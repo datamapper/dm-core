@@ -4,7 +4,7 @@ describe DataMapper::Property::DateTime do
   before :all do
     @name          = :created_at
     @type          = described_class
-    @primitive     = DateTime
+    @load_as     = DateTime
     @value         = DateTime.now
     @other_value   = DateTime.now + 15
     @invalid_value = 1
@@ -17,6 +17,6 @@ describe DataMapper::Property::DateTime do
 
     it { should be_kind_of(Hash) }
 
-    it { should eql(:primitive => @primitive) }
+    it { should eql(:load_as => @load_as) }
   end
 end

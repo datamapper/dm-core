@@ -22,8 +22,8 @@ share_examples_for 'A semipublic Property' do
         @property.should be_kind_of(@type)
       end
 
-      it 'should set the primitive' do
-        @property.primitive.should be(@type.primitive)
+      it 'should set the load_as' do
+        @property.load_as.should be(@type.load_as)
       end
 
       it 'should set the model' do
@@ -50,8 +50,8 @@ share_examples_for 'A semipublic Property' do
             @property.model.should equal(@model)
           end
 
-          it 'should set the primitive' do
-            @property.primitive.should be(@type.primitive)
+          it 'should set the load_as' do
+            @property.load_as.should be(@type.load_as)
           end
 
           it "should set the options to #{options.inspect}" do

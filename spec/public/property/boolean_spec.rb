@@ -4,7 +4,7 @@ describe DataMapper::Property::Boolean do
   before :all do
     @name          = :active
     @type          = described_class
-    @primitive     = TrueClass
+    @load_as     = TrueClass
     @value         = true
     @other_value   = false
     @invalid_value = 1
@@ -17,6 +17,6 @@ describe DataMapper::Property::Boolean do
 
     it { should be_kind_of(Hash) }
 
-    it { should eql(:primitive => @primitive) }
+    it { should eql(:load_as => @load_as) }
   end
 end

@@ -1,10 +1,9 @@
 module DataMapper
   class Property
     class Time < Object
-      include PassThroughLoadDump
       include Typecast::Time
 
-      primitive ::Time
+      load_as ::Time
 
       # Typecasts an arbitrary value to a Time
       # Handles both Hashes and Time instances.

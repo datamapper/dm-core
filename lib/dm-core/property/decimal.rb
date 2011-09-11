@@ -1,7 +1,7 @@
 module DataMapper
   class Property
     class Decimal < Numeric
-      primitive BigDecimal
+      load_as BigDecimal
 
       DEFAULT_PRECISION = 10
       DEFAULT_SCALE     = 0
