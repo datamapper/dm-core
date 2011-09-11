@@ -1,4 +1,5 @@
 require 'addressable/uri'
+require 'virtus'
 require 'bigdecimal'
 require 'bigdecimal/util'
 require 'date'

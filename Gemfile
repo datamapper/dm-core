@@ -10,6 +10,7 @@ DO_VERSION     = '~> 0.10.6'
 DM_DO_ADAPTERS = %w[ sqlite postgres mysql oracle sqlserver ]
 
 gem 'addressable', '~> 2.2.6'
+gem 'virtus',      '~> 0.0.8'
 
 group :development do
 
