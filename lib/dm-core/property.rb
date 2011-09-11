@@ -319,7 +319,7 @@ module DataMapper
     ].to_set.freeze
 
     OPTIONS = [
-      :load_as, :dump_as,
+      :load_as, :dump_as, :coercion_method,
       :accessor, :reader, :writer,
       :lazy, :default, :key, :field,
       :index, :unique_index,
@@ -335,7 +335,8 @@ module DataMapper
                      Query::OPTIONS.to_a
                     ).map { |name| name.to_s }
 
-    attr_reader :load_as, :dump_as, :model, :name, :instance_variable_name,
+    attr_reader :load_as, :dump_as, :coercion_method,
+      :model, :name, :instance_variable_name,
       :reader_visibility, :writer_visibility, :options,
       :default, :repository_name, :allow_nil, :allow_blank, :required
 
@@ -668,11 +669,7 @@ module DataMapper
 
     # @api semipublic
     def typecast(value)
-      if value.nil? || value_loaded?(value)
-        value
-      elsif respond_to?(:typecast_to_primitive)
-        typecast_to_primitive(value)
-      end
+      Virtus::Coercion[value.class].send(coercion_method, value)
     end
 
     # Test the value to see if it is a valid value for this Property
@@ -753,11 +750,13 @@ module DataMapper
       @name                   = name.to_s.chomp('?').to_sym
       @options                = predefined_options.merge(options).freeze
       @instance_variable_name = "@#{@name}".freeze
+      @coercion_method        = @options.fetch(:coercion_method)
 
-      @load_as   = self.class.load_as
-      @dump_as   = @options.fetch(:dump_as, @load_as)
-      @field     = @options[:field].freeze unless @options[:field].nil?
-      @default   = @options[:default]
+      @load_as = self.class.load_as
+      @dump_as = @options.fetch(:dump_as, @load_as)
+
+      @field   = @options[:field].freeze unless @options[:field].nil?
+      @default = @options[:default]
 
       @serial       = @options.fetch(:serial,       false)
       @key          = @options.fetch(:key,          @serial)

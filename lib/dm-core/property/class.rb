@@ -1,22 +1,17 @@
 module DataMapper
   class Property
     class Class < Object
-      load_as ::Class
+      load_as         ::Class
+      coercion_method :to_constant
 
-      # Typecast a value to a Class
-      #
-      # @param [#to_s] value
-      #   value to typecast
-      #
-      # @return [Class]
-      #   Class constructed from value
-      #
-      # @api private
-      def typecast_to_primitive(value)
+      # @api semipublic
+      def typecast(value)
+        return unless value
         DataMapper::Ext::Module.find_const(model, value.to_s)
       rescue NameError
         value
       end
+
     end # class Class
   end # class Property
 end # module DataMapper

@@ -18,6 +18,6 @@ describe DataMapper::Property::Decimal do
 
     it { should be_kind_of(Hash) }
 
-    it { should eql(:load_as => @load_as, :precision => 10, :scale => 0) }
+    it { should eql(:load_as => @load_as, :coercion_method => :to_decimal, :precision => 10, :scale => 0) }
   end
 end

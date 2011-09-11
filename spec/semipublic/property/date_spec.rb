@@ -11,13 +11,13 @@ describe DataMapper::Property::Date do
 
   it_should_behave_like 'A semipublic Property'
 
-  describe '#typecast_to_primitive' do
+  describe '#typecast' do
     describe 'and value given as a hash with keys like :year, :month, etc' do
       it 'builds a Date instance from hash values' do
         result = @property.typecast(
-          'year'  => '2007',
-          'month' => '3',
-          'day'   => '25'
+          :year  => '2007',
+          :month => '3',
+          :day   => '25'
         )
 
         result.should be_kind_of(Date)

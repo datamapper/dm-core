@@ -17,6 +17,6 @@ describe DataMapper::Property::Float do
 
     it { should be_kind_of(Hash) }
 
-    it { should eql(:load_as => @load_as, :precision => 10, :scale => nil) }
+    it { should eql(:load_as => @load_as, :coercion_method => :to_float, :precision => 10, :scale => nil) }
   end
 end
