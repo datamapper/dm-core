@@ -711,12 +711,12 @@ module DataMapper
     #
     # @api semipublic
     def primitive?(value)
-      #warn "#primitive? is deprecated, use #dumped? instead (#{caller.first})"
-      dumped_value?(value)
+      warn "#primitive? is deprecated, use #value_dumped? instead (#{caller.first})"
+      value_dumped?(value)
     end
 
     def primitive
-      #warn "#primitive is deprecated, use #dump_as instead (#{caller.first})"
+      warn "#primitive is deprecated, use #dump_as instead (#{caller.first})"
       dump_as
     end
 
