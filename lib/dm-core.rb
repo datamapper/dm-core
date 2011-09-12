@@ -15,7 +15,7 @@ require 'virtus'
 
 class Virtus::Coercion::Object
   def self.to_string(value)
-    value.to_s
+    value.nil? ? value : value.to_s
   end
 end
 
