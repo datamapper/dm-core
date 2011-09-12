@@ -266,7 +266,7 @@ module DataMapper
             :unique   => @unique
           )
 
-          if target_property.primitive == Integer
+          if target_property.instance_of?(Property::Integer)
             min = target_property.min
             max = target_property.max
 

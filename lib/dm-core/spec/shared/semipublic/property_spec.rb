@@ -22,8 +22,8 @@ share_examples_for 'A semipublic Property' do
         @property.should be_kind_of(@type)
       end
 
-      it 'should set the primitive' do
-        @property.primitive.should be(@type.primitive)
+      it 'should set the load_as' do
+        @property.load_as.should be(@type.load_as)
       end
 
       it 'should set the model' do
@@ -50,8 +50,8 @@ share_examples_for 'A semipublic Property' do
             @property.model.should equal(@model)
           end
 
-          it 'should set the primitive' do
-            @property.primitive.should be(@type.primitive)
+          it 'should set the load_as' do
+            @property.load_as.should be(@type.load_as)
           end
 
           it "should set the options to #{options.inspect}" do
@@ -89,14 +89,6 @@ share_examples_for 'A semipublic Property' do
   end
 
   describe "#typecast" do
-    describe "when is able to do typecasting on it's own" do
-      it 'delegates all the work to the type' do
-        return_value = mock(@other_value)
-        @property.should_receive(:typecast_to_primitive).with(@invalid_value).and_return(return_value)
-        @property.typecast(@invalid_value)
-      end
-    end
-
     describe 'when value is nil' do
       it 'returns value unchanged' do
         @property.typecast(nil).should be(nil)

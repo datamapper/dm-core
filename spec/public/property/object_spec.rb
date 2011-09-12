@@ -62,7 +62,7 @@ describe DataMapper::Property, 'Object type' do
   it { should respond_to(:valid?) }
 
   describe '#valid?' do
-    describe 'with a valid primitive' do
+    describe 'with a valid load_as' do
       subject { @property.valid?('lang' => 'en_CA') }
 
       it { should be(true) }
