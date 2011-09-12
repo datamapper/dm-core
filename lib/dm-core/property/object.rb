@@ -6,36 +6,22 @@ module DataMapper
 
       # @api semipublic
       def dump(value)
-        if self.class == Object
-          marshal(value)
-        else
-          value
-        end
+        instance_of?(Object) ? marshal(value) : value
       end
 
       # @api semipublic
       def load(value)
-        if self.class == Object
-          unmarshal(value)
-        else
-          typecast(value)
-        end
+        typecast(instance_of?(Object) ? unmarshal(value) : value)
       end
 
       # @api semipublic
       def marshal(value)
-        return if value.nil?
-        [ Marshal.dump(value) ].pack('m')
+        [ Marshal.dump(value) ].pack('m') unless value.nil?
       end
 
       # @api semipublic
       def unmarshal(value)
-        case value
-          when ::String
-            Marshal.load(value.unpack('m').first)
-          when ::Object
-            value
-          end
+        Marshal.load(value.unpack('m').first) unless value.nil?
       end
 
       # @api private
