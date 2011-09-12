@@ -2,6 +2,7 @@ module DataMapper
   class Property
     class Float < Numeric
       load_as         ::Float
+      dump_as         ::Float
       coercion_method :to_float
 
       DEFAULT_PRECISION = 10

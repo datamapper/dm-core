@@ -2,6 +2,7 @@ module DataMapper
   class Property
     class String < Object
       load_as         ::String
+      dump_as         ::String
       coercion_method :to_string
 
       accept_options :length

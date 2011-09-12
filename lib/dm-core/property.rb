@@ -446,8 +446,9 @@ module DataMapper
       end
 
       # @api deprecated
-      def primitive
-        load_as
+      def primitive(*args)
+        warn "DataMapper::Property.primitive is deprecated, use .load_as instead (#{caller.first})"
+        load_as(*args)
       end
     end
 
@@ -753,7 +754,7 @@ module DataMapper
       @coercion_method        = @options.fetch(:coercion_method)
 
       @load_as = self.class.load_as
-      @dump_as = @options.fetch(:dump_as, @load_as)
+      @dump_as = self.class.dump_as
 
       @field   = @options[:field].freeze unless @options[:field].nil?
       @default = @options[:default]

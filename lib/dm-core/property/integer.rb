@@ -2,6 +2,7 @@ module DataMapper
   class Property
     class Integer < Numeric
       load_as         ::Integer
+      dump_as         ::Integer
       coercion_method :to_integer
 
       accept_options :serial

@@ -2,6 +2,7 @@ module DataMapper
   class Property
     class Class < Object
       load_as         ::Class
+      dump_as         ::Class
       coercion_method :to_constant
 
       # @api semipublic

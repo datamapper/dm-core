@@ -2,6 +2,7 @@ module DataMapper
   class Property
     class Boolean < Object
       load_as         ::TrueClass
+      dump_as         ::TrueClass
       coercion_method :to_boolean
 
       # @api semipublic

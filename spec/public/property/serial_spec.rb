@@ -17,6 +17,6 @@ describe DataMapper::Property::Serial do
 
     it { should be_kind_of(Hash) }
 
-    it { should eql(:load_as => @load_as, :coercion_method => :to_integer, :min => 1, :serial => true) }
+    it { should eql(:load_as => @load_as, :dump_as => @load_as, :coercion_method => :to_integer, :min => 1, :serial => true) }
   end
 end
