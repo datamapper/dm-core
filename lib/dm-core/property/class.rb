@@ -6,8 +6,7 @@ module DataMapper
 
       # @api semipublic
       def typecast(value)
-        return unless value
-        DataMapper::Ext::Module.find_const(model, value.to_s)
+        DataMapper::Ext::Module.find_const(model, value.to_s) unless value.nil?
       rescue NameError
         value
       end
