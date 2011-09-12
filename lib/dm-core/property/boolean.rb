@@ -6,8 +6,14 @@ module DataMapper
 
       # @api semipublic
       def value_dumped?(value)
+        value_loaded?(value)
+      end
+
+      # @api semipublic
+      def value_loaded?(value)
         value == true || value == false
       end
+
     end # class Boolean
   end # class Property
 end # module DataMapper
