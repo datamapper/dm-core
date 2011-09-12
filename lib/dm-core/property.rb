@@ -340,6 +340,9 @@ module DataMapper
       :reader_visibility, :writer_visibility, :options,
       :default, :repository_name, :allow_nil, :allow_blank, :required
 
+    alias_method :load_class, :load_as
+    alias_method :dump_class, :dump_as
+
     class << self
       extend Deprecate
 
