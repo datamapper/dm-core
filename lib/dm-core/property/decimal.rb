@@ -1,7 +1,9 @@
 module DataMapper
   class Property
     class Decimal < Numeric
-      primitive BigDecimal
+      load_as         BigDecimal
+      dump_as         BigDecimal
+      coercion_method :to_decimal
 
       DEFAULT_PRECISION = 10
       DEFAULT_SCALE     = 0
@@ -9,7 +11,7 @@ module DataMapper
       precision(DEFAULT_PRECISION)
       scale(DEFAULT_SCALE)
 
-      protected
+    protected
 
       def initialize(model, name, options = {})
         super
@@ -29,22 +31,6 @@ module DataMapper
         end
       end
 
-      # Typecast a value to a BigDecimal
-      #
-      # @param [#to_str, #to_d, Integer] value
-      #   value to typecast
-      #
-      # @return [BigDecimal]
-      #   BigDecimal constructed from value
-      #
-      # @api private
-      def typecast_to_primitive(value)
-        if value.kind_of?(::Integer)
-          value.to_s.to_d
-        else
-          typecast_to_numeric(value, :to_d)
-        end
-      end
     end # class Decimal
   end # class Property
 end # module DataMapper

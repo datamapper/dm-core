@@ -1,8 +1,8 @@
 module DataMapper
   class Property
     class Serial < Integer
-      serial    true
-      min       1
+      serial true
+      min    1
 
       # @api private
       def to_child_key

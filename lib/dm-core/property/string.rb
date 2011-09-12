@@ -1,9 +1,9 @@
 module DataMapper
   class Property
     class String < Object
-      include PassThroughLoadDump
-
-      primitive ::String
+      load_as         ::String
+      dump_as         ::String
+      coercion_method :to_string
 
       accept_options :length
 
@@ -26,25 +26,13 @@ module DataMapper
         end
       end
 
-      protected
+    protected
 
       def initialize(model, name, options = {})
         super
         @length = @options.fetch(:length)
       end
 
-      # Typecast a value to a String
-      #
-      # @param [#to_s] value
-      #   value to typecast
-      #
-      # @return [String]
-      #   String constructed from value
-      #
-      # @api private
-      def typecast_to_primitive(value)
-        value.to_s
-      end
     end # class String
   end # class Property
 end # module DataMapper

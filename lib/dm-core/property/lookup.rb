@@ -2,7 +2,7 @@ module DataMapper
   class Property
     module Lookup
 
-      protected
+    protected
 
       #
       # Provides transparent access to the Properties defined in
@@ -24,6 +24,7 @@ module DataMapper
       def const_missing(name)
         Property.find_class(name.to_s) || super
       end
-    end
-  end
-end
+
+    end # module Lookup
+  end # class Property
+end # module DataMapper

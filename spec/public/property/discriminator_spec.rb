@@ -28,7 +28,7 @@ describe DataMapper::Property::Discriminator do
 
     it { should be_kind_of(Hash) }
 
-    it { should include(:primitive => Class, :required => true) }
+    it { should include(:load_as => Class, :required => true) }
   end
 
   it 'should typecast to a Model' do
