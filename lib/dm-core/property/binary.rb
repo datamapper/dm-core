@@ -6,11 +6,11 @@ module DataMapper
       if RUBY_VERSION >= "1.9"
 
         def load(value)
-          super.dup.force_encoding("BINARY") if value
+          super.dup.force_encoding("BINARY") unless value.nil?
         end
 
         def dump(value)
-          super.dup.force_encoding("BINARY") if value
+          super.dup.force_encoding("BINARY") unless value.nil?
         end
 
       end
