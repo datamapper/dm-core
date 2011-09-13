@@ -73,19 +73,13 @@ share_examples_for 'A semipublic Property' do
   end
 
   describe '#load' do
-    before :all do
-      @value = mock(@value)
-    end
-
     subject { @property.load(@value) }
 
-    describe 'with a property' do
-      it 'should delegate to #typecast' do
-        return_value = mock(@other_value)
-        @property.should_receive(:typecast).with(@value).and_return(return_value)
-        should == return_value
-      end
+    before do
+      @property.should_receive(:typecast).with(@value).and_return(@value)
     end
+
+    it { should eql(@value) }
   end
 
   describe "#typecast" do
