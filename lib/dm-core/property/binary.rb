@@ -10,7 +10,9 @@ module DataMapper
         end
 
         def dump(value)
-          super.dup.force_encoding("BINARY") unless value.nil?
+          value.dup.force_encoding("BINARY") unless value.nil?
+        rescue
+          value
         end
 
       end
