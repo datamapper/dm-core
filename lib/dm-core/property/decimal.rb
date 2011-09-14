@@ -15,8 +15,8 @@ module DataMapper
         super
 
         [ :scale, :precision ].each do |key|
-          unless options.key?(key)
-            warn "options[#{key.inspect}] should be set for #{self.class}, defaulting to #{send(key).inspect}"
+          unless @options.key?(key)
+            warn "options[#{key.inspect}] should be set for #{self.class}, defaulting to #{send(key).inspect} (#{caller.first})"
           end
         end
 
