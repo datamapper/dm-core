@@ -33,7 +33,7 @@ module DataMapper
 
     equalize :repository, :model, :sorted_fields, :links, :conditions, :order, :offset, :limit, :reload?, :unique?, :add_reversed?
 
-    # Create a new Query either from an options Hash, or my intersecting another Query
+    # Create a new Query either from an options Hash, or by intersecting another Query
     #
     # @param [Repository] repository
     #   the target repository to query
