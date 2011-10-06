@@ -27,7 +27,11 @@ module DataMapper
       #
       # @api private
       def query
-        repository.new_query(self, current_scope).freeze
+        if current_scope.kind_of?(Hash)
+          repository.new_query(self, current_scope).freeze
+        else
+          current_scope.dup.freeze
+        end
       end
 
       # @api private
