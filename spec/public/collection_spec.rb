@@ -48,7 +48,6 @@ require 'spec_helper'
     supported_by :all do
       before :all do
         @author       = 'Dan Kubb'
-        @other_author = 'Chris Corbyn'
 
         # load the targets without references to a single source
         load_collection = lambda do |query|
@@ -72,14 +71,14 @@ require 'spec_helper'
 
       describe '#method_missing' do
         before :each do
-          @author = 'Chris Corbyn'
+          @bobcat_author = 'Chris Corbyn'
 
-          @no_bobcat    = @article_model.create(:title => 'About anything',   :content => 'Anything',              :author => @author)
-          @wrong_bobcat = @article_model.create(:title => 'About a bobcat',   :content => 'A wrong bobcat he was', :author => 'Dan Kubb')
-          @bobcat       = @article_model.create(:title => 'About a bobcat',   :content => 'A bobcat named Bob',    :author => @author)
+          @no_bobcat    = @article_model.create(:title => 'About anything',   :content => 'Anything',              :author => @bobcat_author)
+          @wrong_bobcat = @article_model.create(:title => 'About a bobcat',   :content => 'A wrong bobcat he was', :author => 'Random Guy')
+          @bobcat       = @article_model.create(:title => 'About a bobcat',   :content => 'A bobcat named Bob',    :author => @bobcat_author)
 
-          @all_articles      = @article_model.all
-          @authored_articles = @article_model.all(:author => @author)
+          @dans_articles     = @article_model.all(:author => @author)
+          @authored_articles = @article_model.all(:author => @bobcat_author)
         end
 
         describe 'with a public model method for a scoped query' do
@@ -99,7 +98,7 @@ require 'spec_helper'
 
         describe 'with a union delegating to a public model method' do
           before :each do
-            @return = (@authored_articles | @all_articles).about_bobcats
+            @return = (@authored_articles | @dans_articles).about_bobcats
           end
 
           it 'should return the matching resource' do
