@@ -33,6 +33,25 @@ module DataMapper
 
     equalize :repository, :model, :sorted_fields, :links, :conditions, :order, :offset, :limit, :reload?, :unique?, :add_reversed?
 
+    # Create a new Query either from an options Hash, or my intersecting another Query
+    #
+    # @param [Repository] repository
+    #   the target repository to query
+    # @param [Model] model
+    #   the target model for the query
+    # @param [Hash, Query] options
+    #   the conditions for the query
+    #
+    # @return [Query]
+    #   a new Query for the conditions given
+    def self.new(repository, model, options = {})
+      if options.kind_of?(Query)
+        options & super(repository, model)
+      else
+        super
+      end
+    end
+
     # Extract conditions to match a Resource or Collection
     #
     # @param [Array, Collection, Resource] source
