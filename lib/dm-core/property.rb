@@ -812,7 +812,7 @@ module DataMapper
             end
 
           when :length
-            assert_kind_of "options[:#{key}]", value, Range, ::Integer
+            assert_kind_of "options[:#{key}]", value, Range, ::Integer, NilClass
 
           when :size, :precision, :scale
             assert_kind_of "options[:#{key}]", value, ::Integer
