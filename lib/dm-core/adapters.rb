@@ -208,7 +208,10 @@ module DataMapper
       #
       # @api private
       def normalize_adapter_name(name)
-        (original = name.to_s) == 'sqlite3' ? 'sqlite' : original
+        original = name.to_s
+        return 'sqlite' if original == 'sqlite3'
+        return 'mysql' if original == 'mysql2'
+        original
       end
 
     end
