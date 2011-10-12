@@ -787,10 +787,10 @@ module DataMapper
 
       model = self.model
 
-      valid_properties = model.properties
+      valid_properties = model.properties(model.repository)
 
       model.descendants.each do |descendant|
-        valid_properties += descendant.properties
+        valid_properties += descendant.properties(descendant.repository)
       end
 
       fields.each do |field|
