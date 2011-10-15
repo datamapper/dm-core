@@ -959,6 +959,18 @@ describe DataMapper::Query do
         end
       end
 
+      describe 'that contains a Query::Direction with something other than a property' do
+        before :all do
+          @property = "something"
+          @direction = DataMapper::Query::Direction.new(@property, :desc)
+          @return = DataMapper::Query.new(@repository, @model, @options.update(:order => [ @direction ]))
+        end
+
+        it 'should set the order, since it may be used by an extension or plugin' do
+          @return.order.should == [ @direction ]
+        end
+      end
+
       describe 'that contains a Query::Direction with a property that is not part of the model' do
         before :all do
           @property = DataMapper::Property::String.new(@model, :unknown)

@@ -946,6 +946,10 @@ module DataMapper
 
       order.each do |order_entry|
         case order_entry
+          when Direction
+            # DataMapper::Query::Direction is an internal class, so if you're
+            # using it, it's assumed you know what you're doing.
+
           when Symbol, String
             unless @properties.named?(order_entry)
               raise ArgumentError, "+options[:order]+ entry #{order_entry.inspect} does not map to a property in #{model}"
@@ -955,7 +959,7 @@ module DataMapper
             # Allow any arbitrary property, since it may map to a model
             # that has been included via the :links option
 
-          when Operator, Direction
+          when Operator
             operator = order_entry.operator
 
             unless operator == :asc || operator == :desc
