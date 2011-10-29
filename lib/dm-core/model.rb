@@ -130,7 +130,7 @@ module DataMapper
 
     # Finish model setup and verify it is valid
     #
-    # @return [undefined]
+    # @return [self]
     #
     # @api public
     def finalize
@@ -139,6 +139,7 @@ module DataMapper
       assert_valid_name
       assert_valid_properties
       assert_valid_key
+      self
     end
 
     # Appends a module for inclusion into the model class after Resource.

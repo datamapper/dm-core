@@ -72,9 +72,12 @@ module DataMapper
         # Initialize the foreign key property this "many to one"
         # relationship uses to persist itself
         #
+        # @return [self]
+        #
         # @api public
         def finalize
           child_key
+          self
         end
 
         # Returns a hash of conditions that scopes query that fetches

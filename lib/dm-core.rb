@@ -280,7 +280,7 @@ module DataMapper
   # These are otherwise lazily declared, which can lead to unexpected errors.
   # It also performs basic validity checking of the DataMapper models.
   #
-  # @return [DataMapper] The DataMapper module
+  # @return [self]
   #
   # @api public
   def self.finalize
