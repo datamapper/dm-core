@@ -2,21 +2,6 @@ module DataMapper
   module Resource
     include DataMapper::Assertions
 
-    # @deprecated
-    def self.append_inclusions(*inclusions)
-      raise "DataMapper::Resource.append_inclusions is deprecated, use DataMapper::Model.append_inclusions instead (#{caller.first})"
-    end
-
-    # @deprecated
-    def self.extra_inclusions
-      raise "DataMapper::Resource.extra_inclusions is deprecated, use DataMapper::Model.extra_inclusions instead (#{caller.first})"
-    end
-
-    # @deprecated
-    def self.descendants
-      raise "DataMapper::Resource.descendants is deprecated, use DataMapper::Model.descendants instead (#{caller.first})"
-    end
-
     # Return if Resource#save should raise an exception on save failures (per-resource)
     #
     # This delegates to model.raise_on_save_failure by default.
