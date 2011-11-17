@@ -40,15 +40,11 @@ module DataMapper
       #
       # @api public
       def property(name, type, options = {})
-        if TrueClass == type
-          raise "#{type} is deprecated, use Boolean instead at #{caller[2]}"
-        elsif BigDecimal == type
-          raise "#{type} is deprecated, use Decimal instead at #{caller[2]}"
-        end
-
         # if the type can be found within Property then
         # use that class rather than the primitive
-        unless klass = DataMapper::Property.determine_class(type)
+        klass = DataMapper::Property.determine_class(type)
+
+        unless klass
           raise ArgumentError, "+type+ was #{type.inspect}, which is not a supported type"
         end
 
