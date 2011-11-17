@@ -14,14 +14,6 @@ DO_VERSION     = '~> 0.10.6'
 DM_DO_ADAPTERS = %w[ sqlite postgres mysql oracle sqlserver ]
 CURRENT_BRANCH = ENV.fetch('GIT_BRANCH', 'master')
 
-group :development do
-
-  gem 'jeweler', '~> 1.6.4'
-  gem 'rake',    '~> 0.9.2'
-  gem 'rspec',   '~> 1.3.2'
-
-end
-
 platforms :mri_18 do
   group :quality do
 
