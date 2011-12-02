@@ -1587,15 +1587,13 @@ share_examples_for 'A public Collection' do
 
       describe 'with attributes where a required property is nil' do
         before :all do
-          @return = @articles.send(method, :title => nil)
+          expect { @articles.send(method, :title => nil) }.to(raise_error(DataMapper::Property::InvalidValueError) do |error|
+            error.property.should == @articles.model.title
+          end)
         end
 
         if method == :update!
           should_not_be_a_kicker
-        end
-
-        it 'should return false' do
-          @return.should be(false)
         end
       end
 

@@ -18,7 +18,7 @@ module DataMapper
         def commit
           remove_from_identity_map
           set_child_keys
-          return self unless valid_attributes?
+          assert_valid_attributes
           update_resource
           reset_original_attributes
           reset_resource_key
@@ -83,11 +83,11 @@ module DataMapper
           original_attributes.clear
         end
 
-        def valid_attributes?
-          original_attributes.each_key do |property|
-            return false if property.kind_of?(Property) && !property.valid?(property.get!(resource))
+        def assert_valid_attributes
+          properties.each do |property|
+            value = property.get! resource
+            property.assert_valid_value(value)
           end
-          true
         end
 
       end # class Dirty
