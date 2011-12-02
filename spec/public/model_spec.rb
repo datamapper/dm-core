@@ -297,7 +297,9 @@ describe DataMapper::Model do
           let(:attributes) { { :title => nil } }
           let(:args)       { [ attributes ]    }
 
-          it { should be(false) }
+          it { 
+            expect { subject }.to raise_error
+          }
         end
       end
     end
