@@ -68,7 +68,7 @@ module DataMapper
         def assert_valid_attributes
           properties.each do |property|
             value = get(property)
-            unless property.serial? && value.nil? 
+            unless property.serial? && value.nil?
               property.assert_valid_value(value)
             end
           end

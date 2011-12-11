@@ -147,7 +147,7 @@ share_examples_for 'A semipublic Property' do
 
     describe 'when provide an invalid value' do
       let(:value) { @invalid_value }
-      
+
       it_should_behave_like 'assert_valid_value on invalid value'
     end
 

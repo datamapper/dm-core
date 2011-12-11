@@ -169,7 +169,7 @@ describe DataMapper::Resource do
           # FIXME: We cannot trigger a failing save with invalid properties anymore.
           # Invalid properties will result in their own exception.
           # So Im mocking here, but a better approach is needed.
-     
+
           describe 'and it is an invalid resource' do
             before do
               @user.should_receive(:save_self).and_return(false)
