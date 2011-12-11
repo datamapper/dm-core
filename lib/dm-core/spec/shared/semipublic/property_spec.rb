@@ -123,4 +123,54 @@ share_examples_for 'A semipublic Property' do
       end
     end
   end
+
+  describe '#assert_valid_value' do
+    subject do
+      @property.assert_valid_value(value)
+    end
+
+    shared_examples_for 'assert_valid_value on invalid value' do
+      it 'should raise DataMapper::Property::InvalidValueError' do
+        expect { subject }.to(raise_error(DataMapper::Property::InvalidValueError) do |error|
+          error.property.should == @property
+        end)
+      end
+    end
+
+    describe 'when provided a valid value' do
+      let(:value) { @value }
+
+      it 'should return true' do
+        subject.should be(true)
+      end
+    end
+
+    describe 'when provide an invalid value' do
+      let(:value) { @invalid_value }
+      
+      it_should_behave_like 'assert_valid_value on invalid value'
+    end
+
+    describe 'when provide a nil value when required' do
+      before do
+        @property = @type.new(@model, @name, @options.merge(:required => true))
+      end
+
+      let(:value) { nil }
+
+      it_should_behave_like 'assert_valid_value on invalid value'
+    end
+
+    describe 'when provide a nil value when not required' do
+      before do
+        @property = @type.new(@model, @name, @options.merge(:required => false))
+      end
+
+      let(:value) { nil }
+
+      it 'should return true' do
+        subject.should be(true)
+      end
+    end
+  end
 end

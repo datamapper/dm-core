@@ -69,6 +69,7 @@ require 'dm-core/resource/persistence_state/deleted'
 require 'dm-core/resource/persistence_state/dirty'
 
 require 'dm-core/property'
+require 'dm-core/property/invalid_value_error'
 require 'dm-core/property/object'
 require 'dm-core/property/string'
 require 'dm-core/property/binary'

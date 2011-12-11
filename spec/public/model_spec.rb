@@ -297,7 +297,11 @@ describe DataMapper::Model do
           let(:attributes) { { :title => nil } }
           let(:args)       { [ attributes ]    }
 
-          it { should be(false) }
+          it 'should raise InvalidValueError' do
+            expect { subject }.to(raise_error(DataMapper::Property::InvalidValueError) do |error|
+              error.property.should == model.title
+            end)
+          end
         end
       end
     end

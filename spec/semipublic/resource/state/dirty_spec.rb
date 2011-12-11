@@ -71,10 +71,16 @@ describe DataMapper::Resource::PersistenceState::Dirty do
           @resource.coding = 'yes'
         end
 
-        it { should equal(@state) }
+        it 'should raise InvalidValueError' do
+          expect { subject }.to(raise_error(DataMapper::Property::InvalidValueError) do |error|
+            error.property.should == Author.coding
+          end)
+        end
 
-        it 'should update the resource to the identity map if the key changed' do
-          method(:subject).should_not change { @resource.repository.identity_map(@model).dup }
+        it 'should not change the identity map' do
+          identity_map = @resource.repository.identity_map(@model).dup
+          expect { subject }.to raise_error
+          identity_map.should == @resource.repository.identity_map(@model)
         end
       end
     end
