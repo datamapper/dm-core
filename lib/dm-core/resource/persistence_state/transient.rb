@@ -68,8 +68,8 @@ module DataMapper
         def assert_valid_attributes!
           properties.each do |property|
             value = get(property)
-            unless property.serial? && value.nil? || property.valid?(value)
-              raise "property #{property.name} is invalid in transient state for value: #{value.inspect}"
+            unless property.serial? && value.nil? 
+              property.assert_valid_value!(value)
             end
           end
         end

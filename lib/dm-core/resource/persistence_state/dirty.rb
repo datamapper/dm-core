@@ -83,13 +83,10 @@ module DataMapper
           original_attributes.clear
         end
 
-        # FIXME: This method used original_attributes.each_key properties.each is cleaner for me.
         def assert_valid_attributes!
           properties.each do |property|
             value = property.get! resource
-            if property.kind_of?(Property) && !property.valid?(value)
-              raise "property #{property.name} is invalid in dirty state with value: #{value.inspect}"
-            end
+            property.assert_valid_value!(value)
           end
         end
 

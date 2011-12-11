@@ -1,13 +1,12 @@
 module DataMapper
   class Property
-    # Exception raised then dm tries finds invalid values when 
-    # persisting or quering resources.
+    # Exception raised when DataMapper is about to work with 
+    # invalid property values.
     class InvalidValueError < StandardError
-      attr_reader :resource
-   
-      def initialize(message, resource)
+      attr_reader :property
+      def initialize(message,property=nil)
         super(message)
-        @resource = resource
+        @property
       end
     end
   end

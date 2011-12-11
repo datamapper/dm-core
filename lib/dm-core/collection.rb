@@ -846,9 +846,7 @@ module DataMapper
         true
       else 
         dirty_attributes.each do |property, value| 
-          unless property.valid? value
-            raise "property #{property.name} is not valid for value: #{value.inspect}"
-          end
+          property.assert_valid_value!(value)
         end
         unless _update(dirty_attributes)
           return false

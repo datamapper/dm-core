@@ -1587,7 +1587,9 @@ share_examples_for 'A public Collection' do
 
       describe 'with attributes where a required property is nil' do
         before :all do
-          expect { @articles.send(method, :title => nil) }.to raise_error
+          expect { @articles.send(method, :title => nil) }.to raise_error(DataMapper::Property::InvalidValueError) do |error|
+            error.property.should == model.title
+          end
         end
 
         if method == :update!

@@ -695,6 +695,22 @@ module DataMapper
       end
     end
 
+    # Asserts value is valid
+    #
+    # @param [Object] loaded_value
+    #   the value to be tested
+    #
+    # @return [Boolean]
+    #   true if the value is valid
+    #
+    # @raise [Property::InvalidValueError] 
+    #   if value is not valid
+    def assert_valid_value!(value)
+      unless valid?(value)
+        raise Property::InvalidValueError.new("#{self.class.name} - is not valid for value: #{value.inspect}",self)
+      end
+    end
+
     # Returns a concise string representation of the property instance.
     #
     # @return [String]
