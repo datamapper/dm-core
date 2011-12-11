@@ -785,7 +785,9 @@ share_examples_for 'A public Resource' do
       describe 'on a new, invalid resource' do
         before :all do
           @user = @user_model.new(:name => nil)
-          expect { @user.__send__(method) }.to raise_error
+          expect { @user.__send__(method) }.to(raise_error(DataMapper::Property::InvalidValueError) do |error|
+            error.property.should == @user_model.name
+          end)
         end
 
         it 'should call save hook expected number of times' do
@@ -801,7 +803,9 @@ share_examples_for 'A public Resource' do
         end
 
         it 'should not save an invalid resource' do
-          expect { @user.__send__(method) }.to raise_error
+          expect { @user.__send__(method) }.to(raise_error(DataMapper::Property::InvalidValueError) do |error|
+            error.property.should == @user_model.name
+          end)
         end
 
         it 'should call save hook expected number of times' do
@@ -1158,7 +1162,9 @@ share_examples_for 'A public Resource' do
 
       describe 'with attributes where a value is nil for a property that does not allow nil' do
         before :all do
-          expect { @user.__send__(method, :name => nil) }.to raise_error
+          expect { @user.__send__(method, :name => nil) }.to(raise_error(DataMapper::Property::InvalidValueError) do |error|
+            error.property.should == @user_model.name
+          end)
         end
 
         it 'should not persist the changes' do

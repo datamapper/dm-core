@@ -71,7 +71,11 @@ describe DataMapper::Resource::PersistenceState::Dirty do
           @resource.coding = 'yes'
         end
 
-        it { expect { subject }.to raise_error }
+        it 'should raise InvalidValueError' do
+          expect { subject }.to(raise_error(DataMapper::Property::InvalidValueError) do |error|
+            error.property.should == Author.coding
+          end)
+        end
 
         # FIXME: can we remove this check? Was not able to get it run with exceptions on invalid properties.
         #
