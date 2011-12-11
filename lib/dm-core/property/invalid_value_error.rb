@@ -6,7 +6,7 @@ module DataMapper
       attr_reader :property
       def initialize(message,property=nil)
         super(message)
-        @property
+        @property = property
       end
     end
   end

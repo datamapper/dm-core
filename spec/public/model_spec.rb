@@ -298,9 +298,9 @@ describe DataMapper::Model do
           let(:args)       { [ attributes ]    }
 
           it 'should raise InvalidValueError' do
-            expect { subject }.to raise_error(DataMapper::Property::InvalidValueError) do |error|
+            expect { subject }.to(raise_error(DataMapper::Property::InvalidValueError) do |error|
               error.property.should == model.title
-            end
+            end)
           end
         end
       end
