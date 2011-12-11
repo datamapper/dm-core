@@ -786,7 +786,7 @@ share_examples_for 'A public Resource' do
         before :all do
           @user = @user_model.new(:name => nil)
           expect { @user.__send__(method) }.to(raise_error(DataMapper::Property::InvalidValueError) do |error|
-            error.property.should == @user_model.name
+            error.property.should == @user_model.properties[:name]
           end)
         end
 
@@ -804,7 +804,7 @@ share_examples_for 'A public Resource' do
 
         it 'should not save an invalid resource' do
           expect { @user.__send__(method) }.to(raise_error(DataMapper::Property::InvalidValueError) do |error|
-            error.property.should == @user_model.name
+            error.property.should == @user_model.properties[:name]
           end)
         end
 
@@ -1163,7 +1163,7 @@ share_examples_for 'A public Resource' do
       describe 'with attributes where a value is nil for a property that does not allow nil' do
         before :all do
           expect { @user.__send__(method, :name => nil) }.to(raise_error(DataMapper::Property::InvalidValueError) do |error|
-            error.property.should == @user_model.name
+            error.property.should == @user_model.properties[:name]
           end)
         end
 
