@@ -1161,7 +1161,7 @@ share_examples_for 'A public Resource' do
       end
 
       describe 'with attributes where a value is nil for a property that does not allow nil' do
-        before :all do
+        before do
           expect { @user.__send__(method, :name => nil) }.to(raise_error(DataMapper::Property::InvalidValueError) do |error|
             error.property.should == @user_model.properties[:name]
           end)
