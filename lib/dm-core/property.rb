@@ -709,6 +709,7 @@ module DataMapper
       unless valid?(value)
         raise Property::InvalidValueError.new("#{self.class.name} - is not valid for value: #{value.inspect}",self)
       end
+      true
     end
 
     # Returns a concise string representation of the property instance.
