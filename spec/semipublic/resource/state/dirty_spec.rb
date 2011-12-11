@@ -77,12 +77,11 @@ describe DataMapper::Resource::PersistenceState::Dirty do
           end)
         end
 
-        # FIXME: can we remove this check? Was not able to get it run with exceptions on invalid properties.
-        #
-        #it 'should update the resource to the identity map if the key changed' do
-        #  expect { subject }.to raise_error
-        #  should_not change { @resource.repository.identity_map(@model).dup }
-        #end
+        it 'should not change the identity map' do
+          identity_map = @resource.repository.identity_map(@model).dup
+          expect { subject }.to raise_error
+          identity_map.should == @resource.repository.identity_map(@model)
+        end
       end
     end
   end
