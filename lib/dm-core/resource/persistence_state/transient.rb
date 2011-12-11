@@ -21,7 +21,7 @@ module DataMapper
         def commit
           set_child_keys
           set_default_values
-          assert_valid_attributes!
+          assert_valid_attributes
           create_resource
           set_repository
           add_to_identity_map
@@ -65,11 +65,11 @@ module DataMapper
           resource.instance_variable_set(:@_repository, repository)
         end
 
-        def assert_valid_attributes!
+        def assert_valid_attributes
           properties.each do |property|
             value = get(property)
             unless property.serial? && value.nil? 
-              property.assert_valid_value!(value)
+              property.assert_valid_value(value)
             end
           end
         end

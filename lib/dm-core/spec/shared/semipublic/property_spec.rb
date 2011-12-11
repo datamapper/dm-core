@@ -124,12 +124,12 @@ share_examples_for 'A semipublic Property' do
     end
   end
 
-  describe '#assert_valid_value!' do
+  describe '#assert_valid_value' do
     subject do
-      @property.assert_valid_value!(value)
+      @property.assert_valid_value(value)
     end
 
-    shared_examples_for 'assert_valid_value! on invalid value' do
+    shared_examples_for 'assert_valid_value on invalid value' do
       it 'should raise DataMapper::Property::InvalidValueError' do
         expect { subject }.to(raise_error(DataMapper::Property::InvalidValueError) do |error|
           error.property.should == @property
@@ -148,7 +148,7 @@ share_examples_for 'A semipublic Property' do
     describe 'when provide an invalid value' do
       let(:value) { @invalid_value }
       
-      it_should_behave_like 'assert_valid_value! on invalid value'
+      it_should_behave_like 'assert_valid_value on invalid value'
     end
 
     describe 'when provide a nil value when required' do
@@ -158,7 +158,7 @@ share_examples_for 'A semipublic Property' do
 
       let(:value) { nil }
 
-      it_should_behave_like 'assert_valid_value! on invalid value'
+      it_should_behave_like 'assert_valid_value on invalid value'
     end
 
     describe 'when provide a nil value when not required' do

@@ -18,7 +18,7 @@ module DataMapper
         def commit
           remove_from_identity_map
           set_child_keys
-          assert_valid_attributes!
+          assert_valid_attributes
           update_resource
           reset_original_attributes
           reset_resource_key
@@ -83,10 +83,10 @@ module DataMapper
           original_attributes.clear
         end
 
-        def assert_valid_attributes!
+        def assert_valid_attributes
           properties.each do |property|
             value = property.get! resource
-            property.assert_valid_value!(value)
+            property.assert_valid_value(value)
           end
         end
 

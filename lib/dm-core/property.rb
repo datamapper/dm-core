@@ -705,7 +705,7 @@ module DataMapper
     #
     # @raise [Property::InvalidValueError] 
     #   if value is not valid
-    def assert_valid_value!(value)
+    def assert_valid_value(value)
       unless valid?(value)
         raise Property::InvalidValueError.new("#{self.class.name} - is not valid for value: #{value.inspect}",self)
       end
