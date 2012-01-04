@@ -1,6 +1,6 @@
 share_examples_for 'A public Property' do
   before :all do
-    %w[ @type @primitive @name @value @other_value ].each do |ivar|
+    %w[ @type @load_as @name @value @other_value ].each do |ivar|
       raise "+#{ivar}+ should be defined in before block" unless instance_variable_defined?(ivar)
     end
 
@@ -101,16 +101,16 @@ share_examples_for 'A public Property' do
       end
     end
 
-    describe ".primitive" do
-      it "should return the primitive class" do
+    describe ".load_as" do
+      it "should return the load_as" do
         [@type, @subtype].each do |type|
-          type.primitive.should be(@primitive)
+          type.load_as.should be(@load_as)
         end
       end
 
-      it "should change the primitive class" do
-        @subtype.primitive Object
-        @subtype.primitive.should be(Object)
+      it "should change the load_as class" do
+        @subtype.load_as Object
+        @subtype.load_as.should be(Object)
       end
     end
   end

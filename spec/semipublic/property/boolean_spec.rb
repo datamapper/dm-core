@@ -11,24 +11,6 @@ describe DataMapper::Property::Boolean do
 
   it_should_behave_like 'A semipublic Property'
 
-  describe '#load' do
-    before :all do
-      @value = mock('value')
-    end
-
-    subject { @property.load(@value) }
-
-    before do
-      @property = @type.new(@model, @name)
-    end
-
-    it 'should delegate to #type.load' do
-      return_value = mock('return value')
-      @property.should_receive(:load).with(@value).and_return(return_value)
-      should == return_value
-    end
-  end
-
   describe '#valid?' do
     [ true, false ].each do |value|
       it "returns true when value is #{value.inspect}" do
@@ -43,7 +25,7 @@ describe DataMapper::Property::Boolean do
     end
   end
 
-  describe '#typecast_to_primitive' do
+  describe '#typecast' do
     [ true, 'true', 'TRUE', '1', 1, 't', 'T' ].each do |value|
       it "returns true when value is #{value.inspect}" do
         @property.typecast(value).should be(true)

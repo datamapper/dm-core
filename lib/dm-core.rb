@@ -11,6 +11,14 @@ module DataMapper
   module Undefined; end
 end
 
+require 'virtus'
+
+class Virtus::Coercion::Object
+  def self.to_string(value)
+    value.nil? ? value : value.to_s
+  end
+end
+
 require 'dm-core/support/ext/blank'
 require 'dm-core/support/ext/hash'
 require 'dm-core/support/ext/object'
@@ -61,8 +69,7 @@ require 'dm-core/resource/persistence_state/deleted'
 require 'dm-core/resource/persistence_state/dirty'
 
 require 'dm-core/property'
-require 'dm-core/property/typecast/numeric'
-require 'dm-core/property/typecast/time'
+require 'dm-core/property/invalid_value_error'
 require 'dm-core/property/object'
 require 'dm-core/property/string'
 require 'dm-core/property/binary'
@@ -274,7 +281,7 @@ module DataMapper
   # These are otherwise lazily declared, which can lead to unexpected errors.
   # It also performs basic validity checking of the DataMapper models.
   #
-  # @return [DataMapper] The DataMapper module
+  # @return [self]
   #
   # @api public
   def self.finalize

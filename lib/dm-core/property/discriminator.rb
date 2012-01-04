@@ -1,8 +1,6 @@
 module DataMapper
   class Property
     class Discriminator < Class
-      include PassThroughLoadDump
-
       default   lambda { |resource, property| resource.model }
       required  true
 
@@ -22,7 +20,7 @@ module DataMapper
             discriminator = properties(repository_name).discriminator
 
             if discriminator_value = args.first[discriminator.name]
-              model = discriminator.typecast_to_primitive(discriminator_value)
+              model = discriminator.typecast(discriminator_value)
 
               if model.kind_of?(Model) && !model.equal?(self)
                 return model.new(*args, &block)

@@ -300,24 +300,6 @@ module DataMapper
   # * You may declare a Property with the data-type of <tt>Class</tt>.
   #   see SingleTableInheritance for more on how to use <tt>Class</tt> columns.
   class Property
-    module PassThroughLoadDump
-      # @api semipublic
-      def load(value)
-        typecast(value) unless value.nil?
-      end
-
-      # Stub instance method for dumping
-      #
-      # @param value     [Object, nil]    value to dump
-      #
-      # @return [Object] Dumped object
-      #
-      # @api semipublic
-      def dump(value)
-        value
-      end
-    end
-
     include DataMapper::Assertions
     include Subject
     extend Equalizer
@@ -337,6 +319,7 @@ module DataMapper
     ].to_set.freeze
 
     OPTIONS = [
+      :load_as, :dump_as, :coercion_method,
       :accessor, :reader, :writer,
       :lazy, :default, :key, :field,
       :index, :unique_index,
@@ -352,9 +335,13 @@ module DataMapper
                      Query::OPTIONS.to_a
                     ).map { |name| name.to_s }
 
-    attr_reader :primitive, :model, :name, :instance_variable_name,
+    attr_reader :load_as, :dump_as, :coercion_method,
+      :model, :name, :instance_variable_name,
       :reader_visibility, :writer_visibility, :options,
       :default, :repository_name, :allow_nil, :allow_blank, :required
+
+    alias_method :load_class, :load_as
+    alias_method :dump_class, :dump_as
 
     class << self
       extend Deprecate
@@ -460,9 +447,15 @@ module DataMapper
         end
         options
       end
+
+      # @api deprecated
+      def primitive(*args)
+        warn "DataMapper::Property.primitive is deprecated, use .load_as instead (#{caller.first})"
+        load_as(*args)
+      end
     end
 
-    accept_options :primitive, *Property::OPTIONS
+    accept_options *Property::OPTIONS
 
     # A hook to allow properties to extend or modify the model it's bound to.
     # Implementations are not supposed to modify the state of the property
@@ -680,11 +673,7 @@ module DataMapper
 
     # @api semipublic
     def typecast(value)
-      if value.nil? || primitive?(value)
-        value
-      elsif respond_to?(:typecast_to_primitive)
-        typecast_to_primitive(value)
-      end
+      Virtus::Coercion[value.class].send(coercion_method, value)
     end
 
     # Test the value to see if it is a valid value for this Property
@@ -702,8 +691,25 @@ module DataMapper
       if required? && dumped_value.nil?
         negated || false
       else
-        primitive?(dumped_value) || (dumped_value.nil? && (allow_nil? || negated))
+        value_dumped?(dumped_value) || (dumped_value.nil? && (allow_nil? || negated))
       end
+    end
+
+    # Asserts value is valid
+    #
+    # @param [Object] loaded_value
+    #   the value to be tested
+    #
+    # @return [Boolean]
+    #   true if the value is valid
+    #
+    # @raise [Property::InvalidValueError] 
+    #   if value is not valid
+    def assert_valid_value(value)
+      unless valid?(value)
+        raise Property::InvalidValueError.new(self,value)
+      end
+      true
     end
 
     # Returns a concise string representation of the property instance.
@@ -726,7 +732,23 @@ module DataMapper
     #
     # @api semipublic
     def primitive?(value)
-      value.kind_of?(primitive)
+      warn "#primitive? is deprecated, use #value_dumped? instead (#{caller.first})"
+      value_dumped?(value)
+    end
+
+    def primitive
+      warn "#primitive is deprecated, use #dump_as instead (#{caller.first})"
+      dump_as
+    end
+
+    # @api semipublic
+    def value_dumped?(value)
+      value.kind_of?(dump_as)
+    end
+
+    # @api semipublic
+    def value_loaded?(value)
+      value.kind_of?(load_as)
     end
 
   protected
@@ -749,10 +771,13 @@ module DataMapper
       @name                   = name.to_s.chomp('?').to_sym
       @options                = predefined_options.merge(options).freeze
       @instance_variable_name = "@#{@name}".freeze
+      @coercion_method        = @options.fetch(:coercion_method)
 
-      @primitive = self.class.primitive
-      @field     = @options[:field].freeze unless @options[:field].nil?
-      @default   = @options[:default]
+      @load_as = self.class.load_as
+      @dump_as = self.class.dump_as
+
+      @field   = @options[:field].freeze unless @options[:field].nil?
+      @default = @options[:default]
 
       @serial       = @options.fetch(:serial,       false)
       @key          = @options.fetch(:key,          @serial)

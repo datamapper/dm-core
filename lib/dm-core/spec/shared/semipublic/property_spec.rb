@@ -22,8 +22,8 @@ share_examples_for 'A semipublic Property' do
         @property.should be_kind_of(@type)
       end
 
-      it 'should set the primitive' do
-        @property.primitive.should be(@type.primitive)
+      it 'should set the load_as' do
+        @property.load_as.should be(@type.load_as)
       end
 
       it 'should set the model' do
@@ -50,8 +50,8 @@ share_examples_for 'A semipublic Property' do
             @property.model.should equal(@model)
           end
 
-          it 'should set the primitive' do
-            @property.primitive.should be(@type.primitive)
+          it 'should set the load_as' do
+            @property.load_as.should be(@type.load_as)
           end
 
           it "should set the options to #{options.inspect}" do
@@ -73,30 +73,16 @@ share_examples_for 'A semipublic Property' do
   end
 
   describe '#load' do
-    before :all do
-      @value = mock(@value)
-    end
-
     subject { @property.load(@value) }
 
-    describe 'with a property' do
-      it 'should delegate to #typecast' do
-        return_value = mock(@other_value)
-        @property.should_receive(:typecast).with(@value).and_return(return_value)
-        should == return_value
-      end
+    before do
+      @property.should_receive(:typecast).with(@value).and_return(@value)
     end
+
+    it { should eql(@value) }
   end
 
   describe "#typecast" do
-    describe "when is able to do typecasting on it's own" do
-      it 'delegates all the work to the type' do
-        return_value = mock(@other_value)
-        @property.should_receive(:typecast_to_primitive).with(@invalid_value).and_return(return_value)
-        @property.typecast(@invalid_value)
-      end
-    end
-
     describe 'when value is nil' do
       it 'returns value unchanged' do
         @property.typecast(nil).should be(nil)
@@ -134,6 +120,56 @@ share_examples_for 'A semipublic Property' do
       it 'should return false' do
         @property = @type.new(@model, @name, @options.merge(:required => false))
         @property.valid?(nil).should be(true)
+      end
+    end
+  end
+
+  describe '#assert_valid_value' do
+    subject do
+      @property.assert_valid_value(value)
+    end
+
+    shared_examples_for 'assert_valid_value on invalid value' do
+      it 'should raise DataMapper::Property::InvalidValueError' do
+        expect { subject }.to(raise_error(DataMapper::Property::InvalidValueError) do |error|
+          error.property.should == @property
+        end)
+      end
+    end
+
+    describe 'when provided a valid value' do
+      let(:value) { @value }
+
+      it 'should return true' do
+        subject.should be(true)
+      end
+    end
+
+    describe 'when provide an invalid value' do
+      let(:value) { @invalid_value }
+
+      it_should_behave_like 'assert_valid_value on invalid value'
+    end
+
+    describe 'when provide a nil value when required' do
+      before do
+        @property = @type.new(@model, @name, @options.merge(:required => true))
+      end
+
+      let(:value) { nil }
+
+      it_should_behave_like 'assert_valid_value on invalid value'
+    end
+
+    describe 'when provide a nil value when not required' do
+      before do
+        @property = @type.new(@model, @name, @options.merge(:required => false))
+      end
+
+      let(:value) { nil }
+
+      it 'should return true' do
+        subject.should be(true)
       end
     end
   end

@@ -11,7 +11,7 @@ describe DataMapper::Property::Float do
 
   it_should_behave_like 'A semipublic Property'
 
-  describe '#typecast_to_primitive' do
+  describe '#typecast' do
     it 'returns same value if a float' do
       @value = 24.0
       @property.typecast(@value).should equal(@value)

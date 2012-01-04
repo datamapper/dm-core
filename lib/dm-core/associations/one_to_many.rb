@@ -104,6 +104,8 @@ module DataMapper
         # initializing other relationships. This makes sure that foreign key
         # properties always appear in the order they were declared.
         #
+        # @return [self]
+        #
         # @api public
         def finalize
           child_model.relationships.each do |relationship|
@@ -114,6 +116,7 @@ module DataMapper
             end
           end
           inverse.finalize
+          self
         end
 
         # @api semipublic

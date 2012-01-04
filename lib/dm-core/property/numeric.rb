@@ -1,21 +1,19 @@
 module DataMapper
   class Property
     class Numeric < Object
-      include PassThroughLoadDump
-      include Typecast::Numeric
-
       accept_options :precision, :scale, :min, :max
+
       attr_reader :precision, :scale, :min, :max
 
       DEFAULT_NUMERIC_MIN = 0
       DEFAULT_NUMERIC_MAX = 2**31-1
 
-      protected
+    protected
 
       def initialize(model, name, options = {})
         super
 
-        if @primitive == BigDecimal || @primitive == ::Float
+        if kind_of?(Decimal) || kind_of?(Float)
           @precision = @options.fetch(:precision)
           @scale     = @options.fetch(:scale)
 

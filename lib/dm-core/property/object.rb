@@ -1,22 +1,28 @@
 module DataMapper
   class Property
     class Object < Property
-      primitive ::Object
+      load_as         ::Object
+      dump_as         ::Object
+      coercion_method :to_object
 
       # @api semipublic
       def dump(value)
-        return if value.nil?
-        [ Marshal.dump(value) ].pack('m')
+        instance_of?(Object) ? marshal(value) : value
       end
 
       # @api semipublic
       def load(value)
-        case value
-          when ::String
-            Marshal.load(value.unpack('m').first)
-          when ::Object
-            value
-          end
+        typecast(instance_of?(Object) ? unmarshal(value) : value)
+      end
+
+      # @api semipublic
+      def marshal(value)
+        [ Marshal.dump(value) ].pack('m') unless value.nil?
+      end
+
+      # @api semipublic
+      def unmarshal(value)
+        Marshal.load(value.unpack('m').first) unless value.nil?
       end
 
       # @api private
