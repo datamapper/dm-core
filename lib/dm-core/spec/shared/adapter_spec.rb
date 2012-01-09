@@ -28,7 +28,7 @@ share_examples_for 'An Adapter' do
     # (using let/let!) # but # be shure the replacement provides the required 
     # properties.
     let(:heffalump_model) do
-      Class.new do
+      model = Class.new do
         include DataMapper::Resource
         property :id,        DataMapper::Property::Serial
         property :color,     DataMapper::Property::String
@@ -38,6 +38,10 @@ share_examples_for 'An Adapter' do
         # This is needed for DataMapper.finalize
         def self.name; 'Heffalump'; end
       end
+
+      DataMapper.finalize
+
+      model
     end
   end
 
