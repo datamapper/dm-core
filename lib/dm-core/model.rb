@@ -209,11 +209,12 @@ module DataMapper
     def self.extended(descendant)
       descendants << descendant
 
-      descendant.instance_variable_set(:@valid,         false)
-      descendant.instance_variable_set(:@base_model,    descendant)
-      descendant.instance_variable_set(:@storage_names, {})
-      descendant.instance_variable_set(:@default_order, {})
-
+      descendant.instance_eval do
+        @valid           = false unless instance_variable_defined?(:@valid)
+        @base_model    ||= descendant
+        @storage_names ||= {}
+        @default_order ||= {}
+      end
       descendant.extend(Chainable)
 
       extra_extensions.each { |mod| descendant.extend(mod)         }
@@ -223,6 +224,11 @@ module DataMapper
     # @api private
     def inherited(descendant)
       descendants << descendant
+
+      descendant.instance_eval do
+        @valid        = false unless instance_variable_defined?(:@valid)
+        @base_model ||= base_model
+      end
 
       descendant.instance_variable_set(:@valid,         false)
       descendant.instance_variable_set(:@base_model,    base_model)
