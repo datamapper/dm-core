@@ -24,6 +24,10 @@ platforms :mri_18 do
   end
 end
 
+if RUBY_VERSION < '1.9'
+  gem 'backports' # for virtus
+end
+
 group :datamapper do
 
   adapters = ENV['ADAPTERS'] || ENV['ADAPTER']
