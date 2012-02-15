@@ -68,7 +68,7 @@ describe DataMapper::Resource::PersistenceState::Dirty do
 
       context 'with invalid attributes' do
         before do
-          @resource.coding = 'yes'
+          @resource.coding = 'invalid'
         end
 
         it 'should raise InvalidValueError' do
