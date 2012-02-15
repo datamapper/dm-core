@@ -189,22 +189,6 @@ describe DataMapper::Query do
           }.should raise_error(ArgumentError, "+options[:fields]+ entry \"unknown\" does not map to a property in #{@model}")
         end
       end
-
-      describe 'that is an Array containing an invalid object' do
-        it 'should raise an exception' do
-          lambda {
-            DataMapper::Query.new(@repository, @model, @options.update(:fields => [ 1 ]))
-          }.should raise_error(ArgumentError, '+options[:fields]+ entry 1 of an unsupported object Fixnum')
-        end
-      end
-
-      describe 'that is an Array containing an unknown Property' do
-        it 'should raise an exception' do
-          lambda {
-            DataMapper::Query.new(@repository, @model, @options.update(:fields => [ DataMapper::Property::String.new(@model, :unknown) ]))
-          }.should raise_error(ArgumentError, "+options[:field]+ entry :unknown does not map to a property in #{@model}")
-        end
-      end
     end
 
     describe 'with a links option' do
@@ -289,14 +273,6 @@ describe DataMapper::Query do
           lambda {
             DataMapper::Query.new(@repository, @model, @options.update(:links => [ 'unknown' ]))
           }.should raise_error(ArgumentError, "+options[:links]+ entry \"unknown\" does not map to a relationship in #{@model}")
-        end
-      end
-
-      describe 'that is an Array containing an invalid object' do
-        it 'should raise an exception' do
-          lambda {
-            DataMapper::Query.new(@repository, @model, @options.update(:links => [ 1 ]))
-          }.should raise_error(ArgumentError, '+options[:links]+ entry 1 of an unsupported object Fixnum')
         end
       end
     end
@@ -794,37 +770,6 @@ describe DataMapper::Query do
           }.should raise_error(ArgumentError, "condition \"unknown.id\" does not map to a property or relationship in #{@model}")
         end
       end
-
-      describe 'that is a Hash with a Property that does not belong to the model' do
-        before do
-          Object.send(:remove_const, :Alternate) if Object.const_defined?(:Alternate)
-          @alternate_model = DataMapper::Model.new('Alternate') do
-            property :id, DataMapper::Property::Serial
-          end
-        end
-
-        it 'should raise an exception' do
-          lambda {
-            DataMapper::Query.new(@repository, @model, @options.update(:conditions => { @alternate_model.properties[:id] => 1 }))
-          }.should raise_error(ArgumentError, "condition :id does not map to a property in #{@model}, but belongs to #{@alternate_model}")
-        end
-      end
-
-      describe 'that is a Hash with a Query::Operator key that is not for a Property in the model' do
-        it 'should raise an exception' do
-          lambda {
-            DataMapper::Query.new(@repository, @model, @options.update(:conditions => { :unknown.asc => 1 }))
-          }.should raise_error(ArgumentError, 'condition #<DataMapper::Query::Operator @target=:unknown @operator=:asc> used an invalid operator asc')
-        end
-      end
-
-      describe 'that is a Hash with a key of a type that is not permitted' do
-        it 'should raise an exception' do
-          lambda {
-            DataMapper::Query.new(@repository, @model, @options.update(:conditions => { 1 => 1 }))
-          }.should raise_error(ArgumentError, 'condition 1 of an unsupported object Fixnum')
-        end
-      end
     end
 
     describe 'with an offset option' do
@@ -1126,30 +1071,6 @@ describe DataMapper::Query do
           lambda {
             DataMapper::Query.new(@repository, @model, @options.update(:order => [ 'unknown' ]))
           }.should raise_error(ArgumentError, "+options[:order]+ entry \"unknown\" does not map to a property in #{@model}")
-        end
-      end
-
-      describe 'that is an Array containing an invalid object' do
-        it 'should raise an exception' do
-          lambda {
-            DataMapper::Query.new(@repository, @model, @options.update(:order => [ 1 ]))
-          }.should raise_error(ArgumentError, '+options[:order]+ entry 1 of an unsupported object Fixnum')
-        end
-      end
-
-      describe 'that contains a Query::Operator with a target that is not part of the model' do
-        it 'should raise an exception' do
-          lambda {
-            DataMapper::Query.new(@repository, @model, @options.update(:order => [ :unknown.desc ]))
-          }.should raise_error(ArgumentError, "+options[:order]+ entry :unknown does not map to a property in #{@model}")
-        end
-      end
-
-      describe 'that contains a Query::Operator with an unknown operator' do
-        it 'should raise an exception' do
-          lambda {
-            DataMapper::Query.new(@repository, @model, @options.update(:order => [ :name.gt ]))
-          }.should raise_error(ArgumentError, '+options[:order]+ entry #<DataMapper::Query::Operator @target=:name @operator=:gt> used an invalid operator gt')
         end
       end
 

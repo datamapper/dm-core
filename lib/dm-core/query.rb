@@ -783,10 +783,6 @@ module DataMapper
     #
     # @api private
     def assert_valid_fields(fields, unique)
-      fields = fields.to_ary
-
-      model = self.model
-
       valid_properties = model.properties
 
       model.descendants.each do |descendant|
@@ -799,14 +795,6 @@ module DataMapper
             unless valid_properties.named?(field)
               raise ArgumentError, "+options[:fields]+ entry #{field.inspect} does not map to a property in #{model}"
             end
-
-          when Property
-            unless valid_properties.include?(field)
-              raise ArgumentError, "+options[:field]+ entry #{field.name.inspect} does not map to a property in #{model}"
-            end
-
-          else
-            raise ArgumentError, "+options[:fields]+ entry #{field.inspect} of an unsupported object #{field.class}"
         end
       end
     end
@@ -816,8 +804,6 @@ module DataMapper
     #
     # @api private
     def assert_valid_links(links)
-      links = links.to_ary
-
       if links.empty?
         raise ArgumentError, '+options[:links]+ should not be empty'
       end
@@ -828,15 +814,6 @@ module DataMapper
             unless @relationships.named?(link.to_sym)
               raise ArgumentError, "+options[:links]+ entry #{link.inspect} does not map to a relationship in #{model}"
             end
-
-          when Associations::Relationship
-            # TODO: figure out how to validate links from other models
-            #unless @relationships.value?(link)
-            #  raise ArgumentError, "+options[:links]+ entry #{link.name.inspect} does not map to a relationship in #{model}"
-            #end
-
-          else
-            raise ArgumentError, "+options[:links]+ entry #{link.inspect} of an unsupported object #{link.class}"
         end
       end
     end
@@ -852,7 +829,7 @@ module DataMapper
         when Hash
           conditions.each do |subject, bind_value|
             case subject
-              when Symbol, ::String
+              when Symbol, String
                 original = subject
                 subject  = subject.to_s
                 name     = subject[0, subject.index('.') || subject.length]
@@ -860,32 +837,6 @@ module DataMapper
                 unless @properties.named?(name) || @relationships.named?(name)
                   raise ArgumentError, "condition #{original.inspect} does not map to a property or relationship in #{model}"
                 end
-
-              when Property
-                unless @properties.include?(subject)
-                  raise ArgumentError, "condition #{subject.name.inspect} does not map to a property in #{model}, but belongs to #{subject.model}"
-                end
-
-              when Operator
-                operator = subject.operator
-
-                unless Conditions::Comparison.slugs.include?(operator) || operator == :not
-                  raise ArgumentError, "condition #{subject.inspect} used an invalid operator #{operator}"
-                end
-
-                assert_valid_conditions(subject.target => bind_value)
-
-              when Path
-                assert_valid_links(subject.relationships)
-
-              when Associations::Relationship
-                # TODO: validate that it belongs to the current model
-                #unless subject.source_model.equal?(model)
-                #  raise ArgumentError, "condition #{subject.name.inspect} is not a valid relationship for #{model}, it's source model was #{subject.source_model}"
-                #end
-
-              else
-                raise ArgumentError, "condition #{subject.inspect} of an unsupported object #{subject.class}"
             end
           end
 
@@ -942,30 +893,12 @@ module DataMapper
         raise ArgumentError, '+options[:order]+ should not be empty if +options[:fields] contains a non-operator'
       end
 
-      model = self.model
-
       order.each do |order_entry|
         case order_entry
           when Symbol, String
             unless @properties.named?(order_entry)
               raise ArgumentError, "+options[:order]+ entry #{order_entry.inspect} does not map to a property in #{model}"
             end
-
-          when Property, Path
-            # Allow any arbitrary property, since it may map to a model
-            # that has been included via the :links option
-
-          when Operator, Direction
-            operator = order_entry.operator
-
-            unless operator == :asc || operator == :desc
-              raise ArgumentError, "+options[:order]+ entry #{order_entry.inspect} used an invalid operator #{operator}"
-            end
-
-            assert_valid_order([ order_entry.target ], fields)
-
-          else
-            raise ArgumentError, "+options[:order]+ entry #{order_entry.inspect} of an unsupported object #{order_entry.class}"
         end
       end
     end
