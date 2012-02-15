@@ -703,7 +703,7 @@ module DataMapper
     # @return [Boolean]
     #   true if the value is valid
     #
-    # @raise [Property::InvalidValueError] 
+    # @raise [Property::InvalidValueError]
     #   if value is not valid
     def assert_valid_value(value)
       unless valid?(value)

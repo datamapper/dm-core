@@ -24,8 +24,8 @@ share_examples_for 'An Adapter' do
 
   # Hack to detect cases a let(:heffalump_model) is not present
   unless instance_methods.map(&:to_s).include?('heffalump_model')
-    # This is the default Heffalup model. You can replace it with your own 
-    # (using let/let!) # but # be shure the replacement provides the required 
+    # This is the default Heffalup model. You can replace it with your own
+    # (using let/let!) # but # be shure the replacement provides the required
     # properties.
     let(:heffalump_model) do
       model = Class.new do
