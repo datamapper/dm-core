@@ -970,8 +970,7 @@ module DataMapper
     def normalize_order
       return if @order.nil?
 
-      @order = Array(@order)
-      @order = @order.map do |order|
+      @order = Array(@order).map do |order|
         case order
           when Direction
             order.dup
@@ -991,6 +990,8 @@ module DataMapper
           when Path
             Direction.new(order.property)
 
+          else
+            order
         end
       end
     end
@@ -1003,8 +1004,7 @@ module DataMapper
         case field
           when Symbol, String
             @properties[field]
-
-          when Property, Operator
+          else
             field
         end
       end
@@ -1024,8 +1024,10 @@ module DataMapper
 
       while link = stack.pop
         relationship = case link
-          when Symbol, String             then @relationships[link]
-          when Associations::Relationship then link
+          when Symbol, String
+            @relationships[link]
+          else
+            link
         end
 
         if relationship.respond_to?(:links)
