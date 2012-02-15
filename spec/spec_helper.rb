@@ -1,7 +1,6 @@
-require 'backports' if RUBY_VERSION < '1.9'
-
 require 'pathname'
 require 'rubygems'
+require 'backports'
 require 'spec'
 require 'dm-core/spec/setup'
 
