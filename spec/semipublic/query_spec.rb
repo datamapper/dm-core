@@ -723,14 +723,6 @@ describe DataMapper::Query do
         end
       end
 
-      describe 'that is invalid' do
-        it 'should raise an exception' do
-          lambda {
-            DataMapper::Query.new(@repository, @model, @options.update(:conditions => 'invalid'))
-          }.should raise_error(ArgumentError, '+options[:conditions]+ should be DataMapper::Query::Conditions::AbstractOperation or DataMapper::Query::Conditions::AbstractComparison or Hash or Array, but was String')
-        end
-      end
-
       describe 'that is an empty Array' do
         it 'should raise an exception' do
           lambda {
@@ -1055,14 +1047,6 @@ describe DataMapper::Query do
           lambda {
             DataMapper::Query.new(@repository, @model, @options.update(:order => 'unknown'))
           }.should raise_error(ArgumentError, "+options[:order]+ entry \"unknown\" does not map to a property in #{@model}")
-        end
-      end
-
-      describe 'that is an empty Array and the fields option contains a non-operator' do
-        it 'should raise an exception' do
-          lambda {
-            DataMapper::Query.new(@repository, @model, @options.update(:order => [], :fields => [ :name ]))
-          }.should raise_error(ArgumentError, '+options[:order]+ should not be empty if +options[:fields] contains a non-operator')
         end
       end
 

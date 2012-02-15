@@ -823,8 +823,6 @@ module DataMapper
     #
     # @api private
     def assert_valid_conditions(conditions)
-      assert_kind_of 'options[:conditions]', conditions, Conditions::AbstractOperation, Conditions::AbstractComparison, Hash, Array
-
       case conditions
         when Hash
           conditions.each do |subject, bind_value|
@@ -856,8 +854,6 @@ module DataMapper
     # Verifies that query offset is non-negative and only used together with limit
     # @api private
     def assert_valid_offset(offset, limit)
-      offset = offset.to_int
-
       unless offset >= 0
         raise ArgumentError, "+options[:offset]+ must be greater than or equal to 0, but was #{offset.inspect}"
       end
@@ -874,8 +870,6 @@ module DataMapper
     #
     # @api private
     def assert_valid_limit(limit)
-      limit = limit.to_int
-
       unless limit >= 0
         raise ArgumentError, "+options[:limit]+ must be greater than or equal to 0, but was #{limit.inspect}"
       end
@@ -886,14 +880,7 @@ module DataMapper
     #
     # @api private
     def assert_valid_order(order, fields)
-      return if order.nil?
-
-      order = Array(order)
-      if order.empty? && fields && fields.any? { |property| !property.kind_of?(Operator) }
-        raise ArgumentError, '+options[:order]+ should not be empty if +options[:fields] contains a non-operator'
-      end
-
-      order.each do |order_entry|
+      Array(order).each do |order_entry|
         case order_entry
           when Symbol, String
             unless @properties.named?(order_entry)
