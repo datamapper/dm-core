@@ -42,7 +42,7 @@ module DataMapper
       end
 
       def require_spec_adapter
-        desired_adapter = ENV['ADAPTER']
+        desired_adapter = (ENV['ADAPTER'] || ENV['ADAPTERS'])
         if desired_adapter.nil? || desired_adapter == 'in_memory'
           ENV['ADAPTER_SUPPORTS'] = 'all'
           Adapters.use(Adapters::InMemoryAdapter)
@@ -52,9 +52,10 @@ module DataMapper
       end
 
       def require_plugins
+        adapter = (ENV['ADAPTER'] || ENV['ADAPTERS'])
         plugins = ENV['PLUGINS'] || ENV['PLUGIN']
         plugins = plugins.to_s.split(/[,\s]+/)
-        unless ENV['ADAPTER'] == 'in_memory'
+        unless adapter == 'in_memory'
           plugins.push('dm-migrations')
         end
         plugins.uniq.each { |plugin| require plugin }
