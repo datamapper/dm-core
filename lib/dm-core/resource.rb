@@ -250,8 +250,8 @@ module DataMapper
     #     # using the shorter syntax
     #     def name_from_address_book(name)
     #       name = name.split(', ')
-    #       first_name = name[1]
-    #       last_name = name[0]
+    #       self.first_name = name[1]
+    #       self.last_name = name[0]
     #     end
     #   end
     #
