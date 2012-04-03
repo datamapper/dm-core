@@ -710,15 +710,6 @@ module DataMapper
       [ repository ].to_set + @properties.keys.map { |repository_name| DataMapper.repository(repository_name) }
     end
 
-    private
-
-    # @api private
-    def _create(attributes, execute_hooks = true)
-      resource = new(attributes)
-      resource.__send__(execute_hooks ? :save : :save!)
-      resource
-    end
-
     # @api private
     def const_missing(name)
       if name == :DM
@@ -728,6 +719,15 @@ module DataMapper
       else
         super
       end
+    end
+
+    private
+
+    # @api private
+    def _create(attributes, execute_hooks = true)
+      resource = new(attributes)
+      resource.__send__(execute_hooks ? :save : :save!)
+      resource
     end
 
     # @api private

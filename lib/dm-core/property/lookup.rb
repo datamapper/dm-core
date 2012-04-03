@@ -2,9 +2,6 @@ module DataMapper
   class Property
     module Lookup
 
-    protected
-
-      #
       # Provides transparent access to the Properties defined in
       # {Property}.
       #
