@@ -26,6 +26,7 @@ module DataMapper
       # @api private
       def self.inherited(descendant)
         descendants << descendant
+        super
       end
 
       # Adapter name

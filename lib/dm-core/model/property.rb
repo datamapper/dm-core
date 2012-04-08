@@ -9,8 +9,8 @@ module DataMapper
       def self.extended(model)
         model.instance_variable_set(:@properties,               {})
         model.instance_variable_set(:@field_naming_conventions, {})
+        super
       end
-
 
       def inherited(model)
         model.instance_variable_set(:@properties,               {})

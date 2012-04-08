@@ -218,6 +218,8 @@ module DataMapper
 
       extra_extensions.each { |mod| descendant.extend(mod)         }
       extra_inclusions.each { |mod| descendant.send(:include, mod) }
+
+      super
     end
 
     # @api private
@@ -228,6 +230,8 @@ module DataMapper
       descendant.instance_variable_set(:@base_model,    base_model)
       descendant.instance_variable_set(:@storage_names, @storage_names.dup)
       descendant.instance_variable_set(:@default_order, @default_order.dup)
+
+      super
     end
 
     # Gets the name of the storage receptacle for this resource in the given

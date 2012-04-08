@@ -400,6 +400,8 @@ module DataMapper
 
         # inherit the option values
         options.each { |key, value| descendant.send(key, value) }
+
+        super
       end
 
       # @api public

@@ -3,6 +3,7 @@ module DataMapper
     def self.extended(klass)
       (class << klass; self; end).send :attr_accessor, :hook_scopes
       klass.hook_scopes = []
+      super
     end
 
     def object_by_id(object_id)

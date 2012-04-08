@@ -54,6 +54,7 @@ module DataMapper
     # @api private
     def self.included(model)
       model.extend Model
+      super
     end
 
     # @api public

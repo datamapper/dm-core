@@ -18,6 +18,7 @@ module DataMapper
       # @api private
       def self.extended(model)
         model.instance_variable_set(:@relationships, {})
+        super
       end
 
       # When DataMapper model is inherited, relationships

@@ -5,6 +5,7 @@ module DataMapper
         def self.extended(base)
           base.class_inheritable_accessor :loaded
           base.loaded = false
+          super
         end
 
         def should_not_be_a_kicker(ivar = :@articles)

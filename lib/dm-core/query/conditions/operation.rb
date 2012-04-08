@@ -107,6 +107,7 @@ module DataMapper
         # @api private
         def self.inherited(descendant)
           descendants << descendant
+          super
         end
 
         # Get and set the slug for the operation class

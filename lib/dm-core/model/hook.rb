@@ -8,6 +8,7 @@ module DataMapper
       def self.included(model)
         model.send(:include, DataMapper::Hook)
         model.extend Methods
+        super
       end
 
       module Methods

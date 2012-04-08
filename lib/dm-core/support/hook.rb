@@ -39,6 +39,7 @@ module DataMapper
           end
         end
       end
+      super
     end
 
     module ClassMethods
