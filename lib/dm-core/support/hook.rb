@@ -30,10 +30,12 @@ module DataMapper
         class << self
           def method_added(name)
             process_method_added(name, :instance)
+            super
           end
 
           def singleton_method_added(name)
             process_method_added(name, :class)
+            super
           end
         end
       end
