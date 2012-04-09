@@ -262,21 +262,12 @@ module DataMapper
 
         # @api private
         def source_key_options(target_property)
-          options = DataMapper::Ext::Hash.only(target_property.options, :length, :precision, :scale).update(
+          DataMapper::Ext::Hash.only(target_property.options, :length, :precision, :scale, :min, :max).update(
             :index    => name,
             :required => required?,
             :key      => key?,
             :unique   => @unique
           )
-
-          if target_property.instance_of?(Property::Integer)
-            min = target_property.min
-            max = target_property.max
-
-            options.update(:min => min, :max => max) if min && max
-          end
-
-          options
         end
 
         # @api private
