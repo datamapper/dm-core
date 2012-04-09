@@ -29,7 +29,11 @@ module DataMapper
               # create all tables and constraints before each spec
               DataMapper::Model.descendants.each do |model|
                 next unless model.respond_to?(:auto_migrate!)
-                model.auto_migrate!(@repository.name)
+                begin
+                  model.auto_migrate!(@repository.name)
+                rescue IncompleteModelError
+                  # skip incomplete models
+                end
               end
             end
 
@@ -37,7 +41,11 @@ module DataMapper
               # remove all tables and constraints after each spec
               DataMapper::Model.descendants.each do |model|
                 next unless model.respond_to?(:auto_migrate_down!)
-                model.auto_migrate_down!(@repository.name)
+                begin
+                  model.auto_migrate_down!(@repository.name)
+                rescue IncompleteModelError
+                  # skip incomplete models
+                end
               end
               # TODO consider proper automigrate functionality
               if @adapter.respond_to?(:reset)
