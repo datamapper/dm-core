@@ -27,15 +27,17 @@ module DataMapper
               @repository.scope { DataMapper.finalize }
 
               # create all tables and constraints before each spec
-              if @repository.respond_to?(:auto_migrate!)
-                @repository.auto_migrate!
+              DataMapper::Model.descendants.each do |model|
+                next unless model.respond_to?(:auto_migrate!)
+                model.auto_migrate!(@repository.name)
               end
             end
 
             after :all do
               # remove all tables and constraints after each spec
-              if @repository.respond_to?(:auto_migrate_down!, true)
-                @repository.send(:auto_migrate_down!, @repository.name)
+              DataMapper::Model.descendants.each do |model|
+                next unless model.respond_to?(:auto_migrate_down!)
+                model.auto_migrate_down!(@repository.name)
               end
               # TODO consider proper automigrate functionality
               if @adapter.respond_to?(:reset)
