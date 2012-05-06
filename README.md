@@ -21,6 +21,7 @@ Pretty profound impact. If you run the following code in ActiveRecord you'll
 see all `false` results. Do the same in DataMapper and it's
 `true` all the way down.
 
+``` ruby
   repository do
     @parent = Tree.first(:name => 'bob')
 
@@ -28,6 +29,7 @@ see all `false` results. Do the same in DataMapper and it's
       puts @parent.equal?(child.parent)  # => true
     end
   end
+```
 
 This makes DataMapper faster and allocate less resources to get things done.
 
