@@ -266,4 +266,4 @@ Note on Patches/Pull Requests
 Copyright
 ---------
 
-Copyright (c) 2011 Dan Kubb. See LICENSE for details.
+Copyright (c) 2012 Dan Kubb. See LICENSE for details.
