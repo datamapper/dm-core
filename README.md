@@ -6,12 +6,10 @@ Open Development
 
 DataMapper sports a very accessible code-base and a welcoming community.
 Outside contributions and feedback are welcome and encouraged, especially
-constructive criticism. Make your voice heard! Submit a
-ticket[https://github.com/datamapper/dm-core/issues] or
-patch[http://datamapper.lighthouseapp.com], speak up
-on our mailing-list[http://groups.google.com/group/datamapper/], chat with us
-on irc[irc://irc.freenode.net/#datamapper], write a spec, get it reviewed, ask
-for commit rights. It's as easy as that to become a contributor.
+constructive criticism. Make your voice heard! [Submit an issue](https://github.com/datamapper/dm-core/issues),
+speak up on our [mailing-list](http://groups.google.com/group/datamapper/),
+chat with us on [irc](irc://irc.freenode.net/#datamapper), write a spec, get it
+reviewed, ask for commit rights. It's as easy as that to become a contributor.
 
 Identity Map
 ------------
