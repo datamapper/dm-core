@@ -3,13 +3,17 @@ share_examples_for 'A semipublic Subject' do
     describe 'with a default' do
       subject { @subject_with_default.default? }
 
-      it { should be(true) }
+      it "default?" do 
+        should be(true)
+      end
     end
 
     describe 'without a default' do
       subject { @subject_without_default.default? }
 
-      it { should be(false) }
+      it "default?" do
+        should be(false)
+      end
     end
   end
 

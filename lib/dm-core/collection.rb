@@ -1412,12 +1412,24 @@ module DataMapper
       query = self.query
 
       if offset >= 0
-        query.slice(offset, limit)
+        if query.add_reversed?
+          query.slice(query.limit - limit - offset, limit)
+        else
+          query.slice(offset, limit)
+        end
       else
-        query = query.slice((limit + offset).abs, limit).reverse!
+        if query.limit
+          if query.add_reversed?
+            query.slice(-offset - limit, limit)
+          else  
+            query.slice(query.limit + offset, limit)
+          end
+        else
+          query = query.slice((limit + offset).abs, limit).reverse!
 
-        # tell the Query to prepend each result from the adapter
-        query.update(:add_reversed => !query.add_reversed?)
+          # tell the Query to prepend each result from the adapter
+          query.update(:add_reversed => !query.add_reversed?)
+        end
       end
     end
 
