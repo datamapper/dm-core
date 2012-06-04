@@ -6,6 +6,8 @@ source :rubygems
 
 gemspec
 
+gem 'virtus', '~> 0.5', :github => 'solnic/virtus'
+
 SOURCE         = ENV.fetch('SOURCE', :git).to_sym
 REPO_POSTFIX   = SOURCE == :path ? ''                                : '.git'
 DATAMAPPER     = SOURCE == :path ? Pathname(__FILE__).dirname.parent : 'http://github.com/datamapper'
