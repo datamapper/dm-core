@@ -10,7 +10,7 @@ gem 'virtus', '~> 0.5', :github => 'solnic/virtus'
 
 SOURCE         = ENV.fetch('SOURCE', :git).to_sym
 REPO_POSTFIX   = SOURCE == :path ? ''                                : '.git'
-DATAMAPPER     = SOURCE == :path ? Pathname(__FILE__).dirname.parent : 'http://github.com/datamapper'
+DATAMAPPER     = SOURCE == :path ? Pathname(__FILE__).dirname.parent : 'https://github.com/datamapper'
 DM_VERSION     = "~> #{DataMapper::VERSION}"
 DO_VERSION     = '~> 0.10.6'
 DM_DO_ADAPTERS = %w[ sqlite postgres mysql oracle sqlserver ]
