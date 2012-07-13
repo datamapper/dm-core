@@ -41,7 +41,7 @@ module DataMapper
     inflect.singular(/(shoe)s$/i, '\1')
     inflect.singular(/(cris|ax|test)es$/i, '\1is')
     inflect.singular(/(octop|vir)i$/i, '\1us')
-    inflect.singular(/(alias|status)es$/i, '\1')
+    inflect.singular(/(alias|status)(es)?$/i, '\1')
     inflect.singular(/^(ox)en/i, '\1')
     inflect.singular(/(vert|ind)ices$/i, '\1ex')
     inflect.singular(/(matr)ices$/i, '\1ix')
