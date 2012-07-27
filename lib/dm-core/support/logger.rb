@@ -124,7 +124,9 @@ module DataMapper
     # Flush the entire buffer to the log object.
     def flush
       return unless @buffer.size > 0
-      @log.write(@buffer.slice!(0..-1).join)
+      to_flush = @buffer
+      @buffer = []
+      @log.write(to_flush.join)
     end
 
     # Close and remove the current log object.
