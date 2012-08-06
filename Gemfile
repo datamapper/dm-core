@@ -10,7 +10,7 @@ DO_VERSION     = '~> 0.10.6'
 DM_DO_ADAPTERS = %w[ sqlite postgres mysql oracle sqlserver ]
 CURRENT_BRANCH = ENV.fetch('GIT_BRANCH', 'master')
 
-gem 'addressable', '~> 2.2.6'
+gem 'addressable', '~> 2.3'
 
 group :development do
 
