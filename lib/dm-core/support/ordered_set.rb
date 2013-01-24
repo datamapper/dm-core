@@ -316,6 +316,7 @@ module DataMapper
     #
     # @api private
     def each
+      return to_enum unless block_given?
       entries.each { |entry| yield(entry) }
       self
     end
