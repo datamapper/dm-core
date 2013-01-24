@@ -1,6 +1,17 @@
 language: ruby
 before_install: gem install bundler
 bundler_args: --without yard guard metrics benchmarks
+before_script:
+  # setup postgresql
+  - createuser --username postgres --createdb datamapper
+  - createdb datamapper_default_tests   --username datamapper
+  - createdb datamapper_alternate_tests --username datamapper
+
+  # setup mysql
+  - mysql -e "GRANT ALL ON datamapper_default_tests.*   TO datamapper@localhost IDENTIFIED BY 'datamapper'"
+  - mysql -e "GRANT ALL ON datamapper_alternate_tests.* TO datamapper@localhost IDENTIFIED BY 'datamapper'"
+  - mysqladmin create datamapper_default_tests
+  - mysqladmin create datamapper_alternate_tests
 script: "bundle exec rake spec"
 rvm:
   - ree
