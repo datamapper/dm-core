@@ -682,7 +682,7 @@ module DataMapper
     def typecast(value)
       if value.nil? || primitive?(value)
         value
-      elsif respond_to?(:typecast_to_primitive)
+      elsif respond_to?(:typecast_to_primitive, true)
         typecast_to_primitive(value)
       end
     end
