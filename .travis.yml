@@ -15,7 +15,11 @@ rvm:
   - rbx-18mode
   - rbx-19mode
 env:
-  "ADAPTER=in_memory GIT_BRANCH=release-1.2"
+  "GIT_BRANCH=release-1.2 ADAPTER=in_memory"
+  "GIT_BRANCH=release-1.2 ADAPTER=yaml"
+  "GIT_BRANCH=release-1.2 ADAPTER=sqlite3"
+  "GIT_BRANCH=release-1.2 ADAPTER=mysql"
+  "GIT_BRANCH=release-1.2 ADAPTER=postgres"
 notifications:
   email:
     - dan.kubb@gmail.com
