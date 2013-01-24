@@ -17,7 +17,7 @@ rvm:
 env:
   - "GIT_BRANCH=release-1.2 ADAPTER=in_memory"
   - "GIT_BRANCH=release-1.2 ADAPTER=yaml"
-  - "GIT_BRANCH=release-1.2 ADAPTER=sqlite3"
+  - "GIT_BRANCH=release-1.2 ADAPTER=sqlite"
   - "GIT_BRANCH=release-1.2 ADAPTER=mysql"
   - "GIT_BRANCH=release-1.2 ADAPTER=postgres"
 notifications:
