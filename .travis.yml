@@ -11,8 +11,6 @@ services:
 before_script:
   - mysql -e "create database datamapper_alternate_tests;"
   - mysql -e "create database datamapper_default_tests;"
-  - mysql -e "create database datamapper;"
-  - psql  -c "create database datamapper;" -U postgres
   - psql  -c "create database datamapper_default_tests;" -U postgres
   - psql  -c "create database datamapper_alternate_tests;" -U postgres
 script: "bundle exec rake spec"
