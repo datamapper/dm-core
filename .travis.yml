@@ -34,8 +34,8 @@ env:
   - "GIT_BRANCH=release-1.2 ADAPTER=postgres DM_DB_USER=postgres DM_DB_PASSWORD=''"
 notifications:
   irc: "irc.freenode.org#datamapper"
-  email:
-    - dan.kubb@gmail.com
+  # email:
+  #   - dan.kubb@gmail.com
 matrix:
   allow_failures:
     - rvm: ree
