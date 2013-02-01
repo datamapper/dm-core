@@ -115,7 +115,9 @@ module DataMapper
         end
 
         def connection_uri
-          "#{adapter_name}://#{username}:#{password}@#{host}/#{storage_name}"
+          "#{adapter_name}://#{username}%s@#{host}/#{storage_name}".tap do |s|
+            return s % ((password.empty?) ? "" : ":#{password}")
+          end
         end
 
         def storage_name
