@@ -15,18 +15,17 @@ before_script:
   - psql  -c "create database datamapper_alternate_tests;" -U postgres
 script: "bundle exec rake spec"
 rvm:
-  #- 1.8.7
-  #- 1.9.2
-  #- 1.9.3
-  #- 2.0.0
-  #- ruby-head
-  # Broken.
-  #- rbx-18mode
+  - 1.8.7
+  - 1.9.2
+  - 1.9.3
+  - 2.0.0
+  - ruby-head
+  - jruby-18mode
+  - jruby-19mode
+  - jruby-head
+  - ree
+  - rbx-18mode
   - rbx-19mode
-  #- jruby-18mode
-  #- jruby-19mode
-  #- jruby-head
-  #- ree
 env:
   - "GIT_BRANCH=release-1.2 ADAPTER=in_memory"
   - "GIT_BRANCH=release-1.2 ADAPTER=yaml"
@@ -40,3 +39,5 @@ notifications:
 matrix:
   allow_failures:
     - rvm: ree
+    - rvm: rbx-18mode
+    - rvm: rbx-19mode
