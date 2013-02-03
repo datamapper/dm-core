@@ -1017,7 +1017,7 @@ module DataMapper
             add_condition(condition)
 
           when Hash
-            condition.each { |kv| append_condition(*kv) }
+            condition.each { |key, value| append_condition(key, value) }
 
           when Array
             statement, *bind_values = *condition
