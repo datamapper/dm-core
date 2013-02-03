@@ -45,12 +45,11 @@ module DataMapper
         next if object.kind_of?(DataMapper::Logger)                    ||
                 object.kind_of?(DataMapper::DescendantSet)             ||
                 object.kind_of?(DataMapper::Adapters::AbstractAdapter) ||
-                object.class.name[0, 13] == 'DataObjects::'
+                object.class.name.to_s[0, 13] == 'DataObjects::'
 
         # skip classes and modules in the DataMapper namespace
         next if object.kind_of?(Module) &&
-                !object.name.nil?       &&
-                object.name[0, 12] == 'DataMapper::'
+                object.name.to_s[0, 12] == 'DataMapper::'
 
         # skip when the ivar is no longer defined in the object
         next unless object.instance_variable_defined?(ivar)
