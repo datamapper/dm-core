@@ -314,6 +314,7 @@ module DataMapper
     end
 
     def each(&block)
+      return to_enum unless block_given?
       all.each(&block)
       self
     end
