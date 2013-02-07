@@ -501,6 +501,7 @@ module DataMapper
     #
     # @api public
     def each
+      return to_enum unless block_given?
       super do |resource|
         begin
           original, resource.collection = resource.collection, self
