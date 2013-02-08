@@ -73,7 +73,7 @@ describe 'Many to One Associations' do
       user    = @user_model.create(:name => 'dbussink', :age => 25, :description => 'Test')
       comment = @comment_model.create(:body => 'Cool spec', :user => user)
 
-      @comment = @comment_model.get(*comment.key)
+      @comment = @comment_model.get!(*comment.key)
       @user    = @comment.user
     end
 

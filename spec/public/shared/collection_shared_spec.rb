@@ -458,7 +458,7 @@ share_examples_for 'A public Collection' do
         end
 
         it 'should not destroy the other Resource' do
-          @article_model.get(*@other.key).should_not be_nil
+          @article_model.get!(*@other.key).should_not be_nil
         end
       end
     end
@@ -1555,7 +1555,7 @@ share_examples_for 'A public Collection' do
         end
 
         it 'should persist the changes' do
-          resource = @article_model.get(*@article.key)
+          resource = @article_model.get!(*@article.key)
           @attributes.each { |key, value| resource.__send__(key).should == value }
         end
       end
@@ -1580,7 +1580,7 @@ share_examples_for 'A public Collection' do
         end
 
         it 'should persist the changes' do
-          resource = @article_model.get(*@article.key)
+          resource = @article_model.get!(*@article.key)
           @attributes.each { |key, value| resource.__send__(key).should == value }
         end
       end
@@ -1625,7 +1625,7 @@ share_examples_for 'A public Collection' do
         end
 
         it 'should persist the changes' do
-          resource = @article_model.get(*@article.key)
+          resource = @article_model.get!(*@article.key)
           @attributes.each { |key, value| resource.__send__(key).should == value }
         end
 

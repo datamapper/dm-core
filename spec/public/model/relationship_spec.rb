@@ -72,7 +72,7 @@ share_examples_for 'it creates a one accessor' do
         # set the model scope to not match the expected resource
         @model.default_scope.update(:id.not => @resource.id)
 
-        @return = @car.model.get(*@car.key).__send__(@name)
+        @return = @car.model.get!(*@car.key).__send__(@name)
       end
 
       it 'should return nil' do
@@ -111,13 +111,13 @@ share_examples_for 'it creates a one mutator' do
 
       it 'should persist the Resource' do
         @car.save.should be(true)
-        @car.model.get(*@car.key).__send__(@name).should == @expected
+        @car.model.get!(*@car.key).__send__(@name).should == @expected
       end
 
       it 'should persist the associated Resource' do
         @car.save.should be(true)
         @expected.should be_saved
-        @expected.model.get(*@expected.key).car.should == @car
+        @expected.model.get!(*@expected.key).car.should == @car
       end
     end
 
@@ -151,13 +151,13 @@ share_examples_for 'it creates a one mutator' do
 
       it 'should persist the Resource' do
         @car.save.should be(true)
-        @car.model.get(*@car.key).__send__(@name).should == @return
+        @car.model.get!(*@car.key).__send__(@name).should == @return
       end
 
       it 'should persist the associated Resource' do
         @car.save.should be(true)
         @return.should be_saved
-        @return.model.get(*@return.key).car.should == @car
+        @return.model.get!(*@return.key).car.should == @car
       end
     end
 
@@ -178,7 +178,7 @@ share_examples_for 'it creates a one mutator' do
 
       it 'should persist as nil' do
         @car.save.should be(true)
-        @car.model.get(*@car.key).__send__(@name).should be_nil
+        @car.model.get!(*@car.key).__send__(@name).should be_nil
       end
     end
 
@@ -210,13 +210,13 @@ share_examples_for 'it creates a one mutator' do
 
       it 'should persist the Resource' do
         @car.save.should be(true)
-        @car.model.get(*@car.key).__send__(@name).should == @expected
+        @car.model.get!(*@car.key).__send__(@name).should == @expected
       end
 
       it 'should persist the associated Resource' do
         @car.save.should be(true)
         @expected.should be_saved
-        @expected.model.get(*@expected.key).car.should == @car
+        @expected.model.get!(*@expected.key).car.should == @car
       end
     end
   end
@@ -285,7 +285,7 @@ share_examples_for 'it creates a many accessor' do
           Hash[ @model.key(@repository.name).zip(@expected.key) ]
         )
 
-        @return = @car.model.get(*@car.key).__send__(@name)
+        @return = @car.model.get!(*@car.key).__send__(@name)
       end
 
       it 'should return a Collection' do
@@ -325,13 +325,13 @@ share_examples_for 'it creates a many mutator' do
 
       it 'should persist the Collection' do
         @car.save.should be(true)
-        @car.model.get(*@car.key).__send__(@name).should == @expected
+        @car.model.get!(*@car.key).__send__(@name).should == @expected
       end
 
       it 'should persist the associated Resource' do
         @car.save.should be(true)
         @expected.each { |resource| resource.should be_saved }
-        @expected.each { |resource| resource.model.get(*resource.key).car.should == @car }
+        @expected.each { |resource| resource.model.get!(*resource.key).car.should == @car }
       end
     end
 
@@ -360,13 +360,13 @@ share_examples_for 'it creates a many mutator' do
 
       it 'should persist the Collection' do
         @car.save.should be(true)
-        @car.model.get(*@car.key).__send__(@name).should == @return
+        @car.model.get!(*@car.key).__send__(@name).should == @return
       end
 
       it 'should persist the associated Resource' do
         @car.save.should be(true)
         @return.each { |resource| resource.should be_saved }
-        @return.each { |resource| resource.model.get(*resource.key).car.should == @car }
+        @return.each { |resource| resource.model.get!(*resource.key).car.should == @car }
       end
     end
 
@@ -387,7 +387,7 @@ share_examples_for 'it creates a many mutator' do
 
       it 'should persist as an empty Collection' do
         @car.save.should be(true)
-        @car.model.get(*@car.key).__send__(@name).should be_empty
+        @car.model.get!(*@car.key).__send__(@name).should be_empty
       end
     end
 
@@ -417,13 +417,13 @@ share_examples_for 'it creates a many mutator' do
 
       it 'should persist the Resource' do
         @car.save.should be(true)
-        @car.model.get(*@car.key).__send__(@name).should == @expected
+        @car.model.get!(*@car.key).__send__(@name).should == @expected
       end
 
       it 'should persist the associated Resource' do
         @car.save.should be(true)
         @expected.each { |resource| resource.should be_saved }
-        @expected.each { |resource| resource.model.get(*resource.key).car.should == @car }
+        @expected.each { |resource| resource.model.get!(*resource.key).car.should == @car }
       end
     end
   end
