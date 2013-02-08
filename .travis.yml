@@ -15,6 +15,7 @@ before_script:
   - psql  -c "create database datamapper_alternate_tests;" -U postgres
 script: "bundle exec rake spec"
 rvm:
+  - ree
   - 1.8.7
   - 1.9.2
   - 1.9.3
@@ -38,6 +39,5 @@ notifications:
     - dan.kubb@gmail.com
 matrix:
   allow_failures:
-    - rvm: ree
     - rvm: rbx-18mode
     - rvm: rbx-19mode
