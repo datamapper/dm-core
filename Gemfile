@@ -2,7 +2,7 @@ require File.expand_path('../lib/dm-core/version', __FILE__)
 
 require 'pathname'
 
-source :rubygems
+source 'https://rubygems.org'
 
 gemspec
 
