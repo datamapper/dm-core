@@ -684,6 +684,8 @@ module DataMapper
         value
       elsif respond_to?(:typecast_to_primitive, true)
         typecast_to_primitive(value)
+      else
+        value
       end
     end
 

@@ -30,13 +30,24 @@ describe DataMapper::Property, 'Object type' do
   it { should respond_to(:typecast) }
 
   describe '#typecast' do
+    subject { @property.typecast(@value) }
+
     before do
       @value = { 'lang' => 'en_CA' }
     end
 
-    subject { @property.typecast(@value) }
+    context 'when the value is a primitive' do
+      it { should equal(@value) }
+    end
 
-    it { should equal(@value) }
+    context 'when the value is not a primitive' do
+      before do
+        # simulate the value not being a primitive
+        @property.should_receive(:primitive?).with(@value).and_return(false)
+      end
+
+      it { should equal(@value) }
+    end
   end
 
   it { should respond_to(:dump) }
