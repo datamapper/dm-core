@@ -16,7 +16,7 @@ Gem::Specification.new do |gem|
   gem.test_files       = `git ls-files -- spec/*`.split($/)
   gem.extra_rdoc_files = %w[LICENSE README.rdoc]
 
-  gem.add_dependency('addressable', '~> 2.3.3')
+  gem.add_dependency('addressable', '~> 2.3')
 
   gem.add_development_dependency('rake',  '~> 10.0.3')
   gem.add_development_dependency('rspec', '~> 1.3.2')
