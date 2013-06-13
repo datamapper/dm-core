@@ -84,7 +84,7 @@ share_examples_for 'An Adapter' do
       end
 
       it 'should return stuff' do
-        Heffalump.all.should be_include(@heffalump)
+        Heffalump.all.should include(@heffalump)
       end
     end
   else
@@ -173,37 +173,37 @@ share_examples_for 'An Adapter' do
       describe 'conditions' do
         describe 'eql' do
           it 'should be able to search for objects included in an inclusive range of values' do
-            Heffalump.all(:num_spots => 1..5).should be_include(@five)
+            Heffalump.all(:num_spots => 1..5).should include(@five)
           end
 
           it 'should be able to search for objects included in an exclusive range of values' do
-            Heffalump.all(:num_spots => 1...6).should be_include(@five)
+            Heffalump.all(:num_spots => 1...6).should include(@five)
           end
 
           it 'should not be able to search for values not included in an inclusive range of values' do
-            Heffalump.all(:num_spots => 1..4).should_not be_include(@five)
+            Heffalump.all(:num_spots => 1..4).should_not include(@five)
           end
 
           it 'should not be able to search for values not included in an exclusive range of values' do
-            Heffalump.all(:num_spots => 1...5).should_not be_include(@five)
+            Heffalump.all(:num_spots => 1...5).should_not include(@five)
           end
         end
 
         describe 'not' do
           it 'should be able to search for objects with not equal value' do
-            Heffalump.all(:color.not => 'red').should_not be_include(@red)
+            Heffalump.all(:color.not => 'red').should_not include(@red)
           end
 
           it 'should include objects that are not like the value' do
-            Heffalump.all(:color.not => 'black').should be_include(@red)
+            Heffalump.all(:color.not => 'black').should include(@red)
           end
 
           it 'should be able to search for objects with not nil value' do
-            Heffalump.all(:color.not => nil).should be_include(@red)
+            Heffalump.all(:color.not => nil).should include(@red)
           end
 
           it 'should not include objects with a nil value' do
-            Heffalump.all(:color.not => nil).should_not be_include(@two)
+            Heffalump.all(:color.not => nil).should_not include(@two)
           end
 
           it 'should be able to search for object with a nil value using required properties' do
@@ -225,37 +225,37 @@ share_examples_for 'An Adapter' do
           end
 
           it 'should be able to search for objects not included in an array of values' do
-            Heffalump.all(:num_spots.not => [ 1, 3, 5, 7 ]).should be_include(@two)
+            Heffalump.all(:num_spots.not => [ 1, 3, 5, 7 ]).should include(@two)
           end
 
           it 'should be able to search for objects not included in an array of values' do
-            Heffalump.all(:num_spots.not => [ 1, 3, 5, 7 ]).should_not be_include(@five)
+            Heffalump.all(:num_spots.not => [ 1, 3, 5, 7 ]).should_not include(@five)
           end
 
           it 'should be able to search for objects not included in an inclusive range of values' do
-            Heffalump.all(:num_spots.not => 1..4).should be_include(@five)
+            Heffalump.all(:num_spots.not => 1..4).should include(@five)
           end
 
           it 'should be able to search for objects not included in an exclusive range of values' do
-            Heffalump.all(:num_spots.not => 1...5).should be_include(@five)
+            Heffalump.all(:num_spots.not => 1...5).should include(@five)
           end
 
           it 'should not be able to search for values not included in an inclusive range of values' do
-            Heffalump.all(:num_spots.not => 1..5).should_not be_include(@five)
+            Heffalump.all(:num_spots.not => 1..5).should_not include(@five)
           end
 
           it 'should not be able to search for values not included in an exclusive range of values' do
-            Heffalump.all(:num_spots.not => 1...6).should_not be_include(@five)
+            Heffalump.all(:num_spots.not => 1...6).should_not include(@five)
           end
         end
 
         describe 'like' do
           it 'should be able to search for objects that match value' do
-            Heffalump.all(:color.like => '%ed').should be_include(@red)
+            Heffalump.all(:color.like => '%ed').should include(@red)
           end
 
           it 'should not search for objects that do not match the value' do
-            Heffalump.all(:color.like => '%blak%').should_not be_include(@red)
+            Heffalump.all(:color.like => '%blak%').should_not include(@red)
           end
         end
 
@@ -268,68 +268,68 @@ share_examples_for 'An Adapter' do
           end
 
           it 'should be able to search for objects that match value' do
-            Heffalump.all(:color => /ed/).should be_include(@red)
+            Heffalump.all(:color => /ed/).should include(@red)
           end
 
           it 'should not be able to search for objects that do not match the value' do
-            Heffalump.all(:color => /blak/).should_not be_include(@red)
+            Heffalump.all(:color => /blak/).should_not include(@red)
           end
 
           it 'should be able to do a negated search for objects that match value' do
-            Heffalump.all(:color.not => /blak/).should be_include(@red)
+            Heffalump.all(:color.not => /blak/).should include(@red)
           end
 
           it 'should not be able to do a negated search for objects that do not match value' do
-            Heffalump.all(:color.not => /ed/).should_not be_include(@red)
+            Heffalump.all(:color.not => /ed/).should_not include(@red)
           end
 
         end
 
         describe 'gt' do
           it 'should be able to search for objects with value greater than' do
-            Heffalump.all(:num_spots.gt => 1).should be_include(@two)
+            Heffalump.all(:num_spots.gt => 1).should include(@two)
           end
 
           it 'should not find objects with a value less than' do
-            Heffalump.all(:num_spots.gt => 3).should_not be_include(@two)
+            Heffalump.all(:num_spots.gt => 3).should_not include(@two)
           end
         end
 
         describe 'gte' do
           it 'should be able to search for objects with value greater than' do
-            Heffalump.all(:num_spots.gte => 1).should be_include(@two)
+            Heffalump.all(:num_spots.gte => 1).should include(@two)
           end
 
           it 'should be able to search for objects with values equal to' do
-            Heffalump.all(:num_spots.gte => 2).should be_include(@two)
+            Heffalump.all(:num_spots.gte => 2).should include(@two)
           end
 
           it 'should not find objects with a value less than' do
-            Heffalump.all(:num_spots.gte => 3).should_not be_include(@two)
+            Heffalump.all(:num_spots.gte => 3).should_not include(@two)
           end
         end
 
         describe 'lt' do
           it 'should be able to search for objects with value less than' do
-            Heffalump.all(:num_spots.lt => 3).should be_include(@two)
+            Heffalump.all(:num_spots.lt => 3).should include(@two)
           end
 
           it 'should not find objects with a value less than' do
-            Heffalump.all(:num_spots.gt => 2).should_not be_include(@two)
+            Heffalump.all(:num_spots.gt => 2).should_not include(@two)
           end
         end
 
         describe 'lte' do
           it 'should be able to search for objects with value less than' do
-            Heffalump.all(:num_spots.lte => 3).should be_include(@two)
+            Heffalump.all(:num_spots.lte => 3).should include(@two)
           end
 
           it 'should be able to search for objects with values equal to' do
-            Heffalump.all(:num_spots.lte => 2).should be_include(@two)
+            Heffalump.all(:num_spots.lte => 2).should include(@two)
           end
 
           it 'should not find objects with a value less than' do
-            Heffalump.all(:num_spots.lte => 1).should_not be_include(@two)
+            Heffalump.all(:num_spots.lte => 1).should_not include(@two)
           end
         end
       end

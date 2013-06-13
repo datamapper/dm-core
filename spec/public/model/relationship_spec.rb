@@ -592,7 +592,7 @@ describe DataMapper::Associations do
 
           it 'should add the engine object to the car' do
             pending 'Changing a belongs_to parent should add the object to the correct association' do
-              @car.engines.should be_include(@engine)
+              @car.engines.should include(@engine)
             end
           end
         end
@@ -623,7 +623,7 @@ describe DataMapper::Associations do
 
           it 'should add the engine to the car' do
             pending 'Changing a belongs_to parent should add the object to the correct association' do
-              @car2.engines.should be_include(@engine)
+              @car2.engines.should include(@engine)
             end
           end
         end
@@ -642,7 +642,7 @@ describe DataMapper::Associations do
 
           it 'should add the engine to the car' do
             pending 'a change to the foreign key should also change the related object' do
-              @car2.engines.should be_include(@engine)
+              @car2.engines.should include(@engine)
             end
           end
         end
