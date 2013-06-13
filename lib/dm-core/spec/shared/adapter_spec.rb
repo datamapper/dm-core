@@ -56,6 +56,10 @@ share_examples_for 'An Adapter' do
         heffalump.save
         heffalump.id.should_not be_nil
       end
+
+      after do
+        Heffalump.destroy
+      end
     end
   else
     it 'needs to support #create'
@@ -67,6 +71,10 @@ share_examples_for 'An Adapter' do
         @heffalump = Heffalump.create(:color => 'brownish hue')
         #just going to borrow this, so I can check the return values
         @query = Heffalump.all.query
+      end
+
+      after :all do
+        Heffalump.destroy
       end
 
       it 'should not raise any errors' do
@@ -87,6 +95,10 @@ share_examples_for 'An Adapter' do
     describe '#update' do
       before do
         @heffalump = Heffalump.create(:color => 'indigo')
+      end
+
+      after do
+        Heffalump.destroy
       end
 
       it 'should not raise any errors' do
@@ -126,6 +138,10 @@ share_examples_for 'An Adapter' do
         @heffalump = Heffalump.create(:color => 'forest green')
       end
 
+      after do
+        Heffalump.destroy
+      end
+
       it 'should not raise any errors' do
         lambda {
           @heffalump.destroy
@@ -148,6 +164,10 @@ share_examples_for 'An Adapter' do
         @red  = Heffalump.create(:color => 'red')
         @two  = Heffalump.create(:num_spots => 2)
         @five = Heffalump.create(:num_spots => 5)
+      end
+
+      after :all do
+        Heffalump.destroy
       end
 
       describe 'conditions' do
