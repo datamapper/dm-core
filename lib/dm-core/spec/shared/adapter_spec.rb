@@ -73,7 +73,7 @@ share_examples_for 'An Adapter' do
       it 'should set the identity field for the resource' do
         heffalump = heffalump_model.new(:color => 'peach')
         heffalump.id.should be_nil
-        heffalump.save
+        heffalump.save.should be(true)
         heffalump.id.should_not be_nil
       end
     end
