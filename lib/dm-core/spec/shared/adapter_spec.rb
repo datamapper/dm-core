@@ -165,9 +165,9 @@ share_examples_for 'An Adapter' do
       end
 
       it 'should delete the requested resource' do
-        id = @heffalump.id
+        key = @heffalump.key
         @heffalump.destroy
-        heffalump_model.get(id).should be_nil
+        heffalump_model.get(*key).should be_nil
       end
     end
   else
