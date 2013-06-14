@@ -35,7 +35,7 @@ module DataMapper
       #
       # Note that when you use
       #
-      # DataMapper.setup(:default, 'postgres://postgres@localhost/dm_core_test')
+      # DataMapper.setup(:default, 'postgres://postgres@127.0.0.1/dm_core_test')
       #
       # the adapter name is currently set to :default
       #

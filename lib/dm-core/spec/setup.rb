@@ -141,7 +141,7 @@ module DataMapper
         end
 
         def host
-          ENV.fetch('DM_DB_HOST', 'localhost')
+          ENV.fetch('DM_DB_HOST', '127.0.0.1')
         end
 
         # Test the connection
