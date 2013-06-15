@@ -66,7 +66,7 @@ share_examples_for 'An Adapter' do
 
       it 'should not raise any errors' do
         lambda {
-          heffalump_model.create(:color => 'peach')
+          heffalump_model.new(:color => 'peach').save.should be(true)
         }.should_not raise_error
       end
 
@@ -85,7 +85,7 @@ share_examples_for 'An Adapter' do
     describe '#read' do
       before :all do
         @heffalump = heffalump_model.create(:color => 'brownish hue')
-        #just going to borrow this, so I can check the return values
+        @heffalump.should be_saved
         @query = heffalump_model.all.query
       end
 
@@ -99,8 +99,8 @@ share_examples_for 'An Adapter' do
         }.should_not raise_error
       end
 
-      it 'should return stuff' do
-        heffalump_model.all.should include(@heffalump)
+      it 'should return expected results' do
+        heffalump_model.all.should == [ @heffalump ]
       end
     end
   else
@@ -110,7 +110,8 @@ share_examples_for 'An Adapter' do
   if adapter_supports?(:update)
     describe '#update' do
       before do
-        @heffalump = heffalump_model.create(:color => 'indigo')
+        @heffalump = heffalump_model.create(:color => 'peach', :num_spots => 1, :striped => false)
+        @heffalump.should be_saved
       end
 
       after do
@@ -119,29 +120,29 @@ share_examples_for 'An Adapter' do
 
       it 'should not raise any errors' do
         lambda {
-          @heffalump.color = 'violet'
-          @heffalump.save
+          @heffalump.num_spots = 0
+          @heffalump.save.should be(true)
         }.should_not raise_error
       end
 
       it 'should not alter the identity field' do
-        id = @heffalump.id
-        @heffalump.color = 'violet'
-        @heffalump.save
-        @heffalump.id.should == id
+        key = @heffalump.key
+        @heffalump.num_spots = 0
+        @heffalump.save.should be(true)
+        @heffalump.key.should == key
       end
 
       it 'should update altered fields' do
-        @heffalump.color = 'violet'
-        @heffalump.save
-        heffalump_model.get(*@heffalump.key).color.should == 'violet'
+        @heffalump.num_spots = 0
+        @heffalump.save.should be(true)
+        heffalump_model.get!(*@heffalump.key).num_spots.should be(0)
       end
 
       it 'should not alter other fields' do
-        color = @heffalump.color
-        @heffalump.num_spots = 3
-        @heffalump.save
-        heffalump_model.get(*@heffalump.key).color.should == color
+        num_spots = @heffalump.num_spots
+        @heffalump.striped = true
+        @heffalump.save.should be(true)
+        heffalump_model.get!(*@heffalump.key).num_spots.should be(num_spots)
       end
     end
   else
@@ -152,6 +153,7 @@ share_examples_for 'An Adapter' do
     describe '#delete' do
       before do
         @heffalump = heffalump_model.create(:color => 'forest green')
+        @heffalump.should be_saved
       end
 
       after do
@@ -180,6 +182,7 @@ share_examples_for 'An Adapter' do
         @red  = heffalump_model.create(:color => 'red')
         @two  = heffalump_model.create(:num_spots => 2)
         @five = heffalump_model.create(:num_spots => 5)
+        [ @red, @two, @five ].each { |resource| resource.should be_saved }
       end
 
       after :all do
