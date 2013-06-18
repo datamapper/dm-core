@@ -53,7 +53,7 @@ describe DataMapper do
         include DataMapper::Resource
       end
       begin
-        method(:subject).should raise_error(DataMapper::IncompleteModelError, 'EmptyObject must have at least one property or many to one relationship to be valid')
+        method(:subject).should raise_error(DataMapper::IncompleteModelError, 'EmptyObject must have at least one property or many to one relationship in default to be valid')
       ensure
         DataMapper::Model.descendants.delete(EmptyObject)
         Object.send(:remove_const, :EmptyObject)
@@ -66,7 +66,7 @@ describe DataMapper do
         property :name, String
       end
       begin
-        method(:subject).should raise_error(DataMapper::IncompleteModelError, 'KeylessObject must have a key to be valid')
+        method(:subject).should raise_error(DataMapper::IncompleteModelError, 'KeylessObject must have a key in default to be valid')
       ensure
         DataMapper::Model.descendants.delete(KeylessObject)
         Object.send(:remove_const, :KeylessObject)
