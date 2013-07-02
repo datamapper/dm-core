@@ -243,10 +243,9 @@ share_examples_for 'A public Resource' do
     end
 
     describe 'when a non-public mutator is specified' do
-      it 'should raise an exception' do
-        lambda {
-          @user.attributes = { :admin => true }
-        }.should raise_error(ArgumentError, "The attribute \'admin\' is not accessible in #{@user_model}")
+      it 'should not set the value' do
+        @user.attributes = { :admin => true }
+        @user.attributes[:admin].should be_nil
       end
     end
   end

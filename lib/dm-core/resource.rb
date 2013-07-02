@@ -317,8 +317,6 @@ module DataMapper
           when String, Symbol
             if model.allowed_writer_methods.include?(setter = "#{name}=")
               __send__(setter, value)
-            else
-              raise ArgumentError, "The attribute '#{name}' is not accessible in #{model}"
             end
           when Associations::Relationship, Property
             self.persistence_state = persistence_state.set(name, value)
