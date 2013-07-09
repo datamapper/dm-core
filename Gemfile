@@ -22,13 +22,11 @@ group :development do
 
 end
 
-platforms :mri_18 do
-  group :quality do
+group :quality do
 
-    gem 'yard',      '~> 0.7.2'
-    gem 'yardstick', '~> 0.4'
+  gem 'yard',      '~> 0.8.6.2'
+  gem 'yardstick', '~> 0.9.6'
 
-  end
 end
 
 group :datamapper do
