@@ -2,7 +2,7 @@ require File.expand_path('../lib/dm-core/version', __FILE__)
 
 require 'pathname'
 
-source :rubygems
+source 'https://rubygems.org'
 
 gemspec
 
@@ -16,14 +16,19 @@ DO_VERSION     = '~> 0.10.6'
 DM_DO_ADAPTERS = %w[ sqlite postgres mysql oracle sqlserver ]
 CURRENT_BRANCH = ENV.fetch('GIT_BRANCH', 'master')
 
-platforms :mri_18 do
-  group :quality do
+group :development do
 
-    gem 'rcov',      '~> 0.9.10'
-    gem 'yard',      '~> 0.7.2'
-    gem 'yardstick', '~> 0.4'
+  gem 'jeweler', '~> 1.6.4'
+  gem 'rake',    '~> 0.9.2'
+  gem 'rspec',   '~> 1.3.2'
 
-  end
+end
+
+group :quality do
+
+  gem 'yard',      '~> 0.8.6.2'
+  gem 'yardstick', '~> 0.9.6'
+
 end
 
 group :datamapper do

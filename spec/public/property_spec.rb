@@ -263,12 +263,6 @@ describe DataMapper::Property do
 
       it 'triggers lazy loading for given resource'
 
-      it 'type casts given value' do
-        @property.set(@image, Addressable::URI.parse('http://test.example/'))
-        # get a string that has been typecasted using #to_str
-        @image.title.should == 'http://test.example/'
-      end
-
       it 'sets new property value' do
         @property.set(@image, 'Updated value')
         @image.title.should == 'Updated value'

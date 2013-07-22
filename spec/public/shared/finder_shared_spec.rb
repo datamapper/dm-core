@@ -895,19 +895,37 @@ share_examples_for 'Finder Interface' do
   it { @articles.should respond_to(:each) }
 
   describe '#each' do
-    subject { @articles.each(&block) }
+    context 'with a block' do
+      subject { @articles.each(&block) }
 
-    let(:yields) { []                                       }
-    let(:block)  { lambda { |resource| yields << resource } }
+      let(:yields) { []                                       }
+      let(:block)  { lambda { |resource| yields << resource } }
 
-    before do
-      @copy = @articles.kind_of?(Class) ? @articles : @articles.dup
-      @copy.to_a
+      before do
+        @copy = @articles.kind_of?(Class) ? @articles : @articles.dup
+        @copy.to_a
+      end
+
+      it { should equal(@articles) }
+
+      it { method(:subject).should change { yields.dup }.from([]).to(@copy.to_a) }
     end
 
-    it { should equal(@articles) }
+    context 'without a block' do
+      subject { @articles.each }
 
-    it { method(:subject).should change { yields.dup }.from([]).to(@copy.to_a) }
+      let(:yields) { []                                       }
+      let(:block)  { lambda { |resource| yields << resource } }
+
+      before do
+        @copy = @articles.kind_of?(Class) ? @articles : @articles.dup
+        @copy.to_a
+      end
+
+      it { should be_instance_of(to_enum.class) }
+
+      it { expect { subject.each(&block) }.to change { yields.dup }.from([]).to(@copy.to_a) }
+    end
   end
 
   it { @articles.should respond_to(:fetch) }

@@ -1,4 +1,4 @@
-# -*- encoding: utf-8 -*-
+# encoding: utf-8
 require File.expand_path('../lib/dm-core/version', __FILE__)
 
 Gem::Specification.new do |gem|
@@ -21,5 +21,6 @@ Gem::Specification.new do |gem|
   gem.add_runtime_dependency('virtus',      '~> 0.5')
 
   gem.add_development_dependency('rake',  '~> 0.9.2')
+
   gem.add_development_dependency('rspec', '~> 1.3.2')
 end

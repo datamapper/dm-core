@@ -617,7 +617,7 @@ module DataMapper
     #
     # @api private
     def set(resource, value)
-      set!(resource, typecast(value))
+      set!(resource, value)
     end
 
     # Set the ivar value in the resource
@@ -675,7 +675,13 @@ module DataMapper
 
     # @api semipublic
     def typecast(value)
-      Virtus::Coercion[value.class].send(coercion_method, value)
+      if value.nil? || primitive?(value)
+        value
+      elsif respond_to?(:typecast_to_primitive, true)
+        typecast_to_primitive(value)
+      else
+        value
+      end
     end
 
     # Test the value to see if it is a valid value for this Property

@@ -319,6 +319,7 @@ module DataMapper
     end
 
     def each(&block)
+      return to_enum unless block_given?
       all.each(&block)
       self
     end
@@ -852,7 +853,7 @@ module DataMapper
       repository_name = self.repository_name
       if properties(repository_name).empty? &&
         !relationships(repository_name).any? { |relationship| relationship.kind_of?(Associations::ManyToOne::Relationship) }
-        raise IncompleteModelError, "#{name} must have at least one property or many to one relationship to be valid"
+        raise IncompleteModelError, "#{name} must have at least one property or many to one relationship in #{repository_name} to be valid"
       end
     end
 
@@ -866,7 +867,7 @@ module DataMapper
     # @api private
     def assert_valid_key
       if key(repository_name).empty?
-        raise IncompleteModelError, "#{name} must have a key to be valid"
+        raise IncompleteModelError, "#{name} must have a key in #{repository_name} to be valid"
       end
     end
 
