@@ -6,7 +6,7 @@ source 'https://rubygems.org'
 
 gemspec
 
-gem 'virtus', '~> 0.5', :git => 'https://github.com/solnic/virtus'
+gem 'virtus', '~> 0.5'
 
 SOURCE         = ENV.fetch('SOURCE', :git).to_sym
 REPO_POSTFIX   = SOURCE == :path ? ''                                : '.git'

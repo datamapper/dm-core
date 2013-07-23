@@ -675,13 +675,7 @@ module DataMapper
 
     # @api semipublic
     def typecast(value)
-      if value.nil? || primitive?(value)
-        value
-      elsif respond_to?(:typecast_to_primitive, true)
-        typecast_to_primitive(value)
-      else
-        value
-      end
+      Virtus::Coercion[value.class].send(coercion_method, value)
     end
 
     # Test the value to see if it is a valid value for this Property
