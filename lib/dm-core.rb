@@ -127,7 +127,7 @@ end
 # == Setup and Configuration
 # DataMapper uses URIs or a connection hash to connect to your data-store.
 # URI connections takes the form of:
-#   DataMapper.setup(:default, 'protocol://username:password@127.0.0.1:port/path/to/repo')
+#   DataMapper.setup(:default, 'protocol://username:password@localhost:port/path/to/repo')
 #
 # Breaking this down, the first argument is the name you wish to give this
 # connection.  If you do not specify one, it will be assigned :default. If you
