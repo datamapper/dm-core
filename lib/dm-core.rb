@@ -11,13 +11,13 @@ module DataMapper
   module Undefined; end
 end
 
-require 'virtus'
+require 'coercible'
 
-class Virtus::Coercion::Object
-  def self.to_string(value)
-    value.nil? ? value : value.to_s
-  end
-end
+# class Virtus::Coercion::Object
+#   def self.to_string(value)
+#     value.nil? ? value : value.to_s
+#   end
+# end
 
 require 'dm-core/support/ext/blank'
 require 'dm-core/support/ext/hash'

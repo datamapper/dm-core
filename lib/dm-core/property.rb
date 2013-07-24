@@ -675,7 +675,8 @@ module DataMapper
 
     # @api semipublic
     def typecast(value)
-      Virtus::Coercion[value.class].send(coercion_method, value)
+      coercer = Coercible::Coercer.new
+      coercer[value.class].send(coercion_method, value)
     end
 
     # Test the value to see if it is a valid value for this Property

@@ -6,7 +6,7 @@ source 'https://rubygems.org'
 
 gemspec
 
-gem 'virtus', '~> 0.5'
+gem 'coercible', '~> 0.2.0'
 
 SOURCE         = ENV.fetch('SOURCE', :git).to_sym
 REPO_POSTFIX   = SOURCE == :path ? ''                                : '.git'
