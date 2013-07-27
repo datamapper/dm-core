@@ -36,14 +36,17 @@ describe DataMapper::Property, 'Object type' do
       @value = { 'lang' => 'en_CA' }
     end
 
-    context 'when the value is a primitive' do
+    context 'when the value is coercible' do
       it { should equal(@value) }
     end
 
-    context 'when the value is not a primitive' do
+    context 'when the value is not coercible' do
       before do
-        # simulate the value not being a primitive
-        @property.should_receive(:primitive?).with(@value).and_return(false)
+        # simulate the value not being coercible
+        coercer = double('coercer').as_null_object
+        Coercible::Coercer.should_receive(:new).and_return(coercer)
+        coercer.should_receive(:to_object).with(@value).
+          and_raise(StandardError)
       end
 
       it { should equal(@value) }
