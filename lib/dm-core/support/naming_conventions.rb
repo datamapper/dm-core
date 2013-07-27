@@ -20,7 +20,7 @@ module DataMapper
   # DataMapper.setup(name, uri) returns the Adapter for convenience, so you can
   # use code like this:
   #
-  #   adapter = DataMapper.setup(:default, 'mock://localhost/mock')
+  #   adapter = DataMapper.setup(:default, 'mock://127.0.0.1/mock')
   #   adapter.resource_naming_convention = NamingConventions::Resource::Underscored
   module NamingConventions
 

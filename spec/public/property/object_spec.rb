@@ -30,13 +30,27 @@ describe DataMapper::Property, 'Object type' do
   it { should respond_to(:typecast) }
 
   describe '#typecast' do
+    subject { @property.typecast(@value) }
+
     before do
       @value = { 'lang' => 'en_CA' }
     end
 
-    subject { @property.typecast(@value) }
+    context 'when the value is coercible' do
+      it { should equal(@value) }
+    end
 
-    it { should equal(@value) }
+    context 'when the value is not coercible' do
+      before do
+        # simulate the value not being coercible
+        coercer = double('coercer').as_null_object
+        Coercible::Coercer.should_receive(:new).and_return(coercer)
+        coercer.should_receive(:to_object).with(@value).
+          and_raise(StandardError)
+      end
+
+      it { should equal(@value) }
+    end
   end
 
   it { should respond_to(:dump) }

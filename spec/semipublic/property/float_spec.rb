@@ -33,6 +33,10 @@ describe DataMapper::Property::Float do
       @property.typecast('0.0').should eql(0.0)
     end
 
+    it 'returns float representation of a double zero string float' do
+      @property.typecast('00.0').should eql(0.0)
+    end
+
     it 'returns float representation of a positive string float' do
       @property.typecast('24.35').should eql(24.35)
     end
@@ -73,7 +77,7 @@ describe DataMapper::Property::Float do
       @property.typecast(BigDecimal('-24.35')).should eql(-24.35)
     end
 
-    [ Object.new, true, '00.0', '0.', '-.0', 'string' ].each do |value|
+    [ Object.new, true, '0.', '-.0', 'string' ].each do |value|
       it "does not typecast non-numeric value #{value.inspect}" do
         @property.typecast(value).should equal(value)
       end

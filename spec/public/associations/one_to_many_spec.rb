@@ -62,7 +62,7 @@ require 'spec_helper'
 
         # load the targets without references to a single source
         load_collection = lambda do |query|
-          @author_model.get(*@author.key).articles(query)
+          @author_model.get!(*@author.key).articles(query)
         end
 
         @articles       = load_collection.call(:title => 'Sample Article')

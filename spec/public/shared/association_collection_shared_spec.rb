@@ -24,7 +24,7 @@ share_examples_for 'It can transfer a Resource from another association' do
 
   it 'should remove the Resource from the original Collection' do
     pending do
-      @original.should_not be_include(@resource)
+      @original.should_not include(@resource)
     end
   end
 end

@@ -50,7 +50,20 @@ module DataMapper
 
         def set_default_value(subject)
           return if subject.loaded?(resource) || !subject.default?
-          set(subject, subject.default_for(resource))
+          default = typecast_default(subject, subject.default_for(resource))
+          set(subject, default)
+        end
+
+        def typecast_default(subject, default)
+          return default unless subject.respond_to?(:typecast)
+
+          typecasted_default = subject.send(:typecast, default)
+          unless typecasted_default.eql?(default)
+            warn "Automatic typecasting of default property values is deprecated " +
+                 "(#{default.inspect} was casted to #{typecasted_default.inspect}). " +
+                 "Specify the correct type for #{resource.class}."
+          end
+          typecasted_default
         end
 
         def track(subject)

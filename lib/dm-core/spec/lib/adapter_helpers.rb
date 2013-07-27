@@ -18,6 +18,8 @@ module DataMapper
 
         def describe_adapter(kind, &block)
           describe("with #{kind} adapter") do
+            let(:adapter)    { @adapter    }
+            let(:repository) { @repository }
 
             before :all do
               # store these in instance vars for the shared adapter specs
