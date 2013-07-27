@@ -677,7 +677,7 @@ module DataMapper
     def typecast(value)
       coercer = Coercible::Coercer.new
       coercer[value.class].send(coercion_method, value)
-      rescue
+    rescue
       value
     end
 
