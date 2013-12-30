@@ -12,6 +12,14 @@ describe DataMapper::Property::DateTime do
   it_should_behave_like 'A semipublic Property'
 
   describe '#typecast_to_primitive' do
+    describe 'and value responds to #to_datetime' do
+      it 'uses its return value' do
+        result = @property.typecast(Time.at(123.456))
+        result.should be_kind_of(DateTime)
+        result.strftime('%s%3N').should eql('123456')
+      end
+    end
+
     describe 'and value given as a hash with keys like :year, :month, etc' do
       it 'builds a DateTime instance from hash values' do
         result = @property.typecast(
