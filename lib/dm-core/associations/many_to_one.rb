@@ -207,6 +207,7 @@ module DataMapper
           @required      = options.fetch(:required, true)
           @key           = options.fetch(:key,      false)
           @unique        = options.fetch(:unique,   false)
+          @unique_index  = options.fetch(:unique_index, false)
           target_model ||= DataMapper::Inflector.camelize(name)
           options        = { :min => @required ? 1 : 0, :max => 1 }.update(options)
           super
@@ -260,10 +261,11 @@ module DataMapper
         # @api private
         def source_key_options(target_property)
           options = DataMapper::Ext::Hash.only(target_property.options, :length, :precision, :scale).update(
-            :index    => name,
-            :required => required?,
-            :key      => key?,
-            :unique   => @unique
+            :index        => name,
+            :required     => required?,
+            :key          => key?,
+            :unique       => @unique,
+            :unique_index => @unique_index
           )
 
           if target_property.primitive == Integer
