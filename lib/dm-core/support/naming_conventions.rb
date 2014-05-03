@@ -78,6 +78,13 @@ module DataMapper
         end
       end # module Underscored
 
+      module FQN
+        def self.call(property)
+          storage_name = property.model.storage_name(property.repository_name)
+          "#{DataMapper::Inflector.singularize(storage_name)}_#{property.name}"
+        end
+      end # module FQN
+
       module Yaml
         def self.call(property)
           "#{DataMapper::Inflector.pluralize(DataMapper::Inflector.underscore(property.name.to_s))}.yaml"
