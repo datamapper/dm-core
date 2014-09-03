@@ -84,7 +84,7 @@ module DataMapper
 
           fk_names = model.relationships.inject([]) { |names, rel|
             if rel.respond_to?(:required?)
-              names + rel.source_key.map { |p| p.name }
+              names + rel.source_key.map(&:name)
             else
               names
             end
