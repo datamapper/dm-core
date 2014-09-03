@@ -80,8 +80,20 @@ module DataMapper
 
       module FQN
         def self.call(property)
-          storage_name = property.model.storage_name(property.repository_name)
-          "#{DataMapper::Inflector.singularize(storage_name)}_#{property.name}"
+          model, name = property.model, property.name
+
+          fk_names = model.relationships.inject([]) { |names, rel|
+            if rel.respond_to?(:required?)
+              names + rel.source_key.map { |p| p.name }
+            else
+              names
+            end
+          }
+
+          return name.to_s if fk_names.include?(name)
+
+          storage_name = model.storage_name(property.repository_name)
+          "#{DataMapper::Inflector.singularize(storage_name)}_#{name}"
         end
       end # module FQN
 
