@@ -207,7 +207,7 @@ module DataMapper
           @required      = options.fetch(:required, true)
           @key           = options.fetch(:key,      false)
           @unique        = options.fetch(:unique,   false)
-          @unique_index  = options.fetch(:unique_index, false)
+          @unique_index  = options.fetch(:unique_index, @unique)
           target_model ||= DataMapper::Inflector.camelize(name)
           options        = { :min => @required ? 1 : 0, :max => 1 }.update(options)
           super
