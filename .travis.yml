@@ -1,6 +1,5 @@
 language: ruby
 services:
-  - sqlite3
   - mysql
   - postgresql
 before_script:
