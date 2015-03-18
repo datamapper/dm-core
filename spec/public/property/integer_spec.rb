@@ -4,7 +4,8 @@ describe DataMapper::Property::Integer do
   before :all do
     @name          = :age
     @type          = described_class
-    @load_as     = Integer
+    @load_as       = Integer
+    @dump_as       = Integer
     @value         = 1
     @other_value   = 2
     @invalid_value = '1'
@@ -17,6 +18,6 @@ describe DataMapper::Property::Integer do
 
     it { should be_kind_of(Hash) }
 
-    it { should eql(:load_as => @load_as, :dump_as => @load_as, :coercion_method => :to_integer) }
+    it { should eql(:load_as => @load_as, :dump_as => @load_as) }
   end
 end

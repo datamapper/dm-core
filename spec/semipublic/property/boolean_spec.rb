@@ -25,7 +25,7 @@ describe DataMapper::Property::Boolean do
     end
   end
 
-  describe '#typecast' do
+  describe '#typecast_to_primitive' do
     [ true, 'true', 'TRUE', '1', 1, 't', 'T' ].each do |value|
       it "returns true when value is #{value.inspect}" do
         @property.typecast(value).should be(true)

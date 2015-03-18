@@ -11,7 +11,7 @@ describe DataMapper::Property::Integer do
 
   it_should_behave_like 'A semipublic Property'
 
-  describe '#typecast' do
+  describe '#typecast_to_primitive' do
     it 'returns same value if an integer' do
       @value = 24
       @property.typecast(@value).should equal(@value)

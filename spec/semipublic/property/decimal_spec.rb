@@ -12,7 +12,7 @@ describe DataMapper::Property::Decimal do
 
   it_should_behave_like 'A semipublic Property'
 
-  describe '#typecast' do
+  describe '#typecast_to_primitive' do
     it 'returns same value if a decimal' do
       @value = BigDecimal('24.0')
       @property.typecast(@value).should equal(@value)

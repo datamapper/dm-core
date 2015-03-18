@@ -1,7 +1,6 @@
 module DataMapper
   class Property
     class Binary < String
-
       if RUBY_VERSION >= "1.9"
 
         def load(value)
@@ -15,7 +14,6 @@ module DataMapper
         end
 
       end
-
     end # class Binary
   end # class Property
 end # module DataMapper

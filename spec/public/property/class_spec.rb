@@ -10,7 +10,7 @@ describe DataMapper::Property::Class do
 
     @name          = :type
     @type          = described_class
-    @load_as     = Class
+    @load_as       = Class
     @value         = Foo
     @other_value   = Bar
     @invalid_value = 1
@@ -23,6 +23,6 @@ describe DataMapper::Property::Class do
 
     it { should be_kind_of(Hash) }
 
-    it { should eql(:load_as => @load_as, :dump_as => @load_as, :coercion_method => :to_constant) }
+    it { should eql(:load_as => @load_as, :dump_as => @load_as) }
   end
 end

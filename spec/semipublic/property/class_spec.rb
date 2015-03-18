@@ -17,7 +17,7 @@ describe DataMapper::Property::Class do
 
   it_should_behave_like 'A semipublic Property'
 
-  describe '#typecast' do
+  describe '#typecast_to_primitive' do
     it 'returns same value if a class' do
       @property.typecast(@model).should equal(@model)
     end

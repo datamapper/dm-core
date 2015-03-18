@@ -4,7 +4,7 @@ describe DataMapper::Property::Binary do
   before :all do
     @name          = :title
     @type          = described_class
-    @load_as     = String
+    @load_as       = String
     @value         = 'value'
     @other_value   = 'return value'
     @invalid_value = 1
@@ -15,9 +15,7 @@ describe DataMapper::Property::Binary do
   describe '.options' do
     subject { described_class.options }
 
-    it { should be_kind_of(Hash) }
-
-    it { should eql(:load_as => @load_as, :dump_as => @load_as, :coercion_method => :to_string, :length => 50) }
+    it { should eql(:load_as => @load_as, :dump_as => @load_as, :length => 50) }
   end
 
   if RUBY_VERSION >= "1.9"
@@ -37,5 +35,7 @@ describe DataMapper::Property::Binary do
         model.bin_data.load("foo".freeze).encoding.names.should include("BINARY")
       end
     end
+
+    it { should eql(:load_as => @load_as, :length => 50) }
   end
 end

@@ -1,9 +1,7 @@
 module DataMapper
   class Property
     class Object < Property
-      load_as         ::Object
-      dump_as         ::Object
-      coercion_method :to_object
+      load_as ::Object
 
       # @api semipublic
       def dump(value)

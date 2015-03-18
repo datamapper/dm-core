@@ -4,7 +4,8 @@ describe DataMapper::Property::Serial do
   before :all do
     @name          = :id
     @type          = described_class
-    @load_as     = Integer
+    @load_as       = Integer
+    @dump_as       = Integer
     @value         = 1
     @other_value   = 2
     @invalid_value = 'foo'
@@ -17,6 +18,6 @@ describe DataMapper::Property::Serial do
 
     it { should be_kind_of(Hash) }
 
-    it { should eql(:load_as => @load_as, :dump_as => @load_as, :coercion_method => :to_integer, :min => 1, :serial => true) }
+    it { should eql(:load_as => @load_as, :dump_as => @load_as, :min => 1, :serial => true) }
   end
 end

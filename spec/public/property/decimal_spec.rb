@@ -5,7 +5,8 @@ describe DataMapper::Property::Decimal do
     @name          = :rate
     @type          = described_class
     @options       = { :precision => 5, :scale => 2 }
-    @load_as     = BigDecimal
+    @load_as       = BigDecimal
+    @dump_as       = String
     @value         = BigDecimal('1.0')
     @other_value   = BigDecimal('2.0')
     @invalid_value = true
@@ -18,6 +19,6 @@ describe DataMapper::Property::Decimal do
 
     it { should be_kind_of(Hash) }
 
-    it { should eql(:load_as => @load_as, :dump_as => @load_as, :coercion_method => :to_decimal, :precision => 10, :scale => 0) }
+    it { should eql(:load_as => @load_as, :dump_as => @load_as, :precision => 10, :scale => 0) }
   end
 end

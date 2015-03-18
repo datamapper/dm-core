@@ -4,7 +4,8 @@ describe DataMapper::Property::Float do
   before :all do
     @name          = :rating
     @type          = described_class
-    @load_as     = Float
+    @load_as       = Float
+    @dump_as       = String
     @value         = 0.1
     @other_value   = 0.2
     @invalid_value = '1'
@@ -17,6 +18,6 @@ describe DataMapper::Property::Float do
 
     it { should be_kind_of(Hash) }
 
-    it { should eql(:load_as => @load_as, :dump_as => @load_as, :coercion_method => :to_float, :precision => 10, :scale => nil) }
+    it { should eql(:load_as => @load_as, :dump_as => @load_as, :precision => 10, :scale => nil) }
   end
 end

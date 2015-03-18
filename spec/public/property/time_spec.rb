@@ -17,6 +17,6 @@ describe DataMapper::Property::Time do
 
     it { should be_kind_of(Hash) }
 
-    it { should eql(:load_as => @load_as, :dump_as => @load_as, :coercion_method => :to_time) }
+    it { should eql(:load_as => @load_as, :dump_as => @load_as) }
   end
 end

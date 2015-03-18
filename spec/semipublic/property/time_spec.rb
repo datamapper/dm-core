@@ -11,16 +11,16 @@ describe DataMapper::Property::Time do
 
   it_should_behave_like 'A semipublic Property'
 
-  describe '#typecast' do
+  describe '#typecast_to_primitive' do
     describe 'and value given as a hash with keys like :year, :month, etc' do
       it 'builds a Time instance from hash values' do
         result = @property.typecast(
-          :year  => '2006',
-          :month => '11',
-          :day   => '23',
-          :hour  => '12',
-          :min   => '0',
-          :sec   => '0'
+          'year'  => '2006',
+          'month' => '11',
+          'day'   => '23',
+          'hour'  => '12',
+          'min'   => '0',
+          'sec'   => '0'
         )
 
         result.should be_kind_of(Time)
