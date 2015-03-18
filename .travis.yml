@@ -11,11 +11,11 @@ rvm:
   - jruby-18mode
 
 env:
-  - "GIT_BRANCH=release-1.2 ADAPTER=in_memory"
-  - "GIT_BRANCH=release-1.2 ADAPTER=yaml"
-  - "GIT_BRANCH=release-1.2 ADAPTER=sqlite"
-  - "GIT_BRANCH=release-1.2 ADAPTER=mysql DM_DB_USER=root DM_DB_PASSWORD=''"
-  - "GIT_BRANCH=release-1.2 ADAPTER=postgres DM_DB_USER=postgres DM_DB_PASSWORD=''"
+  - "ADAPTER=in_memory"
+  - "ADAPTER=yaml"
+  - "ADAPTER=sqlite"
+  - "ADAPTER=mysql DM_DB_USER=root DM_DB_PASSWORD=''"
+  - "ADAPTER=postgres DM_DB_USER=postgres DM_DB_PASSWORD=''"
 
 sudo: false
 
@@ -36,7 +36,7 @@ script: "bundle exec rake spec"
 matrix:
   allow_failures:
     - rvm: rbx-19mode
-      env: "GIT_BRANCH=release-1.2 ADAPTER=yaml"
+      env: "ADAPTER=yaml"
   include:
     - rvm: jruby-19mode
       env: JRUBY_OPTS="$JRUBY_OPTS --debug"
