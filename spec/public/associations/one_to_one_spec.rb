@@ -72,7 +72,7 @@ describe 'One to One Associations' do
       comment = @comment_model.create(:body => 'Cool spec')
       user    = @user_model.create(:name => 'dbussink', :age => 25, :description => 'Test', :comment => comment)
 
-      @comment = @comment_model.get(*comment.key)
+      @comment = @comment_model.get!(*comment.key)
       @user    = @comment.user
     end
 
@@ -164,7 +164,7 @@ describe 'One to One Through Associations' do
       comment = @comment_model.create(:body => 'Cool spec')
       user    = @user_model.create(:name => 'dbussink', :age => 25, :description => 'Test', :comment => comment)
 
-      @comment = @comment_model.get(*comment.key)
+      @comment = @comment_model.get!(*comment.key)
       @user    = @comment.user
     end
 

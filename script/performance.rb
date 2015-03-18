@@ -38,7 +38,7 @@ log_dir = DataMapper.root / 'log'
 log_dir.mkdir unless log_dir.directory?
 
 DataMapper::Logger.new(log_dir / 'dm.log', :off)
-adapter = DataMapper.setup(:default, "mysql://root@localhost/dm_core_test?socket=#{socket_file}")
+adapter = DataMapper.setup(:default, "mysql://root@127.0.0.1/dm_core_test?socket=#{socket_file}")
 
 if configuration_options[:adapter]
   sqlfile       = File.join(File.dirname(__FILE__), '..', 'tmp', 'performance.sql')

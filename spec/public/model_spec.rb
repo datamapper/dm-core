@@ -111,7 +111,7 @@ describe DataMapper::Model do
           end
 
           it 'should add the resources to the alternate repository' do
-            @article.model.get(*@heff1.key).should_not be_nil
+            @article.model.get!(*@heff1.key).should_not be_nil
           end
         end
       end

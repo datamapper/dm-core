@@ -72,7 +72,7 @@ describe DataMapper::Resource do
     before :all do
       user = @user_model.create(:name => 'dbussink', :age => 25, :description => 'Test')
 
-      @user = @user_model.get(*user.key)
+      @user = @user_model.get!(*user.key)
     end
 
     it_should_behave_like 'A public Resource'
@@ -191,7 +191,7 @@ describe DataMapper::Resource do
           rescue_if @skip do
             @dkubb = @user.referrer = @user_model.create(:name => 'dkubb', :age => 33)
             @user.save
-            @user = @user_model.get(*@user.key)
+            @user = @user_model.get!(*@user.key)
             @user.referrer.should == @dkubb
 
             @solnic = @user_model.create(:name => 'solnic', :age => 28)
@@ -200,7 +200,7 @@ describe DataMapper::Resource do
 
             relationship = @user_model.relationships[:referrer]
             relationship.child_key.to_a.each_with_index do |k, i|
-              @attributes[k.name] = relationship.parent_key.to_a[i].get(@solnic)
+              @attributes[k.name] = relationship.parent_key.to_a[i].get!(@solnic)
             end
 
             @return = @user.__send__(method, @attributes)
@@ -216,12 +216,12 @@ describe DataMapper::Resource do
         end
 
         it 'should persist the changes' do
-          resource = @user_model.get(*@user.key)
+          resource = @user_model.get!(*@user.key)
           @attributes.each { |key, value| resource.__send__(key).should == value }
         end
 
         it 'should return correct parent' do
-          resource = @user_model.get(*@user.key)
+          resource = @user_model.get!(*@user.key)
           resource.referrer.should == @solnic
         end
       end

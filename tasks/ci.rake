@@ -1,1 +1,1 @@
-task :ci => [ :verify_measurements, 'metrics:all' ]
+task :ci => [ :verify_measurements, 'spec' ]

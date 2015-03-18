@@ -324,7 +324,7 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should remove the Resource from the Collection' do
-        @articles.should_not be_include(@resource)
+        @articles.should_not include(@resource)
       end
     end
 
@@ -356,7 +356,7 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should remove the Resource from the Collection' do
-        @articles.should_not be_include(@resource)
+        @articles.should_not include(@resource)
       end
     end
 
@@ -390,7 +390,7 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should remove the Resources from the Collection' do
-        @resources.each { |resource| @articles.should_not be_include(resource) }
+        @resources.each { |resource| @articles.should_not include(resource) }
       end
     end
 
@@ -458,7 +458,7 @@ share_examples_for 'A public Collection' do
         end
 
         it 'should not destroy the other Resource' do
-          @article_model.get(*@other.key).should_not be_nil
+          @article_model.get!(*@other.key).should_not be_nil
         end
       end
     end
@@ -688,7 +688,7 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should remove the Resource from the Collection' do
-        @articles.should_not be_include(@new)
+        @articles.should_not include(@new)
       end
     end
 
@@ -707,7 +707,7 @@ share_examples_for 'A public Collection' do
         end
 
         it 'should remove the Resource from the Collection' do
-          @articles.should_not be_include(@new)
+          @articles.should_not include(@new)
         end
       end
     end
@@ -754,7 +754,7 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should remove the Resources from the Collection' do
-        @resources.each { |resource| @articles.should_not be_include(resource) }
+        @resources.each { |resource| @articles.should_not include(resource) }
       end
     end
 
@@ -1007,7 +1007,7 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should remove the Resource from the Collection' do
-        @articles.should_not be_include(@return)
+        @articles.should_not include(@return)
       end
     end
 
@@ -1027,7 +1027,7 @@ share_examples_for 'A public Collection' do
         end
 
         it 'should remove the Resource from the Collection' do
-          @articles.should_not be_include(@article)
+          @articles.should_not include(@article)
         end
       end
     end
@@ -1062,7 +1062,7 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should remove the Resource from the Collection' do
-        @articles.should_not be_include(@resource)
+        @articles.should_not include(@resource)
       end
     end
 
@@ -1082,7 +1082,7 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should remove the Resources from the Collection' do
-        @resources.each { |resource| @articles.should_not be_include(resource) }
+        @resources.each { |resource| @articles.should_not include(resource) }
       end
 
       it 'should scope the Collection' do
@@ -1106,7 +1106,7 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should remove the Resources from the Collection' do
-        @resources.each { |resource| @articles.should_not be_include(resource) }
+        @resources.each { |resource| @articles.should_not include(resource) }
       end
 
       it 'should scope the Collection' do
@@ -1130,7 +1130,7 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should remove the Resource from the Collection' do
-        @articles.should_not be_include(@resource)
+        @articles.should_not include(@resource)
       end
     end
 
@@ -1150,7 +1150,7 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should remove the Resources from the Collection' do
-        @resources.each { |resource| @articles.should_not be_include(resource) }
+        @resources.each { |resource| @articles.should_not include(resource) }
       end
 
       it 'should scope the Collection' do
@@ -1174,7 +1174,7 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should remove the Resources from the Collection' do
-        @resources.each { |resource| @articles.should_not be_include(resource) }
+        @resources.each { |resource| @articles.should_not include(resource) }
       end
 
       it 'should scope the Collection' do
@@ -1307,7 +1307,7 @@ share_examples_for 'A public Collection' do
         end
 
         it 'should include the Resource in the Collection' do
-          @articles.should be_include(@resource)
+          @articles.should include(@resource)
         end
       end
 
@@ -1335,7 +1335,7 @@ share_examples_for 'A public Collection' do
         end
 
         it 'should include the Resource in the Collection' do
-          @articles.should be_include(@resource)
+          @articles.should include(@resource)
         end
       end
 
@@ -1363,7 +1363,7 @@ share_examples_for 'A public Collection' do
         end
 
         it 'should include the Resource in the Collection' do
-          @articles.should be_include(@resource)
+          @articles.should include(@resource)
         end
       end
 
@@ -1391,7 +1391,7 @@ share_examples_for 'A public Collection' do
         end
 
         it 'should include the Resource in the Collection' do
-          @articles.should be_include(@resource)
+          @articles.should include(@resource)
         end
       end
 
@@ -1419,7 +1419,7 @@ share_examples_for 'A public Collection' do
         end
 
         it 'should include the Resource in the Collection' do
-          @articles.should be_include(@resource)
+          @articles.should include(@resource)
         end
       end
 
@@ -1447,7 +1447,7 @@ share_examples_for 'A public Collection' do
         end
 
         it 'should include the Resource in the Collection' do
-          @articles.should be_include(@resource)
+          @articles.should include(@resource)
         end
       end
     end
@@ -1555,7 +1555,7 @@ share_examples_for 'A public Collection' do
         end
 
         it 'should persist the changes' do
-          resource = @article_model.get(*@article.key)
+          resource = @article_model.get!(*@article.key)
           @attributes.each { |key, value| resource.__send__(key).should == value }
         end
       end
@@ -1580,7 +1580,7 @@ share_examples_for 'A public Collection' do
         end
 
         it 'should persist the changes' do
-          resource = @article_model.get(*@article.key)
+          resource = @article_model.get!(*@article.key)
           @attributes.each { |key, value| resource.__send__(key).should == value }
         end
       end
@@ -1623,7 +1623,7 @@ share_examples_for 'A public Collection' do
         end
 
         it 'should persist the changes' do
-          resource = @article_model.get(*@article.key)
+          resource = @article_model.get!(*@article.key)
           @attributes.each { |key, value| resource.__send__(key).should == value }
         end
 

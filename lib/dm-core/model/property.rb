@@ -171,7 +171,7 @@ module DataMapper
 
       # @api private
       def key_conditions(repository, key)
-        Hash[ self.key(repository.name).zip(key.nil? ? [] : key) ]
+        Hash[self.key(repository.name).zip(Array(key))]
       end
 
     private
@@ -230,6 +230,7 @@ module DataMapper
           #{writer_visibility}
           def #{writer_name}(value)
             property = properties[#{name.inspect}]
+            value    = property.typecast(value)
             self.persistence_state = persistence_state.set(property, value)
             persistence_state.get(property)
           end

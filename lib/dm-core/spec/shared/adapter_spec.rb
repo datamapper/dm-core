@@ -24,12 +24,13 @@ share_examples_for 'An Adapter' do
 
   # Hack to detect cases a let(:heffalump_model) is not present
   unless instance_methods.map(&:to_s).include?('heffalump_model')
-    # This is the default Heffalup model. You can replace it with your own
+    # This is the default Heffalump model. You can replace it with your own
     # (using let/let!) # but # be shure the replacement provides the required
     # properties.
     let(:heffalump_model) do
       model = Class.new do
         include DataMapper::Resource
+
         property :id,        DataMapper::Property::Serial
         property :color,     DataMapper::Property::String
         property :num_spots, DataMapper::Property::Integer
@@ -59,16 +60,20 @@ share_examples_for 'An Adapter' do
 
   if adapter_supports?(:create)
     describe '#create' do
+      after do
+        heffalump_model.destroy
+      end
+
       it 'should not raise any errors' do
         lambda {
-          heffalump_model.create(:color => 'peach')
+          heffalump_model.new(:color => 'peach').save.should be(true)
         }.should_not raise_error
       end
 
       it 'should set the identity field for the resource' do
         heffalump = heffalump_model.new(:color => 'peach')
         heffalump.id.should be_nil
-        heffalump.save
+        heffalump.save.should be(true)
         heffalump.id.should_not be_nil
       end
     end
@@ -80,8 +85,12 @@ share_examples_for 'An Adapter' do
     describe '#read' do
       before :all do
         @heffalump = heffalump_model.create(:color => 'brownish hue')
-        #just going to borrow this, so I can check the return values
+        @heffalump.should be_saved
         @query = heffalump_model.all.query
+      end
+
+      after :all do
+        heffalump_model.destroy
       end
 
       it 'should not raise any errors' do
@@ -90,8 +99,8 @@ share_examples_for 'An Adapter' do
         }.should_not raise_error
       end
 
-      it 'should return stuff' do
-        heffalump_model.all.should be_include(@heffalump)
+      it 'should return expected results' do
+        heffalump_model.all.should == [ @heffalump ]
       end
     end
   else
@@ -101,34 +110,39 @@ share_examples_for 'An Adapter' do
   if adapter_supports?(:update)
     describe '#update' do
       before do
-        @heffalump = heffalump_model.create(:color => 'indigo')
+        @heffalump = heffalump_model.create(:color => 'peach', :num_spots => 1, :striped => false)
+        @heffalump.should be_saved
+      end
+
+      after do
+        heffalump_model.destroy
       end
 
       it 'should not raise any errors' do
         lambda {
-          @heffalump.color = 'violet'
-          @heffalump.save
+          @heffalump.num_spots = 0
+          @heffalump.save.should be(true)
         }.should_not raise_error
       end
 
       it 'should not alter the identity field' do
-        id = @heffalump.id
-        @heffalump.color = 'violet'
-        @heffalump.save
-        @heffalump.id.should == id
+        key = @heffalump.key
+        @heffalump.num_spots = 0
+        @heffalump.save.should be(true)
+        @heffalump.key.should == key
       end
 
       it 'should update altered fields' do
-        @heffalump.color = 'violet'
-        @heffalump.save
-        heffalump_model.get(*@heffalump.key).color.should == 'violet'
+        @heffalump.num_spots = 0
+        @heffalump.save.should be(true)
+        heffalump_model.get!(*@heffalump.key).num_spots.should be(0)
       end
 
       it 'should not alter other fields' do
-        color = @heffalump.color
-        @heffalump.num_spots = 3
-        @heffalump.save
-        heffalump_model.get(*@heffalump.key).color.should == color
+        num_spots = @heffalump.num_spots
+        @heffalump.striped = true
+        @heffalump.save.should be(true)
+        heffalump_model.get!(*@heffalump.key).num_spots.should be(num_spots)
       end
     end
   else
@@ -139,6 +153,11 @@ share_examples_for 'An Adapter' do
     describe '#delete' do
       before do
         @heffalump = heffalump_model.create(:color => 'forest green')
+        @heffalump.should be_saved
+      end
+
+      after do
+        heffalump_model.destroy
       end
 
       it 'should not raise any errors' do
@@ -148,9 +167,9 @@ share_examples_for 'An Adapter' do
       end
 
       it 'should delete the requested resource' do
-        id = @heffalump.id
+        key = @heffalump.key
         @heffalump.destroy
-        heffalump_model.get(id).should be_nil
+        heffalump_model.get(*key).should be_nil
       end
     end
   else
@@ -163,42 +182,47 @@ share_examples_for 'An Adapter' do
         @red  = heffalump_model.create(:color => 'red')
         @two  = heffalump_model.create(:num_spots => 2)
         @five = heffalump_model.create(:num_spots => 5)
+        [ @red, @two, @five ].each { |resource| resource.should be_saved }
+      end
+
+      after :all do
+        heffalump_model.destroy
       end
 
       describe 'conditions' do
         describe 'eql' do
           it 'should be able to search for objects included in an inclusive range of values' do
-            heffalump_model.all(:num_spots => 1..5).should be_include(@five)
+            heffalump_model.all(:num_spots => 1..5).should include(@five)
           end
 
           it 'should be able to search for objects included in an exclusive range of values' do
-            heffalump_model.all(:num_spots => 1...6).should be_include(@five)
+            heffalump_model.all(:num_spots => 1...6).should include(@five)
           end
 
           it 'should not be able to search for values not included in an inclusive range of values' do
-            heffalump_model.all(:num_spots => 1..4).should_not be_include(@five)
+            heffalump_model.all(:num_spots => 1..4).should_not include(@five)
           end
 
           it 'should not be able to search for values not included in an exclusive range of values' do
-            heffalump_model.all(:num_spots => 1...5).should_not be_include(@five)
+            heffalump_model.all(:num_spots => 1...5).should_not include(@five)
           end
         end
 
         describe 'not' do
           it 'should be able to search for objects with not equal value' do
-            heffalump_model.all(:color.not => 'red').should_not be_include(@red)
+            heffalump_model.all(:color.not => 'red').should_not include(@red)
           end
 
           it 'should include objects that are not like the value' do
-            heffalump_model.all(:color.not => 'black').should be_include(@red)
+            heffalump_model.all(:color.not => 'black').should include(@red)
           end
 
           it 'should be able to search for objects with not nil value' do
-            heffalump_model.all(:color.not => nil).should be_include(@red)
+            heffalump_model.all(:color.not => nil).should include(@red)
           end
 
           it 'should not include objects with a nil value' do
-            heffalump_model.all(:color.not => nil).should_not be_include(@two)
+            heffalump_model.all(:color.not => nil).should_not include(@two)
           end
 
           it 'should be able to search for object with a nil value using required properties' do
@@ -220,37 +244,37 @@ share_examples_for 'An Adapter' do
           end
 
           it 'should be able to search for objects not included in an array of values' do
-            heffalump_model.all(:num_spots.not => [ 1, 3, 5, 7 ]).should be_include(@two)
+            heffalump_model.all(:num_spots.not => [ 1, 3, 5, 7 ]).should include(@two)
           end
 
           it 'should be able to search for objects not included in an array of values' do
-            heffalump_model.all(:num_spots.not => [ 1, 3, 5, 7 ]).should_not be_include(@five)
+            heffalump_model.all(:num_spots.not => [ 1, 3, 5, 7 ]).should_not include(@five)
           end
 
           it 'should be able to search for objects not included in an inclusive range of values' do
-            heffalump_model.all(:num_spots.not => 1..4).should be_include(@five)
+            heffalump_model.all(:num_spots.not => 1..4).should include(@five)
           end
 
           it 'should be able to search for objects not included in an exclusive range of values' do
-            heffalump_model.all(:num_spots.not => 1...5).should be_include(@five)
+            heffalump_model.all(:num_spots.not => 1...5).should include(@five)
           end
 
           it 'should not be able to search for values not included in an inclusive range of values' do
-            heffalump_model.all(:num_spots.not => 1..5).should_not be_include(@five)
+            heffalump_model.all(:num_spots.not => 1..5).should_not include(@five)
           end
 
           it 'should not be able to search for values not included in an exclusive range of values' do
-            heffalump_model.all(:num_spots.not => 1...6).should_not be_include(@five)
+            heffalump_model.all(:num_spots.not => 1...6).should_not include(@five)
           end
         end
 
         describe 'like' do
           it 'should be able to search for objects that match value' do
-            heffalump_model.all(:color.like => '%ed').should be_include(@red)
+            heffalump_model.all(:color.like => '%ed').should include(@red)
           end
 
           it 'should not search for objects that do not match the value' do
-            heffalump_model.all(:color.like => '%blak%').should_not be_include(@red)
+            heffalump_model.all(:color.like => '%blak%').should_not include(@red)
           end
         end
 
@@ -263,68 +287,68 @@ share_examples_for 'An Adapter' do
           end
 
           it 'should be able to search for objects that match value' do
-            heffalump_model.all(:color => /ed/).should be_include(@red)
+            heffalump_model.all(:color => /ed/).should include(@red)
           end
 
           it 'should not be able to search for objects that do not match the value' do
-            heffalump_model.all(:color => /blak/).should_not be_include(@red)
+            heffalump_model.all(:color => /blak/).should_not include(@red)
           end
 
           it 'should be able to do a negated search for objects that match value' do
-            heffalump_model.all(:color.not => /blak/).should be_include(@red)
+            heffalump_model.all(:color.not => /blak/).should include(@red)
           end
 
           it 'should not be able to do a negated search for objects that do not match value' do
-            heffalump_model.all(:color.not => /ed/).should_not be_include(@red)
+            heffalump_model.all(:color.not => /ed/).should_not include(@red)
           end
 
         end
 
         describe 'gt' do
           it 'should be able to search for objects with value greater than' do
-            heffalump_model.all(:num_spots.gt => 1).should be_include(@two)
+            heffalump_model.all(:num_spots.gt => 1).should include(@two)
           end
 
           it 'should not find objects with a value less than' do
-            heffalump_model.all(:num_spots.gt => 3).should_not be_include(@two)
+            heffalump_model.all(:num_spots.gt => 3).should_not include(@two)
           end
         end
 
         describe 'gte' do
           it 'should be able to search for objects with value greater than' do
-            heffalump_model.all(:num_spots.gte => 1).should be_include(@two)
+            heffalump_model.all(:num_spots.gte => 1).should include(@two)
           end
 
           it 'should be able to search for objects with values equal to' do
-            heffalump_model.all(:num_spots.gte => 2).should be_include(@two)
+            heffalump_model.all(:num_spots.gte => 2).should include(@two)
           end
 
           it 'should not find objects with a value less than' do
-            heffalump_model.all(:num_spots.gte => 3).should_not be_include(@two)
+            heffalump_model.all(:num_spots.gte => 3).should_not include(@two)
           end
         end
 
         describe 'lt' do
           it 'should be able to search for objects with value less than' do
-            heffalump_model.all(:num_spots.lt => 3).should be_include(@two)
+            heffalump_model.all(:num_spots.lt => 3).should include(@two)
           end
 
           it 'should not find objects with a value less than' do
-            heffalump_model.all(:num_spots.gt => 2).should_not be_include(@two)
+            heffalump_model.all(:num_spots.gt => 2).should_not include(@two)
           end
         end
 
         describe 'lte' do
           it 'should be able to search for objects with value less than' do
-            heffalump_model.all(:num_spots.lte => 3).should be_include(@two)
+            heffalump_model.all(:num_spots.lte => 3).should include(@two)
           end
 
           it 'should be able to search for objects with values equal to' do
-            heffalump_model.all(:num_spots.lte => 2).should be_include(@two)
+            heffalump_model.all(:num_spots.lte => 2).should include(@two)
           end
 
           it 'should not find objects with a value less than' do
-            heffalump_model.all(:num_spots.lte => 1).should_not be_include(@two)
+            heffalump_model.all(:num_spots.lte => 1).should_not include(@two)
           end
         end
       end

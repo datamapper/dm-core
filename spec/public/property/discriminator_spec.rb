@@ -117,11 +117,11 @@ describe DataMapper::Property::Discriminator do
     end
 
     it 'should persist the type' do
-      @announcement.model.get(*@announcement.key).type.should equal(@announcement_model)
+      @announcement.model.get!(*@announcement.key).type.should equal(@announcement_model)
     end
 
     it 'should be retrieved as an instance of the correct class' do
-      @announcement.model.get(*@announcement.key).should be_instance_of(@announcement_model)
+      @announcement.model.get!(*@announcement.key).should be_instance_of(@announcement_model)
     end
 
     it 'should include descendants in finders' do

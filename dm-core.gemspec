@@ -2,24 +2,22 @@
 require File.expand_path('../lib/dm-core/version', __FILE__)
 
 Gem::Specification.new do |gem|
-  gem.authors       = [ "Dan Kubb" ]
-  gem.email         = [ "dan.kubb@gmail.com" ]
-  gem.summary       = "An Object/Relational Mapper for Ruby"
-  gem.description   = "Faster, Better, Simpler."
-  gem.homepage      = "http://datamapper.org"
-  gem.date          = "2011-10-11"
+  gem.name        = 'dm-core'
+  gem.version     = DataMapper::VERSION
+  gem.authors     = ['Dan Kubb']
+  gem.email       = %w[dan.kubb@gmail.com]
+  gem.description = 'DataMapper core library'
+  gem.summary     = gem.description
+  gem.homepage    = 'https://github.com/datamapper/dm-core'
 
-  gem.files         = `git ls-files`.split("\n")
-  gem.test_files    = `git ls-files -- {spec}/*`.split("\n")
+  gem.require_paths    = %w[lib]
+  gem.files            = `git ls-files`.split($/)
+  gem.test_files       = `git ls-files -- spec/*`.split($/)
   gem.extra_rdoc_files = %w[LICENSE README.md]
 
-  gem.name          = "dm-core"
-  gem.require_paths = [ "lib" ]
-  gem.version       = DataMapper::VERSION
+  gem.add_dependency('addressable', '~> 2.3', '>= 2.3.5')
+  gem.add_dependency('backports', '~> 3.6')
 
-  gem.add_runtime_dependency('addressable', '~> 2.2.6')
-  gem.add_runtime_dependency('backports')
-
-  gem.add_development_dependency('rake',  '~> 0.9.2')
+  gem.add_development_dependency('rake',  '~> 10.0.3')
   gem.add_development_dependency('rspec', '~> 1.3.2')
 end

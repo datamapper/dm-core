@@ -20,7 +20,7 @@ module DataMapper
   # DataMapper.setup(name, uri) returns the Adapter for convenience, so you can
   # use code like this:
   #
-  #   adapter = DataMapper.setup(:default, 'mock://localhost/mock')
+  #   adapter = DataMapper.setup(:default, 'mock://127.0.0.1/mock')
   #   adapter.resource_naming_convention = NamingConventions::Resource::Underscored
   module NamingConventions
 
@@ -77,6 +77,25 @@ module DataMapper
           DataMapper::Inflector.underscore(property.name.to_s)
         end
       end # module Underscored
+
+      module FQN
+        def self.call(property)
+          model, name = property.model, property.name
+
+          fk_names = model.relationships.inject([]) { |names, rel|
+            if rel.respond_to?(:required?)
+              names + rel.source_key.map(&:name)
+            else
+              names
+            end
+          }
+
+          return name.to_s if fk_names.include?(name)
+
+          storage_name = model.storage_name(property.repository_name)
+          "#{DataMapper::Inflector.singularize(storage_name)}_#{name}"
+        end
+      end # module FQN
 
       module Yaml
         def self.call(property)

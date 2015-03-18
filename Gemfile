@@ -2,7 +2,7 @@ require File.expand_path('../lib/dm-core/version', __FILE__)
 
 require 'pathname'
 
-source :rubygems
+source 'https://rubygems.org'
 
 gemspec
 
@@ -16,11 +16,8 @@ CURRENT_BRANCH = ENV.fetch('GIT_BRANCH', 'master')
 
 platforms :mri_18 do
   group :quality do
-
-    gem 'rcov',      '~> 0.9.10'
-    gem 'yard',      '~> 0.7.2'
-    gem 'yardstick', '~> 0.4'
-
+    gem 'yard',      '~> 0.8.6.2'
+    gem 'yardstick', '~> 0.9.6'
   end
 end
 

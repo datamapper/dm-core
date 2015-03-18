@@ -139,7 +139,7 @@ module DataMapper
 
     # @return [Hash] The mash as a Hash with string keys.
     def to_hash
-      Hash.new(default).merge(self)
+      Hash.new(default).replace(self)
     end
 
     protected
