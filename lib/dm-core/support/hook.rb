@@ -168,7 +168,7 @@ module DataMapper
       def register_hook(target_method, scope)
         if scope == :instance && !method_defined?(target_method)
           raise ArgumentError, "#{target_method} instance method does not exist"
-        elsif scope == :class && !respond_to?(target_method)
+        elsif scope == :class && !respond_to?(target_method, true)
           raise ArgumentError, "#{target_method} class method does not exist"
         end
 
