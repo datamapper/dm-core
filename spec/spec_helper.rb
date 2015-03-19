@@ -1,6 +1,4 @@
 require 'pathname'
-require 'rubygems'
-require 'backports'
 require 'spec'
 require 'dm-core/spec/setup'
 
