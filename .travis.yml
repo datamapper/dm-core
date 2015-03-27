@@ -1,7 +1,9 @@
 language: ruby
 
 rvm:
-  - 2.0.0
+  - 2.0
+  - 2.1
+  - 2.2
   - ruby-head
   - rbx-19mode
 
@@ -19,7 +21,7 @@ services:
   - postgresql
 
 before_install:
-  - apt-get install -qq postgresql-server-dev-9.3
+  - sudo apt-get install -qq postgresql-server-dev-9.3
 
 before_script:
   - mysql -e "create database datamapper_alternate_tests;"
