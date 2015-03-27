@@ -34,8 +34,10 @@ describe DataMapper::Property::Binary do
       it 'should always load with BINARY' do
         model.bin_data.load("foo".freeze).encoding.names.should include("BINARY")
       end
-    end
 
-    it { should eql(:load_as => @load_as, :length => 50) }
+      it 'should have valid options' do
+        model.bin_data.options.should eql(:load_as => @load_as, :dump_as => @load_as, :length => 50)
+      end
+    end
   end
 end

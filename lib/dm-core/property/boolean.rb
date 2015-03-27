@@ -2,6 +2,7 @@ module DataMapper
   class Property
     class Boolean < Object
       load_as ::TrueClass
+      dump_as ::TrueClass
 
       TRUE_VALUES  = [ 1, '1', 't', 'T', 'true',  'TRUE'  ].freeze
       FALSE_VALUES = [ 0, '0', 'f', 'F', 'false', 'FALSE' ].freeze

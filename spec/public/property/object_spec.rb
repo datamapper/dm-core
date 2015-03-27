@@ -43,7 +43,7 @@ describe DataMapper::Property, 'Object type' do
     context 'when the value is not a primitive' do
       before do
         # simulate the value not being a primitive
-        @property.should_receive(:primitive?).with(@value).and_return(false)
+        @property.should_receive(:value_loaded?).with(@value).and_return(false)
       end
 
       it { should equal(@value) }

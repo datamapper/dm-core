@@ -2,6 +2,7 @@ module DataMapper
   class Property
     class Float < Numeric
       load_as ::Float
+      dump_as ::Float
 
       DEFAULT_PRECISION = 10
       DEFAULT_SCALE     = nil

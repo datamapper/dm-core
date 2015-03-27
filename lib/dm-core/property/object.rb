@@ -2,6 +2,7 @@ module DataMapper
   class Property
     class Object < Property
       load_as ::Object
+      dump_as ::String
 
       # @api semipublic
       def dump(value)

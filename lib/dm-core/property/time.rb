@@ -4,6 +4,7 @@ module DataMapper
       include Typecast::Time
 
       load_as ::Time
+      dump_as ::Time
 
       # Typecasts an arbitrary value to a Time
       # Handles both Hashes and Time instances.
