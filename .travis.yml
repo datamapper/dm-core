@@ -14,7 +14,7 @@ env:
   - "ADAPTER=mysql DM_DB_USER=root DM_DB_PASSWORD=''"
   - "ADAPTER=postgres DM_DB_USER=postgres DM_DB_PASSWORD=''"
 
-sudo: false
+sudo: true
 
 services:
   - mysql
