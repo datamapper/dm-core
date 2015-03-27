@@ -21,7 +21,8 @@ services:
   - postgresql
 
 before_install:
-  - sudo apt-get install -qq postgresql-server-dev
+  - sudo apt-get update -qq
+  - sudo apt-get install -y postgresql-server-dev-all
 
 before_script:
   - mysql -e "create database datamapper_alternate_tests;"
