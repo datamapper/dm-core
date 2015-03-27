@@ -35,6 +35,7 @@ matrix:
   allow_failures:
     - rvm: rbx-19mode
       env: "ADAPTER=yaml"
+    - rvm: ruby-head
   include:
     - rvm: jruby-19mode
       env: JRUBY_OPTS="$JRUBY_OPTS --debug"
