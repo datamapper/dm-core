@@ -18,6 +18,9 @@ services:
   - mysql
   - postgresql
 
+before_install:
+  - apt-get install -qq postgresql-server-dev-9.3
+
 before_script:
   - mysql -e "create database datamapper_alternate_tests;"
   - mysql -e "create database datamapper_default_tests;"
