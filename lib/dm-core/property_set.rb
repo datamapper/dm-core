@@ -73,7 +73,7 @@ module DataMapper
     # @api semipublic
     def unique_indexes
       index_hash = {}
-      each { |property| parse_index(property.unique_index, property.field, index_hash) }
+      each { |property| parse_unique_index(property.unique_index, property.field, index_hash) }
       index_hash
     end
 
@@ -171,6 +171,18 @@ module DataMapper
           index_hash[index] << property
         when Array
           index.each { |idx| parse_index(idx, property, index_hash) }
+      end
+    end
+
+    # @api private
+    def parse_unique_index(index, property, index_hash)
+      case index
+        when true
+          index_hash[property] = [ property ]
+        when Symbol
+          index_hash[property] = [ property, index ] if index != :key
+        when Array
+          index_hash[property] = [ property ] + index
       end
     end
   end # class PropertySet
