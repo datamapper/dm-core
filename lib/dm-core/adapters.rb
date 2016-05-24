@@ -10,7 +10,36 @@ module DataMapper
     # @api private
     def self.new(repository_name, options)
       options = normalize_options(options)
-      adapter_class(options.fetch(:adapter)).new(repository_name, options)
+
+      case options.fetch(:adapter)
+      when 'java'      
+        # discover the real adapter
+        jndi_uri = "#{options[:scheme]}:#{options[:path]}"
+        context = javax.naming.InitialContext.new 
+        ds= context.lookup(jndi_uri)
+        conn = ds.getConnection
+        begin
+          metadata = conn.getMetaData
+          driver_name = metadata.getDriverName
+
+          driver = case driver_name
+            when /mysql/i  then 'mysql'
+            when /oracle/i then 'oracle'
+            when /postgres/i then 'postgres'
+            when /sqlite/i then 'sqlite'
+            when /sqlserver|tds|Microsoft SQL/i then 'sqlserver'
+            else
+              nil # not supported
+            end # case
+            options[:adapter] = driver
+        ensure
+          conn.close
+        end
+      else
+        driver = options.fetch(:adapter)
+      end # case 
+
+      adapter_class(driver).new(repository_name, options)
     end
 
     # The path used to require the in memory adapter
