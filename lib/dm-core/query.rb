@@ -29,6 +29,8 @@ module DataMapper
     include DataMapper::Assertions
     extend Equalizer
 
+    InvalidConditionsError = Class.new(StandardError)
+
     OPTIONS = [ :fields, :links, :conditions, :offset, :limit, :order, :unique, :add_reversed, :reload ].to_set.freeze
 
     equalize :repository, :model, :sorted_fields, :links, :conditions, :order, :offset, :limit, :reload?, :unique?, :add_reversed?
