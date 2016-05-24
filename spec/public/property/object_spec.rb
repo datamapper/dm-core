@@ -41,11 +41,7 @@ describe DataMapper::Property, 'Object type' do
     end
 
     context 'when the value is not a primitive' do
-      before do
-        # simulate the value not being a primitive
-        @property.should_receive(:primitive?).with(@value).and_return(false)
-      end
-
+      # objects do not typecast other objects to primitives
       it { should equal(@value) }
     end
   end

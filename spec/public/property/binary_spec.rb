@@ -15,7 +15,7 @@ describe DataMapper::Property::Binary do
   describe '.options' do
     subject { described_class.options }
 
-    it { should eql(:load_as => @load_as, :dump_as => @load_as, :length => 50) }
+    it { should eql(:load_as => @load_as, :length => 50) }
   end
 
   if RUBY_VERSION >= "1.9"
@@ -36,6 +36,10 @@ describe DataMapper::Property::Binary do
       end
     end
 
-    it { should eql(:load_as => @load_as, :length => 50) }
+    describe '.options' do
+      subject { described_class.options }
+
+      it { should eql(:load_as => @load_as, :length => 50) }
+    end
   end
 end
