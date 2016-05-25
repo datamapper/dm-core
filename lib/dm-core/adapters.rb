@@ -237,7 +237,14 @@ module DataMapper
       #
       # @api private
       def normalize_adapter_name(name)
-        (original = name.to_s) == 'sqlite3' ? 'sqlite' : original
+        case (original = name.to_s)
+        when 'sqlite3'
+          'sqlite'
+        when 'inmemory' # Addressable >= v2.4 does not support underscores in scheme
+          'in_memory'
+        else
+          original
+        end
       end
 
     end

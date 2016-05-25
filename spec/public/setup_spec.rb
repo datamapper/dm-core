@@ -4,7 +4,7 @@ describe DataMapper do
   describe '.setup' do
     describe 'using connection string' do
       before :all do
-        @return = DataMapper.setup(:setup_test, 'in_memory://user:pass@hostname:1234/path?foo=bar&baz=foo#fragment')
+        @return = DataMapper.setup(:setup_test, 'inmemory://user:pass@hostname:1234/path?foo=bar&baz=foo#fragment')
 
         @options = @return.options
       end
@@ -22,7 +22,7 @@ describe DataMapper do
       end
 
       {
-        :adapter  => 'in_memory',
+        :adapter  => 'inmemory',
         :user     => 'user',
         :password => 'pass',
         :host     => 'hostname',
