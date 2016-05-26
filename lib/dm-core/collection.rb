@@ -1116,7 +1116,11 @@ module DataMapper
       tail  = self.tail
       query = self.query
 
-      resources = repository.read(query)
+      resources = begin
+        repository.read(query)
+      rescue Query::InvalidConditionsError
+        []
+      end
 
       # remove already known results
       resources -= head          if head.any?

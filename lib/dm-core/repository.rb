@@ -158,7 +158,7 @@ module DataMapper
     #
     # @api semipublic
     def read(query)
-      raise InvalidConditionsError unless query.valid?
+      raise Query::InvalidConditionsError unless query.valid?
       query.model.load(adapter.read(query), query)
     end
 

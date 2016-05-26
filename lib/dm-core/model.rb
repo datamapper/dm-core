@@ -380,7 +380,11 @@ module DataMapper
       if limit_specified
         all(query)
       else
-        query.repository.read(query).first
+        begin
+          query.repository.read(query).first
+        rescue Query::InvalidConditionsError
+          nil
+        end
       end
     end
 
@@ -416,7 +420,11 @@ module DataMapper
       if limit_specified
         all(query)
       else
-        query.repository.read(query).last
+        begin
+          query.repository.read(query).last
+        rescue Query::InvalidConditionsError
+          nil
+        end
       end
     end
 
