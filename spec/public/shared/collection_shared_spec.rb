@@ -1182,6 +1182,78 @@ share_examples_for 'A public Collection' do
       end
     end
 
+    describe 'with chained negative offset after positive' do
+      before :all do
+        unless @skip
+          @return = @resources = @articles.slice!(1, 6).slice!(-4, 3)
+        end
+      end
+
+      it 'should return a Collection' do
+        @return.should be_kind_of(DataMapper::Collection)
+      end
+
+      it 'should return the expected Resources' do
+        @return.should == @copy.entries.slice!(1, 6).slice!(-4, 3)
+      end
+
+      it 'should remove the Resources from the Collection' do
+        @resources.each { |resource| @articles.should_not be_include(resource) }
+      end
+
+      it 'should scope the Collection' do
+        @resources.reload.should == @copy.entries.slice!(1, 6).slice!(-4, 3)
+      end
+    end
+
+    describe 'with chained positive offset after negative' do
+      before :all do
+        unless @skip
+          @return = @resources = @articles.slice!(-6, 5).slice!(1, 2)
+        end
+      end
+
+      it 'should return a Collection' do
+        @return.should be_kind_of(DataMapper::Collection)
+      end
+
+      it 'should return the expected Resources' do
+        @return.should == @copy.entries.slice!(-6, 5).slice!(1, 2)
+      end
+
+      it 'should remove the Resources from the Collection' do
+        @resources.each { |resource| @articles.should_not be_include(resource) }
+      end
+
+      it 'should scope the Collection' do
+        @resources.reload.should == @copy.entries.slice!(-6, 5).slice!(1, 2)
+      end
+    end
+    
+    describe 'with chained negative offset after negative' do
+      before :all do
+        unless @skip
+          @return = @resources = @articles.slice!(-7, 6).slice!(-4, 2)
+        end
+      end
+
+      it 'should return a Collection' do
+        @return.should be_kind_of(DataMapper::Collection)
+      end
+
+      it 'should return the expected Resources' do
+        @return.should == @copy.entries.slice!(-7, 6).slice!(-4, 2)
+      end
+
+      it 'should remove the Resources from the Collection' do
+        @resources.each { |resource| @articles.should_not be_include(resource) }
+      end
+
+      it 'should scope the Collection' do
+        @resources.reload.should == @copy.entries.slice!(-7, 6).slice!(-4, 2)
+      end
+    end
+
     describe 'with an offset not within the Collection' do
       before :all do
         unless @skip

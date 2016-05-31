@@ -34,5 +34,8 @@ measurements
 .bundle
 Gemfile.*
 
+## RVM
+.rvmrc
+
 ## PROJECT::SPECIFIC
 spec/db/
