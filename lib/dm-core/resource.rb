@@ -320,8 +320,6 @@ module DataMapper
           when String, Symbol
             if model.allowed_writer_methods.include?(setter = "#{name}=")
               __send__(setter, value)
-            else
-              raise ArgumentError, "The attribute '#{name}' is not accessible in #{model}"
             end
           when Associations::Relationship, Property
             # only call a public #typecast (e.g. on Property instances)
