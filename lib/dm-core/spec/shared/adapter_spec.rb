@@ -46,7 +46,7 @@ share_examples_for 'An Adapter' do
     end
   end
 
-  before :all do
+  before do
     raise '+#adapter+ should be defined in a let(:adapter) block' unless respond_to?(:adapter)
     raise '+#repository+ should be defined in a let(:repository) block' unless respond_to?(:repository)
 
@@ -83,7 +83,7 @@ share_examples_for 'An Adapter' do
 
   if adapter_supports?(:read)
     describe '#read' do
-      before :all do
+      before do
         @heffalump = heffalump_model.create(:color => 'brownish hue')
         @heffalump.should be_saved
         @query = heffalump_model.all.query
@@ -178,7 +178,8 @@ share_examples_for 'An Adapter' do
 
   if adapter_supports?(:read, :create)
     describe 'query matching' do
-      before :all do
+      before do
+        adapter.reset if adapter.respond_to?(:reset)
         @red  = heffalump_model.create(:color => 'red')
         @two  = heffalump_model.create(:num_spots => 2)
         @five = heffalump_model.create(:num_spots => 5)
