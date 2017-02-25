@@ -43,14 +43,7 @@ module DataMapper
       #
       # @api private
       def with_scope(query)
-        options = if query.kind_of?(Hash)
-          query
-        else
-          query.options
-        end
-
-        # merge the current scope with the passed in query
-        with_exclusive_scope(self.query.merge(options)) { |*block_args| yield(*block_args) }
+        with_exclusive_scope(query) { |*block_args| yield(*block_args) }
       end
 
       # Pushes given query on top of scope stack and yields
@@ -67,6 +60,34 @@ module DataMapper
         end
 
         scope_stack = self.scope_stack
+        scope_stack << query
+
+        begin
+          yield query.freeze
+        ensure
+          scope_stack.pop
+        end
+      end
+=begin
+      def with_scope(query)
+        options = if query.kind_of?(Hash)
+          query
+        else
+          query.options
+        end
+
+        # merge the current scope with the passed in query
+        with_exclusive_scope(self.query.merge(options)) { |*block_args| yield(*block_args) }
+      end
+
+      def with_exclusive_scope(query)
+        query = if query.kind_of?(Hash)
+          repository.new_query(self, query)
+        else
+          query.dup
+        end
+
+        scope_stack = self.scope_stack
         scope_stack << query.options
 
         begin
@@ -75,7 +96,7 @@ module DataMapper
           scope_stack.pop
         end
       end
-
+=end
       # Initializes (if necessary) and returns current scope stack
       # @api private
       def scope_stack
