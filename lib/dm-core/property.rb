@@ -864,5 +864,21 @@ module DataMapper
       @reader_visibility = @options.fetch(:reader, default_accessor)
       @writer_visibility = @options.fetch(:writer, default_accessor)
     end
+
+    # Used for creating :order options. This technique may be deprecated,
+    # so marking as semipublic until the issue is resolved.
+    #
+    # @api semipublic
+    def asc
+      DataMapper::Query::Operator.new(self, :asc)
+    end
+
+    # Used for creating :order options. This technique may be deprecated,
+    # so marking as semipublic until the issue is resolved.
+    #
+    # @api semipublic
+    def desc
+      DataMapper::Query::Operator.new(self, :desc)
+    end
   end # class Property
 end
